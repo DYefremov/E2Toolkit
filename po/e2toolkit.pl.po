@@ -1,0 +1,72 @@
+# Copyright (C) 2021 Dmitriy Yefremov
+#
+# This file is part of E2Toolkit.
+#
+# E2Toolkit is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# E2Toolkit is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with E2Toolkit.  If not, see <http://www.gnu.org/licenses/>.
+#
+msgid ""
+msgstr ""
+"Last-Translator: Dmitriy Yefremov\n"
+"Language: pl\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Qt-Contexts: true\n"
+"Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"X-Language: pl\n"
+"X-Source-Language: C\n"
+
+msgctxt "MainWindow|"
+msgid "Translated by"
+msgstr "Tłumaczenie"
+
+msgctxt "MainWindow|"
+msgid "Language"
+msgstr "Język"
+
+msgctxt "MainWindow|"
+msgid "Created by"
+msgstr "Program"
+
+msgctxt "MainWindow|"
+msgid ""
+"This program comes with absolutely no warranty.<br/>See the <a "
+"href=\"{}\">{}</a> for details."
+msgstr ""
+"Niniejszy program rozpowszechniany jest bez jakiejkolwiek "
+"gwarancji.<br/>Więcej informacji: <a href=\"{}\">{}</a>."
+
+msgctxt "MainWindow|"
+msgid "GNU General Public License, version 3 or later"
+msgstr "Powszechna licencja publiczna GNU, wersja 3 lub późniejsza"
+
+msgctxt "MainWindow|"
+msgid "File"
+msgstr "Plik"
+
+msgctxt "MainWindow|"
+msgid "View"
+msgstr "Widok"
+
+msgctxt "MainWindow|"
+msgid "Settings"
+msgstr "Ustawienia"
+
+msgctxt "MainWindow|"
+msgid "Help"
+msgstr "Pomoc"
+
+msgctxt "MainWindow|"
+msgid "About"
+msgstr "Wersja"
