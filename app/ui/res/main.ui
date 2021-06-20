@@ -864,7 +864,7 @@
      <x>0</x>
      <y>0</y>
      <width>997</width>
-     <height>22</height>
+     <height>24</height>
     </rect>
    </property>
    <widget class="QMenu" name="file_menu">
@@ -891,7 +891,6 @@
      <property name="title">
       <string>Language</string>
      </property>
-     <addaction name="english_lang_action"/>
     </widget>
     <addaction name="settings_action"/>
     <addaction name="separator"/>

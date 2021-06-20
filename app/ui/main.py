@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+#
 # Copyright (C) 2021 Dmitriy Yefremov
 #
 # This file is part of E2Toolkit.
@@ -26,10 +28,10 @@ from pathlib import Path
 
 from PyQt5.QtCore import QTranslator
 from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QApplication, QMainWindow, QActionGroup, QAction, QMessageBox, QFileDialog, QDialog
+from PyQt5.QtWidgets import QApplication, QMainWindow, QActionGroup, QAction, QMessageBox, QFileDialog
 
 from app.commons import APP_VERSION, APP_NAME, LANG_PATH, LOCALES
-from app.ui.settings_ui import Ui_SettingsDialog
+from app.ui.settings import SettingsDialog, Settings
 from .ui import Ui_MainWindow
 
 
@@ -39,7 +41,9 @@ class Application(QApplication):
         self.setWindowIcon(QIcon.fromTheme("applications-utilities"))
         self.setApplicationVersion(APP_VERSION)
         self.setApplicationName(APP_NAME)
+        self.setOrganizationDomain(APP_NAME)
 
+        self.settings = Settings()
         self.translator = QTranslator(self)
 
     @staticmethod
@@ -55,47 +59,7 @@ class Application(QApplication):
         else:
             self.removeTranslator(self.translator)
 
-
-class SettingsDialog(QDialog):
-    def __init__(self):
-        super(SettingsDialog, self).__init__()
-        self.ui = Ui_SettingsDialog()
-        self.ui.setupUi(self)
-
-        self.init_ui()
-        self.init_actions()
-
-        self.exec_()
-
-    def init_ui(self):
-        self.ui.program_tool_button.setEnabled(False)
-        # Init picon paths for the box
-        self.ui.picon_path_box.addItems(("/usr/share/enigma2/picon/", "/media/hdd/picon", "/media/usb/picon",
-                                         "/media/mmc/picon", "/media/cf/picon"))
-
-    def init_actions(self):
-        self.ui.network_tool_button.toggled.connect(lambda s: self.ui.stacked_widget.setCurrentIndex(0) if s else None)
-        self.ui.paths_tool_button.toggled.connect(lambda s: self.ui.stacked_widget.setCurrentIndex(1) if s else None)
-        self.ui.program_tool_button.toggled.connect(lambda s: self.ui.stacked_widget.setCurrentIndex(2) if s else None)
-        # Profile
-        self.ui.profile_add_button.clicked.connect(self.on_profile_add)
-        self.ui.profile_edit_button.clicked.connect(self.on_profile_edit)
-        self.ui.profile_remove_button.clicked.connect(self.on_profile_remove)
-        self.ui.test_button.clicked.connect(self.on_test_connection)
-
-    # ******************** Network ******************** #
-
-    def on_profile_add(self, state):
-        QMessageBox.information(self, APP_NAME, self.tr("Not implemented yet!"))
-
-    def on_profile_edit(self, state):
-        QMessageBox.information(self, APP_NAME, self.tr("Not implemented yet!"))
-
-    def on_profile_remove(self, state):
-        QMessageBox.information(self, APP_NAME, self.tr("Not implemented yet!"))
-
-    def on_test_connection(self, state):
-        QMessageBox.information(self, APP_NAME, self.tr("Not implemented yet!"))
+        self.settings.app_locale = locale
 
 
 class MainWindow(QMainWindow):
@@ -116,12 +80,14 @@ class MainWindow(QMainWindow):
         super(MainWindow, self).__init__()
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
+        self.settings = Settings()
 
         self.init_ui()
         self.init_actions()
         self.init_language()
 
     def init_ui(self):
+        self.resize(self.settings.app_window_size)
         # Tool buttons
         self.ui.satellite_tool_button.setVisible(False)
         self.ui.picon_tool_button.setVisible(False)
@@ -152,12 +118,16 @@ class MainWindow(QMainWindow):
         self.ui.about_action.triggered.connect(self.on_about)
 
     def init_language(self):
+        app_locale = self.settings.app_locale
         group = QActionGroup(self)
-        group.addAction(self.ui.english_lang_action)
-        for locale in LOCALES:
-            action = QAction(locale.nativeLanguageName(), self.ui.language_menu)
+
+        for name, bcp in LOCALES:
+            action = QAction(name, self.ui.language_menu)
             action.setCheckable(True)
-            action.setData(locale.bcp47Name())
+            action.setData(bcp)
+            if bcp == app_locale:
+                action.setChecked(True)
+                self.set_locale(bcp)
             self.ui.language_menu.addAction(action)
             group.addAction(action)
 
@@ -191,8 +161,11 @@ class MainWindow(QMainWindow):
         SettingsDialog()
 
     def on_change_language(self, action):
+        self.set_locale(action.data() or "")
+
+    def set_locale(self, locale):
         app = Application.instance()
-        app.set_locale(action.data() or "")
+        app.set_locale(locale)
         self.ui.retranslateUi(self)
 
     def on_stack_page_changed(self, state, p_num):
@@ -210,6 +183,10 @@ class MainWindow(QMainWindow):
                """.format(APP_NAME, APP_VERSION, lic)
 
         QMessageBox.about(self, APP_NAME, msg)
+
+    def closeEvent(self, event):
+        """ Main window close event. """
+        self.settings.app_window_size = self.size()
 
 
 if __name__ == "__main__":

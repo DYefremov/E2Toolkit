@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+#
 # Copyright (C) 2021 Dmitriy Yefremov
 #
 # This file is part of E2Toolkit.
@@ -20,21 +22,15 @@
 
 
 """ Common module for app constants and additional functions. """
-from PyQt5.QtCore import QLocale
-
 # Application
 APP_NAME = "E2Toolkit"
 APP_VERSION = "1.0.0 Pre-Alpha"
 # Translation
-LANG_PATH = "ui/locale/"
-LOCALES = (QLocale(QLocale.Spanish),
-           QLocale(QLocale.German),
-           QLocale(QLocale.Dutch),
-           QLocale(QLocale.Polish),
-           QLocale(QLocale.Portuguese),
-           QLocale(QLocale.Turkish),
-           QLocale(QLocale.Belarusian),
-           QLocale(QLocale.Russian))
+LANG_PATH = "app/ui/locale/"
+# Just add your language to appear on the menu.
+LOCALES = (("English", "en"), ("español", "es"), ("Deutsch", "de"),
+           ("Nederlands", "nl"), ("polski", "pl"), ("português", "pt"),
+           ("Türkçe", "tr"), ("беларуская", "be"), ("русский", "ru"))
 # Icons
 CODED_ICON = None
 LOCKED_ICON = None

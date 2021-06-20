@@ -2,13 +2,11 @@
 
 # Form implementation generated from reading ui file 'res/settings.ui'
 #
-# Created by: PyQt5 UI code generator 5.14.1
+# Created by: PyQt5 UI code generator 5.10.1
 #
 # WARNING! All changes made in this file will be lost!
 
-
 from PyQt5 import QtCore, QtGui, QtWidgets
-
 
 class Ui_SettingsDialog(object):
     def setupUi(self, SettingsDialog):
@@ -139,6 +137,7 @@ class Ui_SettingsDialog(object):
         self.http_port_edit.setSizePolicy(sizePolicy)
         self.http_port_edit.setMinimumSize(QtCore.QSize(50, 0))
         self.http_port_edit.setMaximumSize(QtCore.QSize(50, 16777215))
+        self.http_port_edit.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         self.http_port_edit.setObjectName("http_port_edit")
         self.http_port_layout.addWidget(self.http_port_edit)
         self.http_ssl_check_box = QtWidgets.QCheckBox(self.network_page)
@@ -228,12 +227,14 @@ class Ui_SettingsDialog(object):
         self.picon_path_label.setObjectName("picon_path_label")
         self.formLayout.setWidget(1, QtWidgets.QFormLayout.LabelRole, self.picon_path_label)
         self.local_picon_path_edit = QtWidgets.QLineEdit(self.local_file_paths_box)
+        self.local_picon_path_edit.setMinimumSize(QtCore.QSize(250, 0))
         self.local_picon_path_edit.setObjectName("local_picon_path_edit")
         self.formLayout.setWidget(1, QtWidgets.QFormLayout.FieldRole, self.local_picon_path_edit)
         self.backup_path_label = QtWidgets.QLabel(self.local_file_paths_box)
         self.backup_path_label.setObjectName("backup_path_label")
         self.formLayout.setWidget(2, QtWidgets.QFormLayout.LabelRole, self.backup_path_label)
         self.local_backup_path_edit = QtWidgets.QLineEdit(self.local_file_paths_box)
+        self.local_backup_path_edit.setMinimumSize(QtCore.QSize(250, 0))
         self.local_backup_path_edit.setObjectName("local_backup_path_edit")
         self.formLayout.setWidget(2, QtWidgets.QFormLayout.FieldRole, self.local_backup_path_edit)
         self.gridLayout_3.addWidget(self.local_file_paths_box, 0, 0, 1, 1)
@@ -245,13 +246,12 @@ class Ui_SettingsDialog(object):
         self.gridLayout.addLayout(self.main_layout, 0, 0, 1, 1)
         self.action_button_box = QtWidgets.QDialogButtonBox(SettingsDialog)
         self.action_button_box.setOrientation(QtCore.Qt.Horizontal)
-        self.action_button_box.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel|QtWidgets.QDialogButtonBox.Ok)
+        self.action_button_box.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel|QtWidgets.QDialogButtonBox.Ok|QtWidgets.QDialogButtonBox.RestoreDefaults)
         self.action_button_box.setObjectName("action_button_box")
         self.gridLayout.addWidget(self.action_button_box, 1, 0, 1, 1)
 
         self.retranslateUi(SettingsDialog)
-        self.action_button_box.accepted.connect(SettingsDialog.accept)
-        self.action_button_box.rejected.connect(SettingsDialog.reject)
+        self.stacked_widget.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(SettingsDialog)
 
     def retranslateUi(self, SettingsDialog):
@@ -278,3 +278,4 @@ class Ui_SettingsDialog(object):
         self.data_path_label.setText(_translate("SettingsDialog", "Data path:"))
         self.picon_path_label.setText(_translate("SettingsDialog", "Picons path:"))
         self.backup_path_label.setText(_translate("SettingsDialog", "Backup path:"))
+

@@ -2,13 +2,11 @@
 
 # Form implementation generated from reading ui file 'res/main.ui'
 #
-# Created by: PyQt5 UI code generator 5.14.1
+# Created by: PyQt5 UI code generator 5.10.1
 #
 # WARNING! All changes made in this file will be lost!
 
-
 from PyQt5 import QtCore, QtGui, QtWidgets
-
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -370,7 +368,7 @@ class Ui_MainWindow(object):
         self.gridLayout.addWidget(self.main_frame, 1, 0, 1, 1)
         MainWindow.setCentralWidget(self.central_widget)
         self.menu_bar = QtWidgets.QMenuBar(MainWindow)
-        self.menu_bar.setGeometry(QtCore.QRect(0, 0, 997, 22))
+        self.menu_bar.setGeometry(QtCore.QRect(0, 0, 997, 24))
         self.menu_bar.setObjectName("menu_bar")
         self.file_menu = QtWidgets.QMenu(self.menu_bar)
         self.file_menu.setObjectName("file_menu")
@@ -450,7 +448,6 @@ class Ui_MainWindow(object):
         self.file_menu.addSeparator()
         self.file_menu.addAction(self.exit_action)
         self.help_menu.addAction(self.about_action)
-        self.language_menu.addAction(self.english_lang_action)
         self.settings_menu.addAction(self.settings_action)
         self.settings_menu.addSeparator()
         self.settings_menu.addAction(self.language_menu.menuAction())
@@ -542,3 +539,4 @@ class Ui_MainWindow(object):
         self.timer_action.setText(_translate("MainWindow", "Timer"))
         self.ftp_action.setText(_translate("MainWindow", "FTP"))
         self.logo_action.setText(_translate("MainWindow", "Logo"))
+
