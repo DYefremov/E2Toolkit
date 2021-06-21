@@ -22,12 +22,13 @@
 
 
 """ Main settings module. """
+import os
 from collections import OrderedDict
 from enum import Enum
 from pathlib import Path
 
 from PyQt5.QtCore import QSettings, QSize, QStringListModel
-from PyQt5.QtWidgets import QDialog, QMessageBox, QDialogButtonBox
+from PyQt5.QtWidgets import QDialog, QMessageBox, QDialogButtonBox, QFileDialog
 
 from app.commons import APP_NAME
 from app.ui.settings_ui import Ui_SettingsDialog
@@ -47,9 +48,9 @@ class Settings(QSettings):
         USER = "root"
         PASSWORD = ""
         HOST = "127.0.0.1"
-        FTP_PORT = 21
-        HTTP_PORT = 80
-        TELNET_PORT = 23
+        FTP_PORT = "21"
+        HTTP_PORT = "80"
+        TELNET_PORT = "23"
         HTTP_USE_SSL = False
 
         APP_WINDOW_SIZE = QSize(850, 560)
@@ -142,23 +143,24 @@ class SettingsDialog(QDialog):
         super(SettingsDialog, self).__init__()
         self.ui = Ui_SettingsDialog()
         self.ui.setupUi(self)
+
         self.settings = Settings()
+        self._profiles = OrderedDict()
+        self._current_profile = None
 
         self.init_ui()
         self.init_actions()
-
-        self._profiles = OrderedDict()
         self.init_settings()
 
         self.exec_()
 
     def init_ui(self):
-        self.ui.program_tool_button.setEnabled(False)
+        self.ui.program_tool_button.setVisible(False)
         # Setting model to profiles view.
         self.ui.profile_view.setModel(QStringListModel())
         # Init picon paths for the box
-        self.ui.picon_path_box.addItems(("/usr/share/enigma2/picon/", "/media/hdd/picon", "/media/usb/picon",
-                                         "/media/mmc/picon", "/media/cf/picon"))
+        self.ui.picon_path_box.addItems(("/usr/share/enigma2/picon/", "/media/hdd/picon/", "/media/usb/picon/",
+                                         "/media/mmc/picon/", "/media/cf/picon/"))
 
     def init_actions(self):
         self.ui.network_tool_button.toggled.connect(lambda s: self.ui.stacked_widget.setCurrentIndex(0) if s else None)
@@ -169,7 +171,24 @@ class SettingsDialog(QDialog):
         self.ui.profile_edit_button.clicked.connect(self.on_profile_edit)
         self.ui.profile_remove_button.clicked.connect(self.on_profile_remove)
         self.ui.test_button.clicked.connect(self.on_test_connection)
-        self.ui.profile_view.clicked.connect(self.on_profile_selection)
+        self.ui.profile_view.selectionModel().currentChanged.connect(self.on_profile_selection)
+        self.ui.login_edit.editingFinished.connect(lambda: self.on_profile_params_set("user", self.ui.login_edit))
+        self.ui.password_edit.editingFinished.connect(
+            lambda: self.on_profile_params_set("password", self.ui.password_edit))
+        self.ui.host_edit.editingFinished.connect(lambda: self.on_profile_params_set("host", self.ui.host_edit))
+        self.ui.ftp_port_edit.editingFinished.connect(
+            lambda: self.on_profile_params_set("ftp_port", self.ui.ftp_port_edit))
+        self.ui.http_port_edit.editingFinished.connect(
+            lambda: self.on_profile_params_set("http_port", self.ui.http_port_edit))
+        self.ui.telnet_port_edit.editingFinished.connect(
+            lambda: self.on_profile_params_set("ftp_port", self.ui.telnet_port_edit))
+        self.ui.picon_path_box.activated.connect(
+            lambda i: self._current_profile.update({"box_picon_path": self.ui.picon_path_box.currentText()}))
+        self.ui.http_ssl_check_box.toggled.connect(self.on_http_ssl_toggled)
+        # Paths
+        self.ui.browse_data_path_button.clicked.connect(lambda b: self.on_path_set(self.ui.data_path_edit))
+        self.ui.browse_picon_path_button.clicked.connect(lambda b: self.on_path_set(self.ui.picon_path_edit))
+        self.ui.browse_backup_path_button.clicked.connect(lambda b: self.on_path_set(self.ui.backup_path_edit))
         # Dialog buttons
         self.ui.action_button_box.clicked.connect(self.on_accept)
 
@@ -178,10 +197,19 @@ class SettingsDialog(QDialog):
         for p in self.settings.profiles:
             self._profiles[p.get("name")] = p
         self.ui.profile_view.model().setStringList(self._profiles)
+        self.ui.profile_view.setCurrentIndex(self.ui.profile_view.model().createIndex(0, 0))
         # Paths
-        self.ui.local_data_path_edit.setText(self.settings.data_path)
-        self.ui.local_picon_path_edit.setText(self.settings.picon_path)
-        self.ui.local_backup_path_edit.setText(self.settings.backup_path)
+        self.ui.data_path_edit.setText(self.settings.data_path)
+        self.ui.picon_path_edit.setText(self.settings.picon_path)
+        self.ui.backup_path_edit.setText(self.settings.backup_path)
+
+    def settings_save(self):
+        # Profiles
+        self.settings.profiles = self._profiles.values()
+        # Paths
+        self.settings.data_path = self.ui.data_path_edit.text()
+        self.settings.picon_path = self.ui.picon_path_edit.text()
+        self.settings.backup_path = self.ui.backup_path_edit.text()
 
     # ******************** Network ******************** #
 
@@ -197,29 +225,64 @@ class SettingsDialog(QDialog):
     def on_profile_selection(self, index):
         profile = self._profiles.get(index.data(), None)
         if profile:
+            self._current_profile = profile
             self.ui.login_edit.setText(profile.get("user", Settings.Default.USER.value))
             self.ui.password_edit.setText(profile.get("password", Settings.Default.PASSWORD.value))
             self.ui.host_edit.setText(profile.get("host", Settings.Default.HOST.value))
-            self.ui.ftp_port_edit.setText(str(profile.get("ftp_port", Settings.Default.FTP_PORT.value)))
-            self.ui.http_port_edit.setText(str(profile.get("http_port", Settings.Default.HTTP_PORT.value)))
-            self.ui.telnet_port_edit.setText(str(profile.get("telnet_port", Settings.Default.TELNET_PORT.value)))
+            self.ui.ftp_port_edit.setText(profile.get("ftp_port", Settings.Default.FTP_PORT.value))
+            self.ui.http_port_edit.setText(profile.get("http_port", Settings.Default.HTTP_PORT.value))
+            self.ui.telnet_port_edit.setText(profile.get("telnet_port", Settings.Default.TELNET_PORT.value))
+            self.ui.picon_path_box.setCurrentText(profile.get("box_picon_path", Settings.Default.BOX_PICON_PATH.value))
+            self.ui.http_ssl_check_box.setChecked(profile.get("http_use_ssl", Settings.Default.HTTP_USE_SSL.value))
         else:
             QMessageBox.critical(self, APP_NAME, self.tr("Profile loading error!"))
 
     def on_test_connection(self, state):
         QMessageBox.information(self, APP_NAME, self.tr("Not implemented yet!"))
 
+    def on_profile_params_set(self, param, edit):
+        """ Sets the current profile parameter when editing the value is finished [editingFinished event].
+
+            @param param: the name of profile parameter.
+            @param edit: QLineEdit object for the given parameter.
+         """
+        self._current_profile[param] = edit.text()
+
+    def on_http_ssl_toggled(self, checked):
+        self._current_profile["http_use_ssl"] = checked
+        port = "443" if checked else Settings.Default.HTTP_PORT.value
+        self.ui.http_port_edit.setText(port)
+        self._current_profile["http_port"] = port
+
+    # ******************** Paths ******************** #
+
+    def on_path_set(self, edit):
+        """ Sets path to the given edit field. """
+        path = QFileDialog.getExistingDirectory(self, self.tr("Select Directory"), edit.text())
+        if path:
+            edit.setText(path + os.sep)
+
     # ******************** Dialog buttons. ******************** #
 
     def on_accept(self, button):
         role = self.ui.action_button_box.buttonRole(button)
-        if role == QDialogButtonBox.YesRole:
+        if role == QDialogButtonBox.AcceptRole:
             if QMessageBox.question(self, APP_NAME, self.tr("Are you sure?")) == QMessageBox.Yes:
+                self.settings_save()
                 self.accept()
         elif role == QDialogButtonBox.ResetRole:
-            QMessageBox.information(self, APP_NAME, self.tr("Not implemented yet!"))
+            self.reset_settings_to_defaults()
         else:
             self.reject()
+
+    def reset_settings_to_defaults(self):
+        msg = "{}<p align='center'>{}<br>".format(
+            self.tr("This operation resets all settings to the defaults."),
+            self.tr("Are you sure?"))
+        if QMessageBox.question(self, APP_NAME, msg) == QDialogButtonBox.Yes:
+            self.settings.clear()
+            self.init_settings()
+            self.settings_save()
 
 
 if __name__ == "__main__":

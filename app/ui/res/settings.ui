@@ -135,6 +135,9 @@
      </item>
      <item>
       <widget class="QStackedWidget" name="stacked_widget">
+       <property name="frameShape">
+        <enum>QFrame::NoFrame</enum>
+       </property>
        <property name="currentIndex">
         <number>0</number>
        </property>
@@ -423,7 +426,7 @@
        </widget>
        <widget class="QWidget" name="paths_page">
         <layout class="QGridLayout" name="gridLayout_3">
-         <item row="0" column="0">
+         <item row="0" column="1">
           <widget class="QGroupBox" name="local_file_paths_box">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
@@ -442,49 +445,115 @@
               </property>
              </widget>
             </item>
-            <item row="0" column="1">
-             <widget class="QLineEdit" name="local_data_path_edit">
-              <property name="minimumSize">
-               <size>
-                <width>250</width>
-                <height>0</height>
-               </size>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="0">
-             <widget class="QLabel" name="picon_path_label">
-              <property name="text">
-               <string>Picons path:</string>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="1">
-             <widget class="QLineEdit" name="local_picon_path_edit">
-              <property name="minimumSize">
-               <size>
-                <width>250</width>
-                <height>0</height>
-               </size>
-              </property>
-             </widget>
-            </item>
-            <item row="2" column="0">
+            <item row="6" column="0">
              <widget class="QLabel" name="backup_path_label">
               <property name="text">
                <string>Backup path:</string>
               </property>
              </widget>
             </item>
-            <item row="2" column="1">
-             <widget class="QLineEdit" name="local_backup_path_edit">
-              <property name="minimumSize">
-               <size>
-                <width>250</width>
-                <height>0</height>
-               </size>
+            <item row="0" column="1">
+             <layout class="QHBoxLayout" name="data_path_layout">
+              <property name="spacing">
+               <number>2</number>
+              </property>
+              <item>
+               <widget class="QLineEdit" name="data_path_edit">
+                <property name="minimumSize">
+                 <size>
+                  <width>250</width>
+                  <height>0</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string notr="true"/>
+                </property>
+                <property name="readOnly">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="browse_data_path_button">
+                <property name="text">
+                 <string>Choose...</string>
+                </property>
+                <property name="icon">
+                 <iconset theme="folder-open">
+                  <normaloff>.</normaloff>.</iconset>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item row="6" column="1">
+             <layout class="QHBoxLayout" name="backup_path_layout">
+              <property name="spacing">
+               <number>2</number>
+              </property>
+              <item>
+               <widget class="QLineEdit" name="backup_path_edit">
+                <property name="minimumSize">
+                 <size>
+                  <width>250</width>
+                  <height>0</height>
+                 </size>
+                </property>
+                <property name="readOnly">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="browse_backup_path_button">
+                <property name="text">
+                 <string>Choose...</string>
+                </property>
+                <property name="icon">
+                 <iconset theme="folder-open">
+                  <normaloff>.</normaloff>.</iconset>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item row="3" column="0">
+             <widget class="QLabel" name="picon_path_label">
+              <property name="text">
+               <string>Picons path:</string>
               </property>
              </widget>
+            </item>
+            <item row="3" column="1">
+             <layout class="QHBoxLayout" name="picon_path_layout">
+              <property name="spacing">
+               <number>2</number>
+              </property>
+              <item>
+               <widget class="QLineEdit" name="picon_path_edit">
+                <property name="minimumSize">
+                 <size>
+                  <width>250</width>
+                  <height>0</height>
+                 </size>
+                </property>
+                <property name="readOnly">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="browse_picon_path_button">
+                <property name="text">
+                 <string>Choose...</string>
+                </property>
+                <property name="icon">
+                 <iconset theme="folder-open">
+                  <normaloff>.</normaloff>.</iconset>
+                </property>
+               </widget>
+              </item>
+             </layout>
             </item>
            </layout>
           </widget>
