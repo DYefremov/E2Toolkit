@@ -573,7 +573,17 @@
                 </layout>
                </item>
                <item>
-                <widget class="QTableView" name="services_view"/>
+                <widget class="QTableView" name="services_view">
+                 <property name="selectionMode">
+                  <enum>QAbstractItemView::MultiSelection</enum>
+                 </property>
+                 <property name="selectionBehavior">
+                  <enum>QAbstractItemView::SelectRows</enum>
+                 </property>
+                 <property name="sortingEnabled">
+                  <bool>true</bool>
+                 </property>
+                </widget>
                </item>
                <item>
                 <layout class="QHBoxLayout" name="services_bottom_layout">
@@ -705,7 +715,14 @@
              <number>6</number>
             </property>
             <item row="3" column="1">
-             <widget class="QTableView" name="fav_view"/>
+             <widget class="QTableView" name="fav_view">
+              <property name="selectionMode">
+               <enum>QAbstractItemView::MultiSelection</enum>
+              </property>
+              <property name="selectionBehavior">
+               <enum>QAbstractItemView::SelectRows</enum>
+              </property>
+             </widget>
             </item>
             <item row="0" column="1">
              <layout class="QHBoxLayout" name="fav_h_layout">
@@ -856,6 +873,22 @@
       </layout>
      </widget>
     </item>
+    <item row="2" column="0">
+     <widget class="QTextBrowser" name="log_text_browser">
+      <property name="minimumSize">
+       <size>
+        <width>0</width>
+        <height>100</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>16777215</width>
+        <height>250</height>
+       </size>
+      </property>
+     </widget>
+    </item>
    </layout>
   </widget>
   <widget class="QMenuBar" name="menu_bar">
@@ -864,7 +897,7 @@
      <x>0</x>
      <y>0</y>
      <width>997</width>
-     <height>24</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="file_menu">
@@ -900,7 +933,7 @@
     <property name="title">
      <string>View</string>
     </property>
-    <widget class="QMenu" name="menuTools">
+    <widget class="QMenu" name="tools_menu">
      <property name="title">
       <string>Tools</string>
      </property>
@@ -913,7 +946,9 @@
      <addaction name="ftp_action"/>
      <addaction name="logo_action"/>
     </widget>
-    <addaction name="menuTools"/>
+    <addaction name="log_action"/>
+    <addaction name="separator"/>
+    <addaction name="tools_menu"/>
    </widget>
    <addaction name="file_menu"/>
    <addaction name="view_menu"/>
@@ -1084,6 +1119,14 @@
     <string>Logo</string>
    </property>
   </action>
+  <action name="log_action">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Log</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections>
@@ -1212,6 +1255,22 @@
     <hint type="destinationlabel">
      <x>832</x>
      <y>67</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>log_action</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>log_text_browser</receiver>
+   <slot>setVisible(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>498</x>
+     <y>567</y>
     </hint>
    </hints>
   </connection>

@@ -44,6 +44,8 @@ class Settings(QSettings):
         BACKUP_PATH = DATA_PATH + "backup/"
         PICON_PATH = DATA_PATH + "picons/"
         BOX_PICON_PATH = "/usr/share/enigma2/picon/"
+        BOX_SERVICES_PATH = "/etc/enigma2/"
+        BOX_SATELLITE_PATH = "/etc/tuxbox/"
 
         USER = "root"
         PASSWORD = ""
@@ -70,6 +72,7 @@ class Settings(QSettings):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self._current_profile = self.Default.DEFAULT_PROFILE.value
 
     # ******************** Application ******************** #
 
@@ -118,6 +121,14 @@ class Settings(QSettings):
     # ******************** Network ******************** #
 
     @property
+    def box_services_path(self):
+        return self.Default.BOX_SERVICES_PATH.value
+
+    @property
+    def box_satellite_path(self):
+        return self.Default.BOX_SATELLITE_PATH.value
+
+    @property
     def profiles(self):
         self.beginGroup("profiles")
         prs = self.childKeys()
@@ -136,6 +147,14 @@ class Settings(QSettings):
         for p in prs:
             self.setValue(p["name"], p)
         self.endGroup()
+
+    @property
+    def current_profile(self):
+        return self._current_profile
+
+    @current_profile.setter
+    def current_profile(self, value):
+        self._current_profile = value
 
 
 class SettingsDialog(QDialog):

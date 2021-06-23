@@ -2,11 +2,13 @@
 
 # Form implementation generated from reading ui file 'res/main.ui'
 #
-# Created by: PyQt5 UI code generator 5.10.1
+# Created by: PyQt5 UI code generator 5.14.1
 #
 # WARNING! All changes made in this file will be lost!
 
+
 from PyQt5 import QtCore, QtGui, QtWidgets
+
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -241,6 +243,9 @@ class Ui_MainWindow(object):
         self.search_filter_layout.addWidget(self.service_search_edit)
         self.verticalLayout.addLayout(self.search_filter_layout)
         self.services_view = QtWidgets.QTableView(self.services_group_box)
+        self.services_view.setSelectionMode(QtWidgets.QAbstractItemView.MultiSelection)
+        self.services_view.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
+        self.services_view.setSortingEnabled(True)
         self.services_view.setObjectName("services_view")
         self.verticalLayout.addWidget(self.services_view)
         self.services_bottom_layout = QtWidgets.QHBoxLayout()
@@ -313,6 +318,8 @@ class Ui_MainWindow(object):
         self.fav_layout.setVerticalSpacing(6)
         self.fav_layout.setObjectName("fav_layout")
         self.fav_view = QtWidgets.QTableView(self.fav_group_box)
+        self.fav_view.setSelectionMode(QtWidgets.QAbstractItemView.MultiSelection)
+        self.fav_view.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
         self.fav_view.setObjectName("fav_view")
         self.fav_layout.addWidget(self.fav_view, 3, 1, 1, 1)
         self.fav_h_layout = QtWidgets.QHBoxLayout()
@@ -366,9 +373,14 @@ class Ui_MainWindow(object):
         self.gridLayout_3.addLayout(self.bq_h_layout, 0, 0, 1, 1)
         self.gridLayout_4.addWidget(self.main_splitter, 0, 0, 1, 1)
         self.gridLayout.addWidget(self.main_frame, 1, 0, 1, 1)
+        self.log_text_browser = QtWidgets.QTextBrowser(self.central_widget)
+        self.log_text_browser.setMinimumSize(QtCore.QSize(0, 100))
+        self.log_text_browser.setMaximumSize(QtCore.QSize(16777215, 250))
+        self.log_text_browser.setObjectName("log_text_browser")
+        self.gridLayout.addWidget(self.log_text_browser, 2, 0, 1, 1)
         MainWindow.setCentralWidget(self.central_widget)
         self.menu_bar = QtWidgets.QMenuBar(MainWindow)
-        self.menu_bar.setGeometry(QtCore.QRect(0, 0, 997, 24))
+        self.menu_bar.setGeometry(QtCore.QRect(0, 0, 997, 22))
         self.menu_bar.setObjectName("menu_bar")
         self.file_menu = QtWidgets.QMenu(self.menu_bar)
         self.file_menu.setObjectName("file_menu")
@@ -380,8 +392,8 @@ class Ui_MainWindow(object):
         self.language_menu.setObjectName("language_menu")
         self.view_menu = QtWidgets.QMenu(self.menu_bar)
         self.view_menu.setObjectName("view_menu")
-        self.menuTools = QtWidgets.QMenu(self.view_menu)
-        self.menuTools.setObjectName("menuTools")
+        self.tools_menu = QtWidgets.QMenu(self.view_menu)
+        self.tools_menu.setObjectName("tools_menu")
         MainWindow.setMenuBar(self.menu_bar)
         self.status_bar = QtWidgets.QStatusBar(MainWindow)
         self.status_bar.setObjectName("status_bar")
@@ -442,6 +454,9 @@ class Ui_MainWindow(object):
         self.logo_action.setCheckable(True)
         self.logo_action.setEnabled(False)
         self.logo_action.setObjectName("logo_action")
+        self.log_action = QtWidgets.QAction(MainWindow)
+        self.log_action.setCheckable(True)
+        self.log_action.setObjectName("log_action")
         self.file_menu.addAction(self.import_action)
         self.file_menu.addAction(self.open_action)
         self.file_menu.addAction(self.extract_action)
@@ -451,15 +466,17 @@ class Ui_MainWindow(object):
         self.settings_menu.addAction(self.settings_action)
         self.settings_menu.addSeparator()
         self.settings_menu.addAction(self.language_menu.menuAction())
-        self.menuTools.addAction(self.bouquets_action)
-        self.menuTools.addAction(self.satellites_action)
-        self.menuTools.addAction(self.picons_action)
-        self.menuTools.addAction(self.tv_action)
-        self.menuTools.addAction(self.epg_action)
-        self.menuTools.addAction(self.timer_action)
-        self.menuTools.addAction(self.ftp_action)
-        self.menuTools.addAction(self.logo_action)
-        self.view_menu.addAction(self.menuTools.menuAction())
+        self.tools_menu.addAction(self.bouquets_action)
+        self.tools_menu.addAction(self.satellites_action)
+        self.tools_menu.addAction(self.picons_action)
+        self.tools_menu.addAction(self.tv_action)
+        self.tools_menu.addAction(self.epg_action)
+        self.tools_menu.addAction(self.timer_action)
+        self.tools_menu.addAction(self.ftp_action)
+        self.tools_menu.addAction(self.logo_action)
+        self.view_menu.addAction(self.log_action)
+        self.view_menu.addSeparator()
+        self.view_menu.addAction(self.tools_menu.menuAction())
         self.menu_bar.addAction(self.file_menu.menuAction())
         self.menu_bar.addAction(self.view_menu.menuAction())
         self.menu_bar.addAction(self.settings_menu.menuAction())
@@ -475,6 +492,7 @@ class Ui_MainWindow(object):
         self.timer_action.toggled['bool'].connect(self.timer_tool_button.setVisible)
         self.ftp_action.toggled['bool'].connect(self.ftp_tool_button.setVisible)
         self.logo_action.toggled['bool'].connect(self.logo_tool_button.setVisible)
+        self.log_action.toggled['bool'].connect(self.log_text_browser.setVisible)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
@@ -517,7 +535,7 @@ class Ui_MainWindow(object):
         self.settings_menu.setTitle(_translate("MainWindow", "Settings"))
         self.language_menu.setTitle(_translate("MainWindow", "Language"))
         self.view_menu.setTitle(_translate("MainWindow", "View"))
-        self.menuTools.setTitle(_translate("MainWindow", "Tools"))
+        self.tools_menu.setTitle(_translate("MainWindow", "Tools"))
         self.open_action.setText(_translate("MainWindow", "Open"))
         self.open_action.setShortcut(_translate("MainWindow", "Ctrl+O"))
         self.exit_action.setText(_translate("MainWindow", "Exit"))
@@ -539,4 +557,4 @@ class Ui_MainWindow(object):
         self.timer_action.setText(_translate("MainWindow", "Timer"))
         self.ftp_action.setText(_translate("MainWindow", "FTP"))
         self.logo_action.setText(_translate("MainWindow", "Logo"))
-
+        self.log_action.setText(_translate("MainWindow", "Log"))

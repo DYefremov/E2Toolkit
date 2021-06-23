@@ -21,21 +21,27 @@
 #
 
 
-""" Common module for app constants and additional functions. """
-# Application
-APP_NAME = "E2Toolkit"
-APP_VERSION = "1.0.0 Pre-Alpha"
-# Translation
-LANG_PATH = "app/ui/locale/"
-# Just add your language to appear on the menu.
-LOCALES = (("English", "en"), ("español", "es"), ("Deutsch", "de"),
-           ("Nederlands", "nl"), ("polski", "pl"), ("português", "pt"),
-           ("Türkçe", "tr"), ("беларуская", "be"), ("русский", "ru"))
+""" This module used for parsing blacklist file.
+
+    Parent Lock/Unlock.
+"""
+from contextlib import suppress
+
+__FILE_NAME = "blacklist"
 
 
-# Logging
-def log(message):
-    print(message)
+def get_blacklist(path):
+    with suppress(FileNotFoundError):
+        with open(path + __FILE_NAME, "r") as file:
+            # filter empty values and "\n"
+            return {*list(filter(None, (x.strip() for x in file.readlines())))}
+    return {}
+
+
+def write_blacklist(path, channels):
+    with open(path + __FILE_NAME, "w") as file:
+        if channels:
+            file.writelines("\n".join(channels))
 
 
 if __name__ == "__main__":
