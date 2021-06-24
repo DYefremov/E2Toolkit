@@ -28,15 +28,16 @@ from collections import OrderedDict, Counter
 from enum import IntEnum
 from pathlib import Path
 
-from PyQt5.QtCore import QTranslator, QStringListModel, QTimer, pyqtSlot, QItemSelection
+from PyQt5.QtCore import QTranslator, QStringListModel, QTimer, pyqtSlot
 from PyQt5.QtGui import QIcon, QStandardItemModel, QStandardItem
-from PyQt5.QtWidgets import QApplication, QMainWindow, QActionGroup, QAction, QMessageBox, QFileDialog
+from PyQt5.QtWidgets import QApplication, QMainWindow, QActionGroup, QAction, QMessageBox, QFileDialog, QComboBox
 
 from app.commons import APP_VERSION, APP_NAME, LANG_PATH, LOCALES, log
-from app.connections import HttpAPI, HttpApiException, download_data
+from app.connections import HttpAPI, HttpApiException, download_data, DownloadType
 from app.enigma.bouquets import BouquetsReader
 from app.enigma.ecommons import BqServiceType, Service
 from app.enigma.lamedb import get_services
+from app.satellites.satxml import get_satellites
 from app.ui.settings import SettingsDialog, Settings
 from app.ui.uicommons import Column, IPTV_ICON, LOCKED_ICON
 from .ui import Ui_MainWindow
@@ -87,6 +88,7 @@ class MainWindow(QMainWindow):
         super(MainWindow, self).__init__()
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
+        # Settings.
         self.settings = Settings()
         self._profiles = OrderedDict()
         # Cached data.
@@ -97,22 +99,20 @@ class MainWindow(QMainWindow):
         self._blacklist = set()
         self._alt_file = set()
         self._picons = {}
+        # HTTP API.
+        self._update_state_timer = QTimer()
+        self._http_api = None
+        self.init_http_api()
         # Initialization.
         self.init_ui()
         self.init_actions()
         self.init_language()
         self.init_profiles()
-        # HTTP API
-        self._update_state_timer = QTimer()
-        self._update_state_timer.timeout.connect(self.update_state)
-        self._http_api = None
-        self.init_http_api()
 
     def init_ui(self):
         self.resize(self.settings.app_window_size)
         self.ui.log_text_browser.setVisible(False)
         # Tool buttons.
-        self.ui.satellite_tool_button.setVisible(False)
         self.ui.picon_tool_button.setVisible(False)
         self.ui.timer_tool_button.setVisible(False)
         self.ui.ftp_tool_button.setVisible(False)
@@ -123,6 +123,9 @@ class MainWindow(QMainWindow):
         self.ui.bouquets_view.setModel(QStandardItemModel(self.ui.bouquets_view))
         self.ui.fav_view.setModel(QStandardItemModel(self.ui.bouquets_view))
         self.ui.bouquets_view.setHeaderHidden(True)
+        self.ui.satellite_view.setModel(QStandardItemModel(self.ui.satellite_view))
+        self.ui.satellite_update_view.setModel(QStandardItemModel(self.ui.satellite_update_view))
+        self.ui.satellite_update_box.setVisible(False)
 
     def init_actions(self):
         # File menu.
@@ -145,6 +148,8 @@ class MainWindow(QMainWindow):
         self.ui.logo_tool_button.toggled.connect(lambda s: self.on_stack_page_changed(s, self.Page.LOGO))
         # Models and Views.
         self.ui.bouquets_view.selectionModel().selectionChanged.connect(self.on_bouquet_selection)
+        # HTTP API
+        self._update_state_timer.timeout.connect(self.update_state)
         # About.
         self.ui.about_action.triggered.connect(self.on_about)
 
@@ -187,12 +192,23 @@ class MainWindow(QMainWindow):
     def on_data_download(self):
         try:
             self.ui.log_text_browser.clear()
-            download_data(settings=self.settings, callback=self.ui.log_text_browser.append)
-        except OSError as e:
+            page = self.Page(self.ui.stacked_widget.currentIndex())
+            download_type = DownloadType.ALL
+            if page is self.Page.SAT:
+                download_type = DownloadType.SATELLITES
+
+            download_data(settings=self.settings,
+                          download_type=download_type,
+                          callback=self.ui.log_text_browser.append)
+        except Exception as e:
             log(e)
+            self.ui.log_text_browser.append("Error: {}".format(str(e)))
             self.ui.status_bar.showMessage("Error: {}".format(str(e)))
         else:
-            self.open_data()
+            if page is self.Page.SAT:
+                self.load_satellites(self.get_data_path() + "satellites.xml")
+            else:
+                self.load_data()
 
     def on_data_upload(self):
         QMessageBox.information(self, APP_NAME, self.tr("Not implemented yet!"))
@@ -202,9 +218,21 @@ class MainWindow(QMainWindow):
         QMessageBox.information(self, APP_NAME, self.tr("Not implemented yet!"))
 
     def on_data_open(self, state):
-        resp = QFileDialog.getExistingDirectory(self, self.tr("Select Directory"), str(Path.home()))
-        if resp:
-            self.open_data(resp + os.sep)
+        page = self.Page(self.ui.stacked_widget.currentIndex())
+        if page is self.Page.BOUQUETS:
+            resp = QFileDialog.getExistingDirectory(self, self.tr("Select Directory"), str(Path.home()))
+            if resp:
+                self.load_data(resp + os.sep)
+        elif page is self.Page.SAT:
+            resp = QFileDialog.getOpenFileName(self, self.tr("Select file"), str(Path.home()), " satellites.xml")
+            if resp[0]:
+                self.load_satellites(resp[0])
+        elif page is self.Page.PICONS:
+            resp = QFileDialog.getExistingDirectory(self, self.tr("Select Directory"), str(Path.home()))
+            if resp:
+                self.load_data(resp + os.sep)
+        else:
+            QMessageBox.information(self, APP_NAME, self.tr("Not implemented yet!"))
 
     def on_data_extract(self, state):
         resp = QFileDialog.getOpenFileNames(self, self.tr("Select Archive"), str(Path.home()),
@@ -229,6 +257,10 @@ class MainWindow(QMainWindow):
     def on_stack_page_changed(self, state, p_num):
         self.ui.stacked_widget.setCurrentIndex(p_num) if state else None
         self.ui.fav_splitter.setVisible(p_num not in (self.Page.SAT, self.Page.FTP, self.Page.LOGO, self.Page.TIMER))
+        is_file_action = p_num in (self.Page.BOUQUETS, self.Page.SAT, self.Page.FTP, self.Page.PICONS)
+        self.ui.open_action.setEnabled(is_file_action)
+        self.ui.import_action.setEnabled(is_file_action)
+        self.ui.extract_action.setEnabled(is_file_action)
 
     def on_bouquet_selection(self, selected_item, deselected_item):
         indexes = selected_item.indexes()
@@ -256,10 +288,13 @@ class MainWindow(QMainWindow):
 
     # ******************** Data loading. ******************** #
 
-    def open_data(self, path=None):
+    def get_data_path(self):
+        profile = self._profiles.get(self.ui.profile_combo_box.currentText())
+        return "{}{}{}".format(self.settings.data_path, profile["name"], os.sep)
+
+    def load_data(self, path=None):
         if not path:
-            profile = self._profiles.get(self.ui.profile_combo_box.currentText())
-            path = "{}{}{}".format(self.settings.data_path, profile["name"], os.sep)
+            path = self.get_data_path()
 
         try:
             self.clean_data()
@@ -398,6 +433,21 @@ class MainWindow(QMainWindow):
             self.ui.fav_view.setColumnHidden(c, True)
         fav_labels = ("", "Service", "Picon", "", "", "Type", "Pos")
         self.ui.fav_view.model().setHorizontalHeaderLabels(fav_labels)
+
+    # ******************** Satellites ******************** #
+
+    def load_satellites(self, path):
+        model = self.ui.satellite_view.model()
+        model.clear()
+
+        root_node = model.invisibleRootItem()
+        for sat in get_satellites(path):
+            parent = QStandardItem(sat.name)
+            for t in sat.transponders:
+                parent.appendRow((QStandardItem(""),) + tuple(QStandardItem(i) for i in t))
+            root_node.appendRow(parent)
+
+        model.setHorizontalHeaderLabels(("Satellite", "Frec", "SR", "Pol", "FEC", "System", "Mod"))
 
     # ******************** HTTP API ******************** #
 
