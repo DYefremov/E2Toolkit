@@ -30,7 +30,7 @@ from pathlib import Path
 
 from PyQt5.QtCore import QTranslator, QStringListModel, QTimer, pyqtSlot
 from PyQt5.QtGui import QIcon, QStandardItemModel, QStandardItem
-from PyQt5.QtWidgets import QApplication, QMainWindow, QActionGroup, QAction, QMessageBox, QFileDialog, QComboBox
+from PyQt5.QtWidgets import QApplication, QMainWindow, QActionGroup, QAction, QMessageBox, QFileDialog, QMenu
 
 from app.commons import APP_VERSION, APP_NAME, LANG_PATH, LOCALES, log
 from app.connections import HttpAPI, HttpApiException, download_data, DownloadType
@@ -88,6 +88,7 @@ class MainWindow(QMainWindow):
         super(MainWindow, self).__init__()
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
+        self._current_page = self.Page.BOUQUETS
         # Settings.
         self.settings = Settings()
         self._profiles = OrderedDict()
@@ -100,14 +101,14 @@ class MainWindow(QMainWindow):
         self._alt_file = set()
         self._picons = {}
         # HTTP API.
-        self._update_state_timer = QTimer()
+        self._update_state_timer = QTimer(self)
         self._http_api = None
-        self.init_http_api()
         # Initialization.
         self.init_ui()
         self.init_actions()
         self.init_language()
         self.init_profiles()
+        self.init_http_api()
 
     def init_ui(self):
         self.resize(self.settings.app_window_size)
@@ -126,6 +127,9 @@ class MainWindow(QMainWindow):
         self.ui.satellite_view.setModel(QStandardItemModel(self.ui.satellite_view))
         self.ui.satellite_update_view.setModel(QStandardItemModel(self.ui.satellite_update_view))
         self.ui.satellite_update_box.setVisible(False)
+        self.ui.epg_view.setModel(QStandardItemModel(self.ui.epg_view))
+        # Popups
+        self.init_popups()
 
     def init_actions(self):
         # File menu.
@@ -148,6 +152,7 @@ class MainWindow(QMainWindow):
         self.ui.logo_tool_button.toggled.connect(lambda s: self.on_stack_page_changed(s, self.Page.LOGO))
         # Models and Views.
         self.ui.bouquets_view.selectionModel().selectionChanged.connect(self.on_bouquet_selection)
+        self.ui.fav_view.selectionModel().selectionChanged.connect(self.on_fav_selection)
         # HTTP API
         self._update_state_timer.timeout.connect(self.update_state)
         # About.
@@ -169,6 +174,16 @@ class MainWindow(QMainWindow):
 
         group.triggered.connect(self.on_change_language)
 
+    def init_popups(self):
+        # FAV tools menu.
+        menu = QMenu(self.tr("Tools"), self.ui.fav_menu_button)
+        add_stream_action = QAction(QIcon.fromTheme("emblem-shared"), self.tr("Add IPTV or stream service"), menu)
+        menu.addAction(add_stream_action)
+        import_m3u_action = QAction(QIcon.fromTheme("insert-link"), self.tr("Import *m3u"), menu)
+        menu.addAction(import_m3u_action)
+
+        self.ui.fav_menu_button.setMenu(menu)
+
     def init_profiles(self):
         for p in self.settings.profiles:
             self._profiles[p.get("name")] = p
@@ -181,7 +196,7 @@ class MainWindow(QMainWindow):
             self._http_api.close()
 
         try:
-            self._http_api = HttpAPI("root", "root", "192.168.1.10", "443", True)
+            self._http_api = HttpAPI(self._profiles.get(self.ui.profile_combo_box.currentText()))
         except HttpApiException as e:
             self.ui.status_bar.showMessage(str(e), 10000)
         else:
@@ -255,18 +270,29 @@ class MainWindow(QMainWindow):
         self.ui.retranslateUi(self)
 
     def on_stack_page_changed(self, state, p_num):
-        self.ui.stacked_widget.setCurrentIndex(p_num) if state else None
-        self.ui.fav_splitter.setVisible(p_num not in (self.Page.SAT, self.Page.FTP, self.Page.LOGO, self.Page.TIMER))
-        is_file_action = p_num in (self.Page.BOUQUETS, self.Page.SAT, self.Page.FTP, self.Page.PICONS)
-        self.ui.open_action.setEnabled(is_file_action)
-        self.ui.import_action.setEnabled(is_file_action)
-        self.ui.extract_action.setEnabled(is_file_action)
+        if state:
+            self.ui.stacked_widget.setCurrentIndex(p_num)
+            self._current_page = self.Page(p_num)
+            self.ui.fav_splitter.setVisible(
+                p_num not in (self.Page.SAT, self.Page.FTP, self.Page.LOGO, self.Page.TIMER))
+            is_file_action = p_num in (self.Page.BOUQUETS, self.Page.SAT, self.Page.PICONS)
+            self.ui.open_action.setEnabled(is_file_action)
+            self.ui.import_action.setEnabled(is_file_action)
+            self.ui.extract_action.setEnabled(is_file_action)
+            self.ui.upload_tool_button.setEnabled(is_file_action)
 
     def on_bouquet_selection(self, selected_item, deselected_item):
         indexes = selected_item.indexes()
         if len(indexes) > 1:
             bq_selected = "{}:{}".format(indexes[Column.BQ_NAME].data(), indexes[Column.BQ_TYPE].data())
             self.update_bouquet_services(bq_selected)
+
+    def on_fav_selection(self, selected_item, deselected_item):
+        if self._current_page is self.Page.EPG and self._http_api:
+            ind = selected_item.indexes()
+            self.update_single_epg(self.get_service_ref(ind[Column.FAV_ID].data(), ind[Column.FAV_TYPE].data()))
+        elif self._current_page is self.Page.TV:
+            pass
 
     def on_about(self, state):
         lic = self.tr("This program comes with absolutely no warranty.<br/>See the <a href=\"{}\">{}</a> for details.")
@@ -449,11 +475,56 @@ class MainWindow(QMainWindow):
 
         model.setHorizontalHeaderLabels(("Satellite", "Frec", "SR", "Pol", "FEC", "System", "Mod"))
 
+    # ********************** EPG *********************** #
+
+    def update_single_epg(self, service_ref):
+        epg = self._http_api.send(self._http_api.Request.EPG, service_ref)
+        event_list = epg.get("event_list", [])
+
+        model = self.ui.epg_view.model()
+        model.clear()
+        model.setColumnCount(3)
+
+        from datetime import datetime
+
+        for event in event_list:
+            title = event.get("e2eventtitle", "")
+            desc = event.get("e2eventdescription", "")
+            start = int(event.get("e2eventstart", "0"))
+            start_time = datetime.fromtimestamp(start)
+            end_time = datetime.fromtimestamp(start + int(event.get("e2eventduration", "0")))
+            time_header = "{} - {}".format(start_time.strftime("%A, %H:%M"), end_time.strftime("%H:%M"))
+            model.appendRow(QStandardItem(i) for i in (title, time_header, desc))
+
+        model.setHorizontalHeaderLabels(("Title", "Time", "Description"))
+
+    def update_multiple_epg(self):
+        if self._http_api:
+            pass
+
+    def get_service_ref(self, fav_id, srv_type):
+        srv = self._services.get(fav_id, None)
+        if srv:
+            if srv_type == BqServiceType.IPTV.name:
+                return srv.fav_id.strip()
+            elif srv.picon_id:
+                return srv.picon_id.rstrip(".png").replace("_", ":")
+
     # ******************** HTTP API ******************** #
 
     @pyqtSlot()
     def update_state(self):
-        self._http_api.send(self._http_api.Request.POWER_STATE)
+        info = self._http_api.send(self._http_api.Request.INFO)
+        info_text = "Connection status: {}. {}"
+        if info and not info.get("error", None):
+            image = info.get("e2distroversion", "")
+            model = info.get("e2model", "")
+            self.ui.status_bar.showMessage(info_text.format("OK", "Current Box: {} Image: {}".format(model, image)))
+        else:
+            self.ui.status_bar.showMessage(info_text.format("Disconnected.", ""))
+            if self.ui.log_action.isChecked():
+                reason = info.get("reason", None)
+                self.ui.log_text_browser.append(reason) if reason else None
 
 
 if __name__ == "__main__":

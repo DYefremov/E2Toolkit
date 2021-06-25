@@ -471,6 +471,11 @@ class HttpApiException(Exception):
 
 
 class HttpAPI:
+    """ Core HTTP class.
+
+        This is a holder (wrapper) for aiohttp.ClientSession class.
+     """
+
     class Request(str, Enum):
         ZAP = "zap?sRef="
         INFO = "about"
@@ -524,7 +529,8 @@ class HttpAPI:
         WAKEUP = "4"
         STANDBY = "5"
 
-    def __init__(self, login, password, host, port, use_ssl):
+    def __init__(self, settings):
+        host, use_ssl, port = settings["host"], settings["http_use_ssl"], settings["http_port"]
         self._ssl_context = ssl._create_unverified_context() if use_ssl else None
         self._main_url = "http{}://{}:{}/web/".format("s" if ssl else "", host, port)
 
@@ -535,18 +541,42 @@ class HttpAPI:
             raise HttpApiException("Error. Please install the required modules!")
 
         self._loop = asyncio.get_event_loop()
-        self._loop.run_until_complete(self.get_session(login, password))
+        self._loop.run_until_complete(self.get_session(settings["user"], settings["password"]))
 
     async def get_session(self, login, password):
         self._session = aiohttp.ClientSession(auth=aiohttp.BasicAuth(login=login, password=password))
 
-    def send(self, url):
-        self._loop.run_until_complete(self.get(url))
+    def send(self, req, params=None):
+        return self._loop.run_until_complete(self.get(req, params))
 
-    async def get(self, url):
-        async with self._session.get(self._main_url + url, timeout=5, ssl=self._ssl_context) as resp:
-            print(resp.reason, resp.status,
-                  {el.tag: el.text for el in ETree.fromstring(await resp.text("utf-8", errors="ignore")).iter()})
+    async def get(self, req, params=None):
+        """ Processes incoming requests and returns response as a dict. """
+        try:
+            url = "{}{}{}".format(self._main_url, req, params if params else "")
+            async with self._session.get(url, timeout=5, ssl=self._ssl_context) as resp:
+                if resp.status != 200:
+                    return {"error": resp.status, "reason": resp.reason}
+
+                if req is HttpAPI.Request.STREAM or type is HttpAPI.Request.STREAM_CURRENT:
+                    return {"m3u": await resp.read()}
+                elif req is HttpAPI.Request.GRUB:
+                    return {"img_data": await resp.read()}
+                elif req is HttpAPI.Request.CURRENT:
+                    for el in ETree.fromstring(await resp.text("utf-8", errors="ignore")).iter("e2event"):
+                        return {el.tag: el.text for el in el.iter()}  # return first[current] event from the list
+                elif req is HttpAPI.Request.PLAYER_LIST:
+                    return [{el.tag: el.text for el in el.iter()} for el in
+                            ETree.fromstring(await resp.text("utf-8", errors="ignore")).iter("e2file")]
+                elif req is HttpAPI.Request.EPG:
+                    return {"event_list": [{el.tag: el.text for el in el.iter()} for el in
+                                           ETree.fromstring(await resp.text("utf-8", errors="ignore")).iter("e2event")]}
+                elif req is HttpAPI.Request.TIMER_LIST:
+                    return {"timer_list": [{el.tag: el.text for el in el.iter()} for el in
+                                           ETree.fromstring(await resp.text("utf-8", errors="ignore")).iter("e2timer")]}
+
+                return {el.tag: el.text for el in ETree.fromstring(await resp.text("utf-8", errors="ignore")).iter()}
+        except (aiohttp.ClientConnectorError, asyncio.exceptions.TimeoutError) as e:
+            return {"error": -1, "reason": str(e)}
 
     async def close_session(self):
         await self._session.close()
