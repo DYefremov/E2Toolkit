@@ -28,9 +28,10 @@ from collections import OrderedDict, Counter
 from enum import IntEnum
 from pathlib import Path
 
-from PyQt5.QtCore import QTranslator, QStringListModel, QTimer, pyqtSlot
+from PyQt5.QtCore import QTranslator, QStringListModel, QTimer, pyqtSlot, Qt
 from PyQt5.QtGui import QIcon, QStandardItemModel, QStandardItem
-from PyQt5.QtWidgets import QApplication, QMainWindow, QActionGroup, QAction, QMessageBox, QFileDialog, QMenu
+from PyQt5.QtWidgets import (QApplication, QMainWindow, QActionGroup, QAction, QMessageBox, QFileDialog, QMenu,
+                             QHeaderView)
 
 from app.commons import APP_VERSION, APP_NAME, LANG_PATH, LOCALES, log
 from app.connections import HttpAPI, HttpApiException, download_data, DownloadType
@@ -78,7 +79,7 @@ class MainWindow(QMainWindow):
         BOUQUETS = 0
         SAT = 1
         PICONS = 2
-        TV = 3
+        STREAMS = 3
         EPG = 4
         TIMER = 5
         FTP = 6
@@ -100,9 +101,15 @@ class MainWindow(QMainWindow):
         self._blacklist = set()
         self._alt_file = set()
         self._picons = {}
+        self._marker_types = {BqServiceType.MARKER.name,
+                              BqServiceType.SPACE.name,
+                              BqServiceType.ALT.name}
         # HTTP API.
         self._update_state_timer = QTimer(self)
         self._http_api = None
+        # Streams.
+        self._player = None
+
         # Initialization.
         self.init_ui()
         self.init_actions()
@@ -125,10 +132,14 @@ class MainWindow(QMainWindow):
         self.ui.fav_view.setModel(QStandardItemModel(self.ui.bouquets_view))
         self.ui.bouquets_view.setHeaderHidden(True)
         self.ui.satellite_view.setModel(QStandardItemModel(self.ui.satellite_view))
+        self.ui.satellite_view.header().setSectionResizeMode(QHeaderView.ResizeToContents)
         self.ui.satellite_update_view.setModel(QStandardItemModel(self.ui.satellite_update_view))
         self.ui.satellite_update_box.setVisible(False)
         self.ui.epg_view.setModel(QStandardItemModel(self.ui.epg_view))
-        # Popups
+        # Streams.
+        self.ui.media_widget.setAttribute(Qt.WA_DontCreateNativeAncestors)
+        self.ui.media_widget.setAttribute(Qt.WA_NativeWindow)
+        # Popups.
         self.init_popups()
 
     def init_actions(self):
@@ -145,7 +156,7 @@ class MainWindow(QMainWindow):
         self.ui.bouquet_tool_button.toggled.connect(lambda s: self.on_stack_page_changed(s, self.Page.BOUQUETS))
         self.ui.satellite_tool_button.toggled.connect(lambda s: self.on_stack_page_changed(s, self.Page.SAT))
         self.ui.picon_tool_button.toggled.connect(lambda s: self.on_stack_page_changed(s, self.Page.PICONS))
-        self.ui.tv_tool_button.toggled.connect(lambda s: self.on_stack_page_changed(s, self.Page.TV))
+        self.ui.streams_tool_button.toggled.connect(lambda s: self.on_stack_page_changed(s, self.Page.STREAMS))
         self.ui.epg_tool_button.toggled.connect(lambda s: self.on_stack_page_changed(s, self.Page.EPG))
         self.ui.timer_tool_button.toggled.connect(lambda s: self.on_stack_page_changed(s, self.Page.TIMER))
         self.ui.ftp_tool_button.toggled.connect(lambda s: self.on_stack_page_changed(s, self.Page.FTP))
@@ -153,7 +164,13 @@ class MainWindow(QMainWindow):
         # Models and Views.
         self.ui.bouquets_view.selectionModel().selectionChanged.connect(self.on_bouquet_selection)
         self.ui.fav_view.selectionModel().selectionChanged.connect(self.on_fav_selection)
-        # HTTP API
+        # Streams.
+        self.ui.media_play_tool_button.clicked.connect(self.playback_start)
+        self.ui.media_stop_tool_button.clicked.connect(self.playback_stop)
+        self.ui.media_full_tool_button.clicked.connect(self.show_full_screen)
+        self.ui.fav_view.mouseDoubleClickEvent = self.playback_start
+        self.ui.media_widget.mouseDoubleClickEvent = self.show_full_screen
+        # HTTP API.
         self._update_state_timer.timeout.connect(self.update_state)
         # About.
         self.ui.about_action.triggered.connect(self.on_about)
@@ -290,9 +307,8 @@ class MainWindow(QMainWindow):
     def on_fav_selection(self, selected_item, deselected_item):
         if self._current_page is self.Page.EPG and self._http_api:
             ind = selected_item.indexes()
-            self.update_single_epg(self.get_service_ref(ind[Column.FAV_ID].data(), ind[Column.FAV_TYPE].data()))
-        elif self._current_page is self.Page.TV:
-            pass
+            if len(ind) == 8:
+                self.update_single_epg(self.get_service_ref(ind[Column.FAV_ID].data(), ind[Column.FAV_TYPE].data()))
 
     def on_about(self, state):
         lic = self.tr("This program comes with absolutely no warranty.<br/>See the <a href=\"{}\">{}</a> for details.")
@@ -474,6 +490,44 @@ class MainWindow(QMainWindow):
             root_node.appendRow(parent)
 
         model.setHorizontalHeaderLabels(("Satellite", "Frec", "SR", "Pol", "FEC", "System", "Mod"))
+        self.ui.satellite_count_label.setText(str(model.rowCount()))
+
+    # ******************** Streams ********************* #
+
+    def playback_start(self, event=None):
+        if self._current_page is not self.Page.STREAMS:
+            return
+
+        if not self._player:
+            from app.streams.media import Player
+            try:
+                self._player = Player.make(self.settings.stream_lib, self.ui.media_widget)
+            except ImportError as e:
+                self.ui.log_text_browser.append(str(e))
+                return
+
+        indexes = self.ui.fav_view.selectionModel().selectedIndexes()
+        if not indexes or indexes[Column.FAV_TYPE].data() in self._marker_types or not self._http_api:
+            return
+
+        ref = self.get_service_ref(indexes[Column.FAV_ID].data(), indexes[Column.FAV_TYPE].data())
+        data = self._http_api.send(HttpAPI.Request.STREAM, ref)
+        m3u = data.get("m3u", None)
+        if m3u:
+            url = [s for s in m3u.decode("utf-8", errors="ignore").split("\n") if not s.startswith("#")][0]
+            self._player.play(url)
+
+    def playback_stop(self):
+        if self._player:
+            self._player.stop()
+
+    def show_full_screen(self, event=None):
+        if self.isFullScreen():
+            self.showNormal()
+        else:
+            self.showFullScreen()
+            rect = Application.desktop().rect()
+            self.ui.media_widget.fitInView(0, 0, rect.width(), rect.height(), Qt.IgnoreAspectRatio)
 
     # ********************** EPG *********************** #
 

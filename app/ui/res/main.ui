@@ -222,7 +222,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QToolButton" name="tv_tool_button">
+         <widget class="QToolButton" name="streams_tool_button">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
             <horstretch>0</horstretch>
@@ -239,7 +239,7 @@
            <enum>Qt::NoFocus</enum>
           </property>
           <property name="text">
-           <string>TV</string>
+           <string>Streams</string>
           </property>
           <property name="checkable">
            <bool>true</bool>
@@ -586,6 +586,9 @@
                </item>
                <item>
                 <widget class="QTableView" name="services_view">
+                 <property name="editTriggers">
+                  <set>QAbstractItemView::NoEditTriggers</set>
+                 </property>
                  <property name="selectionMode">
                   <enum>QAbstractItemView::ContiguousSelection</enum>
                  </property>
@@ -788,12 +791,24 @@
                 </item>
                 <item>
                  <widget class="QTreeView" name="satellite_view">
+                  <property name="editTriggers">
+                   <set>QAbstractItemView::NoEditTriggers</set>
+                  </property>
                   <property name="selectionMode">
                    <enum>QAbstractItemView::ContiguousSelection</enum>
                   </property>
                   <property name="horizontalScrollMode">
                    <enum>QAbstractItemView::ScrollPerItem</enum>
                   </property>
+                  <attribute name="headerCascadingSectionResizes">
+                   <bool>false</bool>
+                  </attribute>
+                  <attribute name="headerMinimumSectionSize">
+                   <number>100</number>
+                  </attribute>
+                  <attribute name="headerStretchLastSection">
+                   <bool>true</bool>
+                  </attribute>
                  </widget>
                 </item>
                 <item>
@@ -916,6 +931,9 @@
                 </item>
                 <item>
                  <widget class="QListView" name="satellite_update_view">
+                  <property name="editTriggers">
+                   <set>QAbstractItemView::NoEditTriggers</set>
+                  </property>
                   <property name="selectionMode">
                    <enum>QAbstractItemView::SingleSelection</enum>
                   </property>
@@ -971,7 +989,7 @@
            </layout>
           </widget>
           <widget class="QWidget" name="picon_page"/>
-          <widget class="QWidget" name="tv_page">
+          <widget class="QWidget" name="streams_page">
            <layout class="QGridLayout" name="gridLayout_2">
             <property name="leftMargin">
              <number>2</number>
@@ -989,7 +1007,7 @@
              <number>2</number>
             </property>
             <item row="0" column="0">
-             <layout class="QVBoxLayout" name="media_vertical_layout">
+             <layout class="QVBoxLayout" name="streams_layout">
               <property name="spacing">
                <number>6</number>
               </property>
@@ -997,7 +1015,38 @@
                <number>2</number>
               </property>
               <item>
-               <widget class="QGraphicsView" name="media_view"/>
+               <widget class="QGraphicsView" name="media_widget">
+                <property name="autoFillBackground">
+                 <bool>true</bool>
+                </property>
+                <property name="backgroundBrush">
+                 <brush brushstyle="SolidPattern">
+                  <color alpha="255">
+                   <red>0</red>
+                   <green>0</green>
+                   <blue>0</blue>
+                  </color>
+                 </brush>
+                </property>
+                <property name="foregroundBrush">
+                 <brush brushstyle="SolidPattern">
+                  <color alpha="255">
+                   <red>255</red>
+                   <green>255</green>
+                   <blue>255</blue>
+                  </color>
+                 </brush>
+                </property>
+                <property name="interactive">
+                 <bool>true</bool>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+                </property>
+                <property name="cacheMode">
+                 <set>QGraphicsView::CacheNone</set>
+                </property>
+               </widget>
               </item>
               <item>
                <layout class="QHBoxLayout" name="media_control_layout">
@@ -1146,7 +1195,11 @@
                 </layout>
                </item>
                <item>
-                <widget class="QListView" name="epg_view"/>
+                <widget class="QListView" name="epg_view">
+                 <property name="editTriggers">
+                  <set>QAbstractItemView::NoEditTriggers</set>
+                 </property>
+                </widget>
                </item>
               </layout>
              </widget>
@@ -1195,6 +1248,9 @@
             </property>
             <item row="3" column="1">
              <widget class="QTableView" name="fav_view">
+              <property name="editTriggers">
+               <set>QAbstractItemView::NoEditTriggers</set>
+              </property>
               <property name="selectionMode">
                <enum>QAbstractItemView::ExtendedSelection</enum>
               </property>
@@ -1315,7 +1371,11 @@
              <number>6</number>
             </property>
             <item row="3" column="0">
-             <widget class="QTreeView" name="bouquets_view"/>
+             <widget class="QTreeView" name="bouquets_view">
+              <property name="editTriggers">
+               <set>QAbstractItemView::NoEditTriggers</set>
+              </property>
+             </widget>
             </item>
             <item row="0" column="0">
              <layout class="QHBoxLayout" name="bq_h_layout">
@@ -1717,7 +1777,7 @@
   <connection>
    <sender>tv_action</sender>
    <signal>toggled(bool)</signal>
-   <receiver>tv_tool_button</receiver>
+   <receiver>streams_tool_button</receiver>
    <slot>setVisible(bool)</slot>
    <hints>
     <hint type="sourcelabel">

@@ -57,7 +57,7 @@ class Settings(QSettings):
 
         APP_WINDOW_SIZE = QSize(850, 560)
         APP_LOCALE = "en"
-        STREAM_LIB = "vlc"
+        STREAM_LIB = "VLC"
 
         DEFAULT_FROFILE_NAME = "Default"
         DEFAULT_PROFILE = {"name": DEFAULT_FROFILE_NAME,
@@ -156,6 +156,16 @@ class Settings(QSettings):
     def current_profile(self, value):
         self._current_profile = value
 
+    # ******************** Streams ******************** #
+
+    @property
+    def stream_lib(self):
+        return self.value("stream_lib", self.Default.STREAM_LIB.value)
+
+    @stream_lib.setter
+    def stream_lib(self, value):
+        self.setValue("stream_lib", value)
+
 
 class SettingsDialog(QDialog):
     def __init__(self):
@@ -174,12 +184,16 @@ class SettingsDialog(QDialog):
         self.exec_()
 
     def init_ui(self):
-        self.ui.program_tool_button.setVisible(False)
         # Setting model to profiles view.
         self.ui.profile_view.setModel(QStringListModel())
         # Init picon paths for the box
         self.ui.picon_path_box.addItems(("/usr/share/enigma2/picon/", "/media/hdd/picon/", "/media/usb/picon/",
                                          "/media/mmc/picon/", "/media/cf/picon/"))
+        # Streams.
+        modes = (self.tr("Play"), self.tr("Zap"), self.tr("Zap and Play"), self.tr("Disabled"))
+        self.ui.play_streams_mode_combo_box.setModel(QStringListModel(modes))
+        self.ui.play_streams_mode_combo_box.setEnabled(False)
+        self.ui.stream_lib_combo_box.setModel(QStringListModel(("VLC", "MPV")))
 
     def init_actions(self):
         self.ui.network_tool_button.toggled.connect(lambda s: self.ui.stacked_widget.setCurrentIndex(0) if s else None)
@@ -221,6 +235,8 @@ class SettingsDialog(QDialog):
         self.ui.data_path_edit.setText(self.settings.data_path)
         self.ui.picon_path_edit.setText(self.settings.picon_path)
         self.ui.backup_path_edit.setText(self.settings.backup_path)
+        # Program
+        self.ui.stream_lib_combo_box.setCurrentText(self.settings.stream_lib)
 
     def settings_save(self):
         # Profiles
@@ -229,6 +245,8 @@ class SettingsDialog(QDialog):
         self.settings.data_path = self.ui.data_path_edit.text()
         self.settings.picon_path = self.ui.picon_path_edit.text()
         self.settings.backup_path = self.ui.backup_path_edit.text()
+        # Program
+        self.settings.stream_lib = self.ui.stream_lib_combo_box.currentText()
 
     # ******************** Network ******************** #
 
