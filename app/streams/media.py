@@ -73,6 +73,8 @@ class Player(ABC):
         """
         if name == "MPV":
             return MpvPlayer.get_instance(widget, buf_cb, position_cb, error_cb, playing_cb)
+        elif name == "GStreamer":
+            return GstPlayer.get_instance(widget, buf_cb, position_cb, error_cb, playing_cb)
         elif name == "VLC":
             return VlcPlayer.get_instance(widget, buf_cb, position_cb, error_cb, playing_cb)
         else:
@@ -143,6 +145,125 @@ class MpvPlayer(Player):
 
     def is_playing(self):
         return self._is_playing
+
+
+class GstPlayer(Player):
+    """ Simple wrapper for GStreamer playbin. """
+
+    __INSTANCE = None
+
+    def __init__(self, widget, buf_cb, position_cb, error_cb, playing_cb):
+        try:
+            import gi
+
+            gi.require_version("Gst", "1.0")
+            gi.require_version("GstVideo", "1.0")
+            from gi.repository import Gst, GstVideo
+            # Initialization of GStreamer.
+            Gst.init(sys.argv)
+        except (OSError, ValueError) as e:
+            log("{}: Load library error: {}".format(__class__.__name__, e))
+            raise ImportError("No GStreamer is found. Check that it is installed!")
+        else:
+            self._error_cb = error_cb
+            self._playing_cb = playing_cb
+
+            self.STATE = Gst.State
+            self.STAT_RETURN = Gst.StateChangeReturn
+
+            self._is_playing = False
+            self._player = Gst.ElementFactory.make("playbin", "player")
+            self._player.set_window_handle(int(widget.winId()))
+
+            bus = self._player.get_bus()
+            bus.add_signal_watch()
+            bus.connect("message::error", self.on_error)
+            bus.connect("message::state-changed", self.on_state_changed)
+            bus.connect("message::eos", self.on_eos)
+
+    @classmethod
+    def get_instance(cls, widget, buf_cb=None, position_cb=None, error_cb=None, playing_cb=None):
+        if not cls.__INSTANCE:
+            cls.__INSTANCE = GstPlayer(widget, buf_cb, position_cb, error_cb, playing_cb)
+        return cls.__INSTANCE
+
+    def play(self, mrl=None):
+        self._player.set_state(self.STATE.READY)
+        if not mrl:
+            return
+
+        self._player.set_property("uri", mrl)
+
+        log("Setting the URL for playback: {}".format(mrl))
+        ret = self._player.set_state(self.STATE.PLAYING)
+
+        if ret == self.STAT_RETURN.FAILURE:
+            log("ERROR: Unable to set the 'PLAYING' state for '{}'.".format(mrl))
+        else:
+            self._is_playing = True
+
+    def stop(self):
+        log("Stop playback...")
+        self._player.set_state(self.STATE.READY)
+        self._is_playing = False
+
+    def pause(self):
+        self._player.set_state(self.STATE.PAUSED)
+
+    def set_time(self, time):
+        pass
+
+    def release(self):
+        self._is_playing = False
+        self._player.set_state(self.STATE.NULL)
+        self.__INSTANCE = None
+
+    def set_mrl(self, mrl):
+        self._player.set_property("uri", mrl)
+
+    def is_playing(self):
+        return self._is_playing
+
+    def on_error(self, bus, msg):
+        err, dbg = msg.parse_error()
+        log(err)
+        if self._error_cb:
+            self._error_cb()
+
+    def on_state_changed(self, bus, msg):
+        if not msg.src == self._player:
+            # Not from the player.
+            return
+
+        old_state, new_state, pending = msg.parse_state_changed()
+        if new_state is self.STATE.PLAYING:
+            log("Starting playback...")
+            if self._playing_cb:
+                self._playing_cb()
+            self.get_stream_info()
+
+    def on_eos(self, bus, msg):
+        """ Called when an end-of-stream message appears. """
+        self._player.set_state(self.STATE.READY)
+        self._is_playing = False
+
+    def get_stream_info(self):
+        log("Getting stream info...")
+        nr_video = self._player.get_property("n-video")
+        for i in range(nr_video):
+            # Retrieve the stream's video tags.
+            tags = self._player.emit("get-video-tags", i)
+            if tags:
+                _, cod = tags.get_string("video-codec")
+                log("Video codec: {}".format(cod or "unknown"))
+
+        nr_audio = self._player.get_property("n-audio")
+        for i in range(nr_audio):
+            # Retrieve the stream's video tags.
+            tags = self._player.emit("get-audio-tags", i)
+            if tags:
+                _, cod = tags.get_string("audio-codec")
+                log("Audio codec: {}".format(cod or "unknown"))
 
 
 class VlcPlayer(Player):

@@ -109,7 +109,6 @@ class MainWindow(QMainWindow):
         self._http_api = None
         # Streams.
         self._player = None
-
         # Initialization.
         self.init_ui()
         self.init_actions()
@@ -522,12 +521,14 @@ class MainWindow(QMainWindow):
             self._player.stop()
 
     def show_full_screen(self, event=None):
-        if self.isFullScreen():
-            self.showNormal()
+        self.ui.media_widget.hide()
+        if self.ui.media_widget.isFullScreen():
+            self.ui.media_widget.setWindowState(Qt.WindowNoState)
+            self.ui.media_widget.setWindowFlags(Qt.Widget)
         else:
-            self.showFullScreen()
-            rect = Application.desktop().rect()
-            self.ui.media_widget.fitInView(0, 0, rect.width(), rect.height(), Qt.IgnoreAspectRatio)
+            self.ui.media_widget.setWindowFlags(Qt.Window)
+            self.ui.media_widget.setWindowState(Qt.WindowFullScreen)
+        self.ui.media_widget.show()
 
     # ********************** EPG *********************** #
 

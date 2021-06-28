@@ -193,7 +193,7 @@ class SettingsDialog(QDialog):
         modes = (self.tr("Play"), self.tr("Zap"), self.tr("Zap and Play"), self.tr("Disabled"))
         self.ui.play_streams_mode_combo_box.setModel(QStringListModel(modes))
         self.ui.play_streams_mode_combo_box.setEnabled(False)
-        self.ui.stream_lib_combo_box.setModel(QStringListModel(("VLC", "MPV")))
+        self.ui.stream_lib_combo_box.setModel(QStringListModel(("VLC", "MPV", "GStreamer")))
 
     def init_actions(self):
         self.ui.network_tool_button.toggled.connect(lambda s: self.ui.stacked_widget.setCurrentIndex(0) if s else None)
