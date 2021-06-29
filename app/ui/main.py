@@ -34,7 +34,7 @@ from PyQt5.QtWidgets import (QApplication, QMainWindow, QActionGroup, QAction, Q
                              QHeaderView)
 
 from app.commons import APP_VERSION, APP_NAME, LANG_PATH, LOCALES, log
-from app.connections import HttpAPI, HttpApiException, download_data, DownloadType
+from app.connections import HttpAPI, download_data, DownloadType
 from app.enigma.bouquets import BouquetsReader
 from app.enigma.ecommons import BqServiceType, Service
 from app.enigma.lamedb import get_services
@@ -209,14 +209,12 @@ class MainWindow(QMainWindow):
     def init_http_api(self):
         if self._http_api:
             self._update_state_timer.stop()
-            self._http_api.close()
 
-        try:
-            self._http_api = HttpAPI(self._profiles.get(self.ui.profile_combo_box.currentText()))
-        except HttpApiException as e:
-            self.ui.status_bar.showMessage(str(e), 10000)
-        else:
-            self._update_state_timer.start(3000)
+        callbacks = {HttpAPI.Request.INFO: self.update_state_info,
+                     HttpAPI.Request.EPG: self.update_single_epg,
+                     HttpAPI.Request.STREAM: self.update_playback}
+        self._http_api = HttpAPI(self._profiles.get(self.ui.profile_combo_box.currentText()), callbacks)
+        self._update_state_timer.start(3000)
 
     # ******************** Actions ******************** #
 
@@ -307,7 +305,8 @@ class MainWindow(QMainWindow):
         if self._current_page is self.Page.EPG and self._http_api:
             ind = selected_item.indexes()
             if len(ind) == 8:
-                self.update_single_epg(self.get_service_ref(ind[Column.FAV_ID].data(), ind[Column.FAV_TYPE].data()))
+                ref = self.get_service_ref(ind[Column.FAV_ID].data(), ind[Column.FAV_TYPE].data())
+                self._http_api.send(self._http_api.Request.EPG, ref)
 
     def on_about(self, state):
         lic = self.tr("This program comes with absolutely no warranty.<br/>See the <a href=\"{}\">{}</a> for details.")
@@ -324,8 +323,6 @@ class MainWindow(QMainWindow):
     def closeEvent(self, event):
         """ Main window close event. """
         self.settings.app_window_size = self.size()
-        if self._http_api:
-            self._http_api.close()
 
     # ******************** Data loading. ******************** #
 
@@ -510,11 +507,13 @@ class MainWindow(QMainWindow):
             return
 
         ref = self.get_service_ref(indexes[Column.FAV_ID].data(), indexes[Column.FAV_TYPE].data())
-        data = self._http_api.send(HttpAPI.Request.STREAM, ref)
+        self._http_api.send(HttpAPI.Request.STREAM, ref)
+
+    def update_playback(self, data):
+        """ Updates current URL for playback. """
         m3u = data.get("m3u", None)
         if m3u:
-            url = [s for s in m3u.decode("utf-8", errors="ignore").split("\n") if not s.startswith("#")][0]
-            self._player.play(url)
+            self._player.play([s for s in str(m3u, "utf-8").split("\n") if not s.startswith("#")][0])
 
     def playback_stop(self):
         if self._player:
@@ -532,8 +531,7 @@ class MainWindow(QMainWindow):
 
     # ********************** EPG *********************** #
 
-    def update_single_epg(self, service_ref):
-        epg = self._http_api.send(self._http_api.Request.EPG, service_ref)
+    def update_single_epg(self, epg):
         event_list = epg.get("event_list", [])
 
         model = self.ui.epg_view.model()
@@ -569,7 +567,9 @@ class MainWindow(QMainWindow):
 
     @pyqtSlot()
     def update_state(self):
-        info = self._http_api.send(self._http_api.Request.INFO)
+        self._http_api.send(self._http_api.Request.INFO)
+
+    def update_state_info(self, info):
         info_text = "Connection status: {}. {}"
         if info and not info.get("error", None):
             image = info.get("e2distroversion", "")

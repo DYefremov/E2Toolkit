@@ -21,7 +21,6 @@
 #
 
 
-import asyncio
 import os
 import re
 import socket
@@ -32,6 +31,9 @@ from enum import Enum
 from ftplib import FTP, Error, CRLF, error_perm
 from telnetlib import Telnet
 from urllib.parse import urlencode
+
+from PyQt5.QtCore import QUrl
+from PyQt5.QtNetwork import QNetworkAccessManager, QNetworkRequest, QSslSocket, QSslConfiguration, QNetworkReply
 
 from app.commons import log
 
@@ -457,19 +459,6 @@ def picons_filter_function(files_filter=None):
 
 # ***************** HTTP API ******************* #
 
-HTTP_READY = False
-try:
-    import aiohttp
-except ImportError as ex:
-    log(ex)
-else:
-    HTTP_READY = True
-
-
-class HttpApiException(Exception):
-    pass
-
-
 class HttpAPI:
     """ Core HTTP class.
 
@@ -529,60 +518,66 @@ class HttpAPI:
         WAKEUP = "4"
         STANDBY = "5"
 
-    def __init__(self, settings):
+    def __init__(self, settings, callbacks={}):
         host, use_ssl, port = settings["host"], settings["http_use_ssl"], settings["http_port"]
-        self._ssl_context = ssl._create_unverified_context() if use_ssl else None
         self._main_url = "http{}://{}:{}/web/".format("s" if ssl else "", host, port)
+        self._settings = settings
+        self._use_ssl = use_ssl
+        self._callbacks = callbacks
+        # SSL
+        self._ssl_config = QSslConfiguration.defaultConfiguration()
+        self._ssl_config.setPeerVerifyMode(QSslSocket.VerifyNone)
+        # Manager
+        self._auth = 0
+        self.network_manager = QNetworkAccessManager()
+        self.network_manager.authenticationRequired.connect(self.auth)
+        self.network_manager.finished.connect(self.handle_response)
 
-        self._repeat = False
-        self._session = None
+    def auth(self, reply, auth):
+        self._auth += 1
+        if self._auth >= 3:
+            reply.abort()
 
-        if not HTTP_READY:
-            raise HttpApiException("Error. Please install the required modules!")
-
-        self._loop = asyncio.get_event_loop()
-        self._loop.run_until_complete(self.get_session(settings["user"], settings["password"]))
-
-    async def get_session(self, login, password):
-        self._session = aiohttp.ClientSession(auth=aiohttp.BasicAuth(login=login, password=password))
+        auth.setUser(self._settings["user"])
+        auth.setPassword(self._settings["password"])
 
     def send(self, req, params=None):
-        return self._loop.run_until_complete(self.get(req, params))
+        request = QNetworkRequest(QUrl("{}{}{}".format(self._main_url, req, params if params else "")))
+        request.setSslConfiguration(self._ssl_config)
+        request.setAttribute(request.CustomVerbAttribute, req)
+        self.network_manager.get(request)
 
-    async def get(self, req, params=None):
-        """ Processes incoming requests and returns response as a dict. """
-        try:
-            url = "{}{}{}".format(self._main_url, req, params if params else "")
-            async with self._session.get(url, timeout=5, ssl=self._ssl_context) as resp:
-                if resp.status != 200:
-                    return {"error": resp.status, "reason": resp.reason}
+    def handle_response(self, reply):
+        req = reply.request().attribute(QNetworkRequest.CustomVerbAttribute)
+        callback = self._callbacks.get(req)
+        er = reply.error()
+        if not callback:
+            return
 
-                if req is HttpAPI.Request.STREAM or type is HttpAPI.Request.STREAM_CURRENT:
-                    return {"m3u": await resp.read()}
-                elif req is HttpAPI.Request.GRUB:
-                    return {"img_data": await resp.read()}
-                elif req is HttpAPI.Request.CURRENT:
-                    for el in ETree.fromstring(await resp.text("utf-8", errors="ignore")).iter("e2event"):
-                        return {el.tag: el.text for el in el.iter()}  # return first[current] event from the list
-                elif req is HttpAPI.Request.PLAYER_LIST:
-                    return [{el.tag: el.text for el in el.iter()} for el in
-                            ETree.fromstring(await resp.text("utf-8", errors="ignore")).iter("e2file")]
-                elif req is HttpAPI.Request.EPG:
-                    return {"event_list": [{el.tag: el.text for el in el.iter()} for el in
-                                           ETree.fromstring(await resp.text("utf-8", errors="ignore")).iter("e2event")]}
-                elif req is HttpAPI.Request.TIMER_LIST:
-                    return {"timer_list": [{el.tag: el.text for el in el.iter()} for el in
-                                           ETree.fromstring(await resp.text("utf-8", errors="ignore")).iter("e2timer")]}
+        if er == QNetworkReply.NoError:
+            if req is HttpAPI.Request.STREAM or type is HttpAPI.Request.STREAM_CURRENT:
+                callback({"m3u": reply.readAll()})
+            elif req is HttpAPI.Request.GRUB:
+                callback({"img_data": reply.readAll()})
+            elif req is HttpAPI.Request.CURRENT:
+                for el in ETree.parse(reply).iter("e2event"):
+                    callback({el.tag: el.text for el in el.iter()})  # first[current] event from the list
+            elif req is HttpAPI.Request.PLAYER_LIST:
+                callback([{el.tag: el.text for el in el.iter()} for el in ETree.parse(reply).iter("e2file")])
+            elif req is HttpAPI.Request.EPG:
+                callback({"event_list": [{el.tag: el.text for el in el.iter()} for el in
+                                         ETree.parse(reply).iter("e2event")]})
+            elif req is HttpAPI.Request.TIMER_LIST:
+                callback({"timer_list": [{el.tag: el.text for el in el.iter()} for el in
+                                         ETree.parse(reply).iter("e2timer")]})
+            else:
+                callback({el.tag: el.text for el in ETree.parse(reply).iter()})
 
-                return {el.tag: el.text for el in ETree.fromstring(await resp.text("utf-8", errors="ignore")).iter()}
-        except (aiohttp.ClientConnectorError, asyncio.exceptions.TimeoutError) as e:
-            return {"error": -1, "reason": str(e)}
+        else:
+            callback({"error": -1, "reason": reply.errorString()})
 
-    async def close_session(self):
-        await self._session.close()
-
-    def close(self):
-        self._loop.run_until_complete(self.close_session())
+    def append_callback(self, req, callback):
+        self._callbacks[req] = callback
 
 
 # ******************* Telnet ********************* #
