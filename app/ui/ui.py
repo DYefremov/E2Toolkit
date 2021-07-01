@@ -852,7 +852,13 @@ class MainUiWindow(QtWidgets.QMainWindow):
         self.timer_search_edit.setSizePolicy(size_policy)
         self.timer_view_header_layout.addWidget(self.timer_search_edit)
         self.timer_view_layout.addLayout(self.timer_view_header_layout)
-        self.timer_view = QtWidgets.QListView(self.timer_group_box)
+        self.timer_view = QtWidgets.QTableView(self.timer_group_box)
+        self.timer_view.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
+        self.timer_view.setSelectionMode(QtWidgets.QAbstractItemView.ContiguousSelection)
+        self.timer_view.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
+        self.timer_view.setSortingEnabled(True)
+        self.timer_view.horizontalHeader().setMinimumSectionSize(200)
+        self.timer_view.horizontalHeader().setStretchLastSection(True)
         self.timer_view.setObjectName("timer_view")
         self.timer_view_layout.addWidget(self.timer_view)
         self.timer_group_box_layout.addLayout(self.timer_view_layout)
@@ -1139,7 +1145,6 @@ class MainUiWindow(QtWidgets.QMainWindow):
         self.logo_tool_button.setVisible(False)
         self.control_tool_button.setEnabled(False)
         self.picon_tool_button.setVisible(False)
-        self.timer_tool_button.setVisible(False)
         self.ftp_tool_button.setVisible(False)
         # Current stack page
         self.current_page = Page.BOUQUETS
@@ -1164,18 +1169,23 @@ class MainUiWindow(QtWidgets.QMainWindow):
         self.timer_tool_button.toggled.connect(lambda s: self.on_stack_page_changed(s, Page.TIMER))
         self.ftp_tool_button.toggled.connect(lambda s: self.on_stack_page_changed(s, Page.FTP))
         self.logo_tool_button.toggled.connect(lambda s: self.on_stack_page_changed(s, Page.LOGO))
-        # Stack pages
+        # Stack pages.
         self.stacked_widget.currentChanged.connect(self.on_current_page_changed)
 
     def init_models(self):
+        # Services and bouquets.
         self.services_view.setModel(QtGui.QStandardItemModel(self.services_view))
         self.bouquets_view.setModel(QtGui.QStandardItemModel(self.bouquets_view))
         self.fav_view.setModel(QtGui.QStandardItemModel(self.bouquets_view))
         self.bouquets_view.setHeaderHidden(True)
+        # Satellites.
         self.satellite_view.setModel(QtGui.QStandardItemModel(self.satellite_view))
         self.satellite_view.header().setSectionResizeMode(QtWidgets.QHeaderView.ResizeToContents)
         self.satellite_update_view.setModel(QtGui.QStandardItemModel(self.satellite_update_view))
         self.satellite_update_box.setVisible(False)
+        # Timers.
+        self.timer_view.setModel(QtGui.QStandardItemModel(self.timer_view))
+        # EPG.
         self.epg_view.setModel(QtGui.QStandardItemModel(self.epg_view))
 
     # ******************** Handlers ******************** #
@@ -1314,3 +1324,8 @@ class MainUiWindow(QtWidgets.QMainWindow):
     def on_current_page_changed(self, index):
         page = Page(index)
         self.current_page = page
+        if page is Page.TIMER:
+            self.on_timer_page_show()
+
+    def on_timer_page_show(self):
+        pass

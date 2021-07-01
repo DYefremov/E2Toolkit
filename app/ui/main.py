@@ -25,6 +25,7 @@
 import os
 import sys
 from collections import OrderedDict, Counter
+from datetime import datetime
 from pathlib import Path
 
 from PyQt5.QtCore import QTranslator, QStringListModel, QTimer, pyqtSlot, Qt
@@ -155,8 +156,9 @@ class MainWindow(MainUiWindow):
             self._update_state_timer.stop()
 
         callbacks = {HttpAPI.Request.INFO: self.update_state_info,
-                     HttpAPI.Request.EPG: self.update_single_epg,
-                     HttpAPI.Request.STREAM: self.update_playback}
+                     HttpAPI.Request.STREAM: self.update_playback,
+                     HttpAPI.Request.TIMER_LIST: self.update_timer_list,
+                     HttpAPI.Request.EPG: self.update_single_epg}
         self._http_api = HttpAPI(self._profiles.get(self.profile_combo_box.currentText()), callbacks)
         self._update_state_timer.start(3000)
 
@@ -452,8 +454,6 @@ class MainWindow(MainUiWindow):
         model.clear()
         model.setColumnCount(3)
 
-        from datetime import datetime
-
         for event in event_list:
             title = event.get("e2eventtitle", "")
             desc = event.get("e2eventdescription", "")
@@ -465,9 +465,8 @@ class MainWindow(MainUiWindow):
 
         model.setHorizontalHeaderLabels(("Title", "Time", "Description"))
 
-    def update_multiple_epg(self):
-        if self._http_api:
-            pass
+    def update_multiple_epg(self, epg):
+        pass
 
     def get_service_ref(self, fav_id, srv_type):
         srv = self._services.get(fav_id, None)
@@ -476,6 +475,27 @@ class MainWindow(MainUiWindow):
                 return srv.fav_id.strip()
             elif srv.picon_id:
                 return srv.picon_id.rstrip(".png").replace("_", ":")
+
+    # ********************* Timer ********************** #
+    def on_timer_page_show(self):
+        self._http_api.send(HttpAPI.Request.TIMER_LIST)
+
+    def update_timer_list(self, timer_list):
+        timer_list = timer_list.get("timer_list", [])
+        model = self.timer_view.model()
+        model.clear()
+
+        for timer in timer_list:
+            name = timer.get("e2name", "") or ""
+            description = timer.get("e2description", "") or ""
+            service_name = timer.get("e2servicename", "") or ""
+
+            start_time = datetime.fromtimestamp(int(timer.get("e2timebegin", "0")))
+            end_time = datetime.fromtimestamp(int(timer.get("e2timeend", "0")))
+            time_str = "{} - {}".format(start_time.strftime("%A, %H:%M"), end_time.strftime("%H:%M"))
+
+            model.appendRow(QStandardItem(i) for i in (name, description, service_name, time_str))
+            model.setHorizontalHeaderLabels(("Name", "Description", "Service", "Time"))
 
     # ******************** HTTP API ******************** #
 
