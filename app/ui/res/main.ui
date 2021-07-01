@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>997</width>
-    <height>654</height>
+    <width>1000</width>
+    <height>700</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -23,7 +23,7 @@
    <bool>false</bool>
   </property>
   <widget class="QWidget" name="central_widget">
-   <layout class="QGridLayout" name="gridLayout">
+   <layout class="QGridLayout" name="central_widget_layout">
     <item row="0" column="0">
      <layout class="QVBoxLayout" name="main_layout">
       <property name="spacing">
@@ -406,7 +406,7 @@
       <property name="frameShadow">
        <enum>QFrame::Raised</enum>
       </property>
-      <layout class="QGridLayout" name="gridLayout_4">
+      <layout class="QGridLayout" name="main_frame_layout">
        <property name="leftMargin">
         <number>2</number>
        </property>
@@ -435,7 +435,7 @@
            <number>0</number>
           </property>
           <widget class="QWidget" name="bouquet_page">
-           <layout class="QGridLayout" name="gridLayout_5">
+           <layout class="QGridLayout" name="bouquets_page_layout">
             <property name="leftMargin">
              <number>2</number>
             </property>
@@ -453,7 +453,7 @@
               <property name="title">
                <string>Services</string>
               </property>
-              <layout class="QVBoxLayout" name="verticalLayout">
+              <layout class="QVBoxLayout" name="services_group_box_layout">
                <property name="spacing">
                 <number>6</number>
                </property>
@@ -674,7 +674,7 @@
            </layout>
           </widget>
           <widget class="QWidget" name="satellite_page">
-           <layout class="QGridLayout" name="satellite_page_grid_layout">
+           <layout class="QGridLayout" name="satellite_page_layout">
             <property name="leftMargin">
              <number>2</number>
             </property>
@@ -702,7 +702,7 @@
                <property name="title">
                 <string>Satellites</string>
                </property>
-               <layout class="QVBoxLayout" name="verticalLayout_2">
+               <layout class="QVBoxLayout" name="satellite_group_box_layout">
                 <property name="spacing">
                  <number>6</number>
                 </property>
@@ -762,7 +762,7 @@
                    </widget>
                   </item>
                   <item>
-                   <spacer name="horizontalSpacer">
+                   <spacer name="satellite_top_spacer">
                     <property name="orientation">
                      <enum>Qt::Horizontal</enum>
                     </property>
@@ -860,7 +860,7 @@
                <property name="title">
                 <string>Satellite update</string>
                </property>
-               <layout class="QVBoxLayout" name="verticalLayout_3">
+               <layout class="QVBoxLayout" name="satellite_update_box_layout">
                 <property name="spacing">
                  <number>6</number>
                 </property>
@@ -988,9 +988,322 @@
             </item>
            </layout>
           </widget>
-          <widget class="QWidget" name="picon_page"/>
+          <widget class="QWidget" name="picon_page">
+           <layout class="QGridLayout" name="picons_page_layout">
+            <property name="leftMargin">
+             <number>2</number>
+            </property>
+            <property name="topMargin">
+             <number>0</number>
+            </property>
+            <property name="rightMargin">
+             <number>2</number>
+            </property>
+            <property name="bottomMargin">
+             <number>0</number>
+            </property>
+            <item row="0" column="0">
+             <widget class="QGroupBox" name="picon_group_box">
+              <property name="title">
+               <string>Picons</string>
+              </property>
+              <layout class="QVBoxLayout" name="picons_broup_box_layout">
+               <property name="leftMargin">
+                <number>0</number>
+               </property>
+               <property name="topMargin">
+                <number>0</number>
+               </property>
+               <property name="rightMargin">
+                <number>0</number>
+               </property>
+               <property name="bottomMargin">
+                <number>0</number>
+               </property>
+               <item>
+                <layout class="QHBoxLayout" name="picon_header_box">
+                 <property name="spacing">
+                  <number>2</number>
+                 </property>
+                 <property name="leftMargin">
+                  <number>6</number>
+                 </property>
+                 <property name="rightMargin">
+                  <number>6</number>
+                 </property>
+                 <item>
+                  <spacer name="picon_left_header_spacer">
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>40</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                 <item>
+                  <widget class="QToolButton" name="picon_explorer_button">
+                   <property name="minimumSize">
+                    <size>
+                     <width>85</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                   <property name="focusPolicy">
+                    <enum>Qt::NoFocus</enum>
+                   </property>
+                   <property name="text">
+                    <string>Explorer</string>
+                   </property>
+                   <property name="checkable">
+                    <bool>true</bool>
+                   </property>
+                   <property name="checked">
+                    <bool>true</bool>
+                   </property>
+                   <property name="autoExclusive">
+                    <bool>true</bool>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QToolButton" name="picon_downloader_button">
+                   <property name="minimumSize">
+                    <size>
+                     <width>85</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                   <property name="focusPolicy">
+                    <enum>Qt::NoFocus</enum>
+                   </property>
+                   <property name="text">
+                    <string>Downloader</string>
+                   </property>
+                   <property name="checkable">
+                    <bool>true</bool>
+                   </property>
+                   <property name="autoExclusive">
+                    <bool>true</bool>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <spacer name="picon_right_header_spacer">
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>40</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <widget class="QStackedWidget" name="picons_stacked_widget">
+                 <property name="currentIndex">
+                  <number>1</number>
+                 </property>
+                 <widget class="QWidget" name="picon_explorer_page">
+                  <layout class="QGridLayout" name="picon_explorer_layout">
+                   <property name="leftMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="topMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="rightMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="bottomMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="horizontalSpacing">
+                    <number>6</number>
+                   </property>
+                   <item row="0" column="0">
+                    <widget class="QSplitter" name="picon_splitter">
+                     <property name="sizePolicy">
+                      <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+                       <horstretch>0</horstretch>
+                       <verstretch>0</verstretch>
+                      </sizepolicy>
+                     </property>
+                     <property name="orientation">
+                      <enum>Qt::Horizontal</enum>
+                     </property>
+                     <property name="opaqueResize">
+                      <bool>true</bool>
+                     </property>
+                     <property name="handleWidth">
+                      <number>6</number>
+                     </property>
+                     <widget class="QGroupBox" name="picon_src_box">
+                      <property name="title">
+                       <string>Source:</string>
+                      </property>
+                      <layout class="QGridLayout" name="picon_src_layout">
+                       <property name="leftMargin">
+                        <number>2</number>
+                       </property>
+                       <property name="topMargin">
+                        <number>6</number>
+                       </property>
+                       <property name="rightMargin">
+                        <number>2</number>
+                       </property>
+                       <property name="bottomMargin">
+                        <number>0</number>
+                       </property>
+                       <property name="verticalSpacing">
+                        <number>6</number>
+                       </property>
+                       <item row="3" column="1">
+                        <widget class="QTableView" name="picon_src_view">
+                         <property name="editTriggers">
+                          <set>QAbstractItemView::NoEditTriggers</set>
+                         </property>
+                         <property name="selectionMode">
+                          <enum>QAbstractItemView::ExtendedSelection</enum>
+                         </property>
+                         <property name="selectionBehavior">
+                          <enum>QAbstractItemView::SelectRows</enum>
+                         </property>
+                        </widget>
+                       </item>
+                       <item row="0" column="1">
+                        <layout class="QHBoxLayout" name="picon_src_top_layout">
+                         <property name="leftMargin">
+                          <number>6</number>
+                         </property>
+                         <property name="rightMargin">
+                          <number>6</number>
+                         </property>
+                         <item>
+                          <spacer name="fav_spacer_2">
+                           <property name="orientation">
+                            <enum>Qt::Horizontal</enum>
+                           </property>
+                           <property name="sizeHint" stdset="0">
+                            <size>
+                             <width>40</width>
+                             <height>20</height>
+                            </size>
+                           </property>
+                          </spacer>
+                         </item>
+                         <item>
+                          <widget class="QLineEdit" name="picon_src_filter_edit">
+                           <property name="sizePolicy">
+                            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                             <horstretch>0</horstretch>
+                             <verstretch>0</verstretch>
+                            </sizepolicy>
+                           </property>
+                           <property name="inputMask">
+                            <string notr="true"/>
+                           </property>
+                           <property name="text">
+                            <string notr="true">Filter...</string>
+                           </property>
+                           <property name="placeholderText">
+                            <string>Search...</string>
+                           </property>
+                          </widget>
+                         </item>
+                        </layout>
+                       </item>
+                      </layout>
+                     </widget>
+                     <widget class="QGroupBox" name="picon_dest_box">
+                      <property name="title">
+                       <string>Destination:</string>
+                      </property>
+                      <property name="alignment">
+                       <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+                      </property>
+                      <layout class="QGridLayout" name="picon_dest_layout">
+                       <property name="leftMargin">
+                        <number>2</number>
+                       </property>
+                       <property name="topMargin">
+                        <number>6</number>
+                       </property>
+                       <property name="rightMargin">
+                        <number>2</number>
+                       </property>
+                       <property name="bottomMargin">
+                        <number>0</number>
+                       </property>
+                       <property name="verticalSpacing">
+                        <number>6</number>
+                       </property>
+                       <item row="3" column="0">
+                        <widget class="QTreeView" name="picon_dst_view">
+                         <property name="editTriggers">
+                          <set>QAbstractItemView::NoEditTriggers</set>
+                         </property>
+                        </widget>
+                       </item>
+                       <item row="0" column="0">
+                        <layout class="QHBoxLayout" name="picon_dst_top_layout">
+                         <property name="leftMargin">
+                          <number>6</number>
+                         </property>
+                         <property name="rightMargin">
+                          <number>6</number>
+                         </property>
+                         <item>
+                          <spacer name="picon_top_spacer">
+                           <property name="orientation">
+                            <enum>Qt::Horizontal</enum>
+                           </property>
+                           <property name="sizeHint" stdset="0">
+                            <size>
+                             <width>40</width>
+                             <height>20</height>
+                            </size>
+                           </property>
+                          </spacer>
+                         </item>
+                         <item>
+                          <widget class="QLineEdit" name="picon_dest_filter_edit">
+                           <property name="sizePolicy">
+                            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                             <horstretch>0</horstretch>
+                             <verstretch>0</verstretch>
+                            </sizepolicy>
+                           </property>
+                           <property name="text">
+                            <string>Filter...</string>
+                           </property>
+                          </widget>
+                         </item>
+                        </layout>
+                       </item>
+                      </layout>
+                     </widget>
+                    </widget>
+                   </item>
+                  </layout>
+                 </widget>
+                 <widget class="QWidget" name="picon_downloader_page"/>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
+           </layout>
+          </widget>
           <widget class="QWidget" name="streams_page">
-           <layout class="QGridLayout" name="gridLayout_2">
+           <layout class="QGridLayout" name="streams_page_layout">
             <property name="leftMargin">
              <number>2</number>
             </property>
@@ -1151,7 +1464,7 @@
               <property name="title">
                <string>EPG</string>
               </property>
-              <layout class="QVBoxLayout" name="epg_vertical_layout">
+              <layout class="QVBoxLayout" name="epg_group_box_layout">
                <property name="leftMargin">
                 <number>0</number>
                </property>
@@ -1166,6 +1479,12 @@
                </property>
                <item>
                 <layout class="QHBoxLayout" name="epg_header_layout">
+                 <property name="leftMargin">
+                  <number>6</number>
+                 </property>
+                 <property name="rightMargin">
+                  <number>6</number>
+                 </property>
                  <item>
                   <spacer name="epg_top_spacer">
                    <property name="orientation">
@@ -1206,8 +1525,588 @@
             </item>
            </layout>
           </widget>
-          <widget class="QWidget" name="timer_page"/>
-          <widget class="QWidget" name="ftp_page"/>
+          <widget class="QWidget" name="timer_page">
+           <layout class="QGridLayout" name="timer_page_layout">
+            <property name="leftMargin">
+             <number>2</number>
+            </property>
+            <property name="topMargin">
+             <number>0</number>
+            </property>
+            <property name="rightMargin">
+             <number>2</number>
+            </property>
+            <property name="bottomMargin">
+             <number>2</number>
+            </property>
+            <item row="0" column="0">
+             <widget class="QGroupBox" name="timer_group_box">
+              <property name="title">
+               <string>Timers</string>
+              </property>
+              <layout class="QHBoxLayout" name="timer_broup_box_layout">
+               <property name="leftMargin">
+                <number>0</number>
+               </property>
+               <property name="topMargin">
+                <number>0</number>
+               </property>
+               <property name="rightMargin">
+                <number>0</number>
+               </property>
+               <property name="bottomMargin">
+                <number>0</number>
+               </property>
+               <item>
+                <widget class="QGroupBox" name="timer_edit_box">
+                 <layout class="QFormLayout" name="timer_edit_gruop_box">
+                  <property name="leftMargin">
+                   <number>9</number>
+                  </property>
+                  <property name="topMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="rightMargin">
+                   <number>9</number>
+                  </property>
+                  <property name="bottomMargin">
+                   <number>0</number>
+                  </property>
+                  <item row="0" column="1">
+                   <widget class="QWidget" name="timer_enable_widget" native="true">
+                    <layout class="QHBoxLayout" name="timer_edit_enable_box">
+                     <property name="leftMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="topMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="rightMargin">
+                      <number>20</number>
+                     </property>
+                     <property name="bottomMargin">
+                      <number>0</number>
+                     </property>
+                     <item>
+                      <spacer name="timer_enable_widget_soacer">
+                       <property name="orientation">
+                        <enum>Qt::Horizontal</enum>
+                       </property>
+                       <property name="sizeHint" stdset="0">
+                        <size>
+                         <width>40</width>
+                         <height>20</height>
+                        </size>
+                       </property>
+                      </spacer>
+                     </item>
+                     <item>
+                      <widget class="QToolButton" name="timer_enable_button">
+                       <property name="minimumSize">
+                        <size>
+                         <width>85</width>
+                         <height>0</height>
+                        </size>
+                       </property>
+                       <property name="text">
+                        <string>Enabled</string>
+                       </property>
+                       <property name="checkable">
+                        <bool>true</bool>
+                       </property>
+                      </widget>
+                     </item>
+                    </layout>
+                   </widget>
+                  </item>
+                  <item row="1" column="0">
+                   <widget class="QLabel" name="timer_name_label">
+                    <property name="text">
+                     <string>Name:</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="1" column="1">
+                   <widget class="QLineEdit" name="timer_name_edit"/>
+                  </item>
+                  <item row="2" column="0">
+                   <widget class="QLabel" name="timer_description_label">
+                    <property name="text">
+                     <string>Description:</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="2" column="1">
+                   <widget class="QLineEdit" name="timer_description_edit"/>
+                  </item>
+                  <item row="3" column="0">
+                   <widget class="QLabel" name="timer_service_label">
+                    <property name="text">
+                     <string>Service:</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="3" column="1">
+                   <widget class="QLineEdit" name="timer_service_edit"/>
+                  </item>
+                  <item row="4" column="0">
+                   <widget class="QLabel" name="timer_service_ref_label">
+                    <property name="text">
+                     <string>Service reference:</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="4" column="1">
+                   <widget class="QLineEdit" name="timer_ref_edit"/>
+                  </item>
+                  <item row="5" column="0">
+                   <widget class="QLabel" name="timer_event_id_label">
+                    <property name="text">
+                     <string>Event ID:</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="5" column="1">
+                   <widget class="QLineEdit" name="timer_event_id_edit"/>
+                  </item>
+                  <item row="6" column="0">
+                   <widget class="QLabel" name="timer_begins_label">
+                    <property name="text">
+                     <string>Begins:</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="6" column="1">
+                   <widget class="QLineEdit" name="timer_begins_edit"/>
+                  </item>
+                  <item row="7" column="0">
+                   <widget class="QLabel" name="timer_ends_label">
+                    <property name="text">
+                     <string>Ends:</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="7" column="1">
+                   <widget class="QLineEdit" name="timer_ends_edit"/>
+                  </item>
+                  <item row="8" column="0">
+                   <widget class="QLabel" name="timer_repeated_label">
+                    <property name="text">
+                     <string>Repeated:</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="8" column="1">
+                   <layout class="QGridLayout" name="timer_repeated_grid">
+                    <property name="leftMargin">
+                     <number>0</number>
+                    </property>
+                    <property name="rightMargin">
+                     <number>9</number>
+                    </property>
+                    <property name="verticalSpacing">
+                     <number>0</number>
+                    </property>
+                    <item row="0" column="3">
+                     <widget class="QLabel" name="timer_th_label">
+                      <property name="text">
+                       <string>Th</string>
+                      </property>
+                      <property name="alignment">
+                       <set>Qt::AlignCenter</set>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="0" column="6">
+                     <widget class="QLabel" name="timer_su_label">
+                      <property name="text">
+                       <string>Su</string>
+                      </property>
+                      <property name="alignment">
+                       <set>Qt::AlignCenter</set>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="0" column="1">
+                     <widget class="QLabel" name="timer_tu_label">
+                      <property name="text">
+                       <string>Tu</string>
+                      </property>
+                      <property name="alignment">
+                       <set>Qt::AlignCenter</set>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="0" column="5">
+                     <widget class="QLabel" name="timer_sa_label">
+                      <property name="text">
+                       <string>Sa</string>
+                      </property>
+                      <property name="alignment">
+                       <set>Qt::AlignCenter</set>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="0" column="0">
+                     <widget class="QLabel" name="timer_mo_label">
+                      <property name="text">
+                       <string>Mo</string>
+                      </property>
+                      <property name="alignment">
+                       <set>Qt::AlignCenter</set>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="0" column="2">
+                     <widget class="QLabel" name="timer_we_label">
+                      <property name="text">
+                       <string>We</string>
+                      </property>
+                      <property name="alignment">
+                       <set>Qt::AlignCenter</set>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="0" column="4">
+                     <widget class="QLabel" name="timer_fr_label">
+                      <property name="text">
+                       <string>Fr</string>
+                      </property>
+                      <property name="alignment">
+                       <set>Qt::AlignCenter</set>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="1" column="0">
+                     <widget class="QCheckBox" name="timer_mo_check_box">
+                      <property name="sizePolicy">
+                       <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                        <horstretch>0</horstretch>
+                        <verstretch>0</verstretch>
+                       </sizepolicy>
+                      </property>
+                      <property name="text">
+                       <string notr="true"/>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="1" column="1">
+                     <widget class="QCheckBox" name="timer_tu_check_box">
+                      <property name="sizePolicy">
+                       <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                        <horstretch>0</horstretch>
+                        <verstretch>0</verstretch>
+                       </sizepolicy>
+                      </property>
+                      <property name="text">
+                       <string notr="true"/>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="1" column="2">
+                     <widget class="QCheckBox" name="timer_we_check_box">
+                      <property name="sizePolicy">
+                       <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                        <horstretch>0</horstretch>
+                        <verstretch>0</verstretch>
+                       </sizepolicy>
+                      </property>
+                      <property name="text">
+                       <string notr="true"/>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="1" column="3">
+                     <widget class="QCheckBox" name="timer_th_check_box">
+                      <property name="sizePolicy">
+                       <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                        <horstretch>0</horstretch>
+                        <verstretch>0</verstretch>
+                       </sizepolicy>
+                      </property>
+                      <property name="text">
+                       <string notr="true"/>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="1" column="4">
+                     <widget class="QCheckBox" name="timer_fr_check_box">
+                      <property name="sizePolicy">
+                       <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                        <horstretch>0</horstretch>
+                        <verstretch>0</verstretch>
+                       </sizepolicy>
+                      </property>
+                      <property name="text">
+                       <string notr="true"/>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="1" column="5">
+                     <widget class="QCheckBox" name="timer_sa_check_box">
+                      <property name="sizePolicy">
+                       <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                        <horstretch>0</horstretch>
+                        <verstretch>0</verstretch>
+                       </sizepolicy>
+                      </property>
+                      <property name="text">
+                       <string notr="true"/>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="1" column="6">
+                     <widget class="QCheckBox" name="timer_su_check_box">
+                      <property name="sizePolicy">
+                       <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                        <horstretch>0</horstretch>
+                        <verstretch>0</verstretch>
+                       </sizepolicy>
+                      </property>
+                      <property name="layoutDirection">
+                       <enum>Qt::LeftToRight</enum>
+                      </property>
+                      <property name="text">
+                       <string notr="true"/>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
+                  </item>
+                  <item row="9" column="0">
+                   <widget class="QLabel" name="timer_action_label">
+                    <property name="text">
+                     <string>Action:</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="9" column="1">
+                   <widget class="QComboBox" name="timer_action_combo_box"/>
+                  </item>
+                  <item row="10" column="0">
+                   <widget class="QLabel" name="timer_after_event_label">
+                    <property name="text">
+                     <string>After event:</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="10" column="1">
+                   <widget class="QComboBox" name="timer_after_event_combo_box"/>
+                  </item>
+                  <item row="11" column="0">
+                   <widget class="QLabel" name="timer_location_label">
+                    <property name="text">
+                     <string>Location:</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="11" column="1">
+                   <widget class="QComboBox" name="timer_location_combo_box"/>
+                  </item>
+                  <item row="12" column="1">
+                   <widget class="QDialogButtonBox" name="timer_edit_button_box">
+                    <property name="standardButtons">
+                     <set>QDialogButtonBox::Cancel|QDialogButtonBox::Save</set>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </widget>
+               </item>
+               <item>
+                <layout class="QVBoxLayout" name="timer_view_layout">
+                 <property name="topMargin">
+                  <number>6</number>
+                 </property>
+                 <item>
+                  <layout class="QHBoxLayout" name="timer_view_header_layout">
+                   <property name="leftMargin">
+                    <number>6</number>
+                   </property>
+                   <property name="rightMargin">
+                    <number>6</number>
+                   </property>
+                   <item>
+                    <widget class="QToolButton" name="timer_add_button">
+                     <property name="minimumSize">
+                      <size>
+                       <width>32</width>
+                       <height>0</height>
+                      </size>
+                     </property>
+                     <property name="text">
+                      <string>Add</string>
+                     </property>
+                     <property name="icon">
+                      <iconset theme="add">
+                       <normaloff>../../../../../../Рабочий стол</normaloff>../../../../../../Рабочий стол</iconset>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QToolButton" name="timer_remove_button">
+                     <property name="minimumSize">
+                      <size>
+                       <width>32</width>
+                       <height>0</height>
+                      </size>
+                     </property>
+                     <property name="text">
+                      <string>Remove</string>
+                     </property>
+                     <property name="icon">
+                      <iconset theme="remove">
+                       <normaloff>../../../../../../Рабочий стол</normaloff>../../../../../../Рабочий стол</iconset>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <spacer name="timer_header_spacer">
+                     <property name="orientation">
+                      <enum>Qt::Horizontal</enum>
+                     </property>
+                     <property name="sizeHint" stdset="0">
+                      <size>
+                       <width>40</width>
+                       <height>20</height>
+                      </size>
+                     </property>
+                    </spacer>
+                   </item>
+                   <item>
+                    <widget class="QLineEdit" name="timer_search_edit">
+                     <property name="placeholderText">
+                      <string>Search...</string>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </item>
+                 <item>
+                  <widget class="QListView" name="timer_view"/>
+                 </item>
+                </layout>
+               </item>
+              </layout>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+          <widget class="QWidget" name="ftp_page">
+           <layout class="QGridLayout" name="ftp_page_layout">
+            <property name="leftMargin">
+             <number>2</number>
+            </property>
+            <property name="topMargin">
+             <number>0</number>
+            </property>
+            <property name="rightMargin">
+             <number>9</number>
+            </property>
+            <property name="bottomMargin">
+             <number>2</number>
+            </property>
+            <item row="0" column="0">
+             <widget class="QSplitter" name="ftp_splitter">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <widget class="QGroupBox" name="ftp_src_group_box">
+               <property name="title">
+                <string>FTP</string>
+               </property>
+               <layout class="QVBoxLayout" name="ftp_src_group_box_layout">
+                <property name="leftMargin">
+                 <number>0</number>
+                </property>
+                <property name="topMargin">
+                 <number>0</number>
+                </property>
+                <property name="rightMargin">
+                 <number>0</number>
+                </property>
+                <property name="bottomMargin">
+                 <number>0</number>
+                </property>
+                <item>
+                 <layout class="QHBoxLayout" name="ftp_src_top_layout">
+                  <item>
+                   <widget class="QLabel" name="ftp_src_status_label">
+                    <property name="text">
+                     <string>Status:</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <spacer name="ftp_src_top_layout_spacer">
+                    <property name="orientation">
+                     <enum>Qt::Horizontal</enum>
+                    </property>
+                    <property name="sizeHint" stdset="0">
+                     <size>
+                      <width>40</width>
+                      <height>20</height>
+                     </size>
+                    </property>
+                   </spacer>
+                  </item>
+                 </layout>
+                </item>
+                <item>
+                 <widget class="QListView" name="ftp_src_view"/>
+                </item>
+               </layout>
+              </widget>
+              <widget class="QGroupBox" name="ftp_dest_group_box">
+               <property name="title">
+                <string>PC</string>
+               </property>
+               <layout class="QVBoxLayout" name="ftp_dest_group_box_layout">
+                <property name="leftMargin">
+                 <number>0</number>
+                </property>
+                <property name="topMargin">
+                 <number>0</number>
+                </property>
+                <property name="rightMargin">
+                 <number>0</number>
+                </property>
+                <property name="bottomMargin">
+                 <number>0</number>
+                </property>
+                <item>
+                 <layout class="QHBoxLayout" name="ftp_dest_top_layout">
+                  <item>
+                   <widget class="QLabel" name="ftp_dest_status_label">
+                    <property name="text">
+                     <string>Status:</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <spacer name="ftp_dest_top_layout_spacer">
+                    <property name="orientation">
+                     <enum>Qt::Horizontal</enum>
+                    </property>
+                    <property name="sizeHint" stdset="0">
+                     <size>
+                      <width>40</width>
+                      <height>20</height>
+                     </size>
+                    </property>
+                   </spacer>
+                  </item>
+                 </layout>
+                </item>
+                <item>
+                 <widget class="QListView" name="ftp_dest_view"/>
+                </item>
+               </layout>
+              </widget>
+             </widget>
+            </item>
+           </layout>
+          </widget>
           <widget class="QWidget" name="logo_page"/>
          </widget>
          <widget class="QSplitter" name="fav_splitter">
@@ -1277,7 +2176,7 @@
                 </property>
                 <property name="minimumSize">
                  <size>
-                  <width>32</width>
+                  <width>48</width>
                   <height>0</height>
                  </size>
                 </property>
@@ -1298,7 +2197,7 @@
                  </size>
                 </property>
                 <property name="popupMode">
-                 <enum>QToolButton::InstantPopup</enum>
+                 <enum>QToolButton::DelayedPopup</enum>
                 </property>
                 <property name="toolButtonStyle">
                  <enum>Qt::ToolButtonIconOnly</enum>
@@ -1460,7 +2359,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>997</width>
+     <width>1000</width>
      <height>22</height>
     </rect>
    </property>

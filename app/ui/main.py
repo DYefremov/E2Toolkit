@@ -25,15 +25,13 @@
 import os
 import sys
 from collections import OrderedDict, Counter
-from enum import IntEnum
 from pathlib import Path
 
 from PyQt5.QtCore import QTranslator, QStringListModel, QTimer, pyqtSlot, Qt
-from PyQt5.QtGui import QIcon, QStandardItemModel, QStandardItem
-from PyQt5.QtWidgets import (QApplication, QMainWindow, QActionGroup, QAction, QMessageBox, QFileDialog, QMenu,
-                             QHeaderView)
+from PyQt5.QtGui import QIcon, QStandardItem
+from PyQt5.QtWidgets import QApplication, QMessageBox, QFileDialog, QActionGroup, QAction
 
-from app.commons import APP_VERSION, APP_NAME, LANG_PATH, LOCALES, log
+from app.commons import APP_VERSION, APP_NAME, LANG_PATH, log, LOCALES
 from app.connections import HttpAPI, download_data, DownloadType
 from app.enigma.bouquets import BouquetsReader
 from app.enigma.ecommons import BqServiceType, Service
@@ -41,7 +39,7 @@ from app.enigma.lamedb import get_services
 from app.satellites.satxml import get_satellites
 from app.ui.settings import SettingsDialog, Settings
 from app.ui.uicommons import Column, IPTV_ICON, LOCKED_ICON
-from .ui import Ui_MainWindow
+from .ui import MainUiWindow, Page
 
 
 class Application(QApplication):
@@ -71,25 +69,11 @@ class Application(QApplication):
         self.settings.app_locale = locale
 
 
-class MainWindow(QMainWindow):
+class MainWindow(MainUiWindow):
     """ The main UI class. """
-
-    class Page(IntEnum):
-        """ Main stack widget page. """
-        BOUQUETS = 0
-        SAT = 1
-        PICONS = 2
-        STREAMS = 3
-        EPG = 4
-        TIMER = 5
-        FTP = 6
-        LOGO = 7
 
     def __init__(self):
         super(MainWindow, self).__init__()
-        self.ui = Ui_MainWindow()
-        self.ui.setupUi(self)
-        self._current_page = self.Page.BOUQUETS
         # Settings.
         self.settings = Settings()
         self._profiles = OrderedDict()
@@ -118,93 +102,53 @@ class MainWindow(QMainWindow):
 
     def init_ui(self):
         self.resize(self.settings.app_window_size)
-        self.ui.log_text_browser.setVisible(False)
-        # Tool buttons.
-        self.ui.picon_tool_button.setVisible(False)
-        self.ui.timer_tool_button.setVisible(False)
-        self.ui.ftp_tool_button.setVisible(False)
-        self.ui.logo_tool_button.setVisible(False)
-        self.ui.control_tool_button.setEnabled(False)
-        # Models and Views.
-        self.ui.services_view.setModel(QStandardItemModel(self.ui.services_view))
-        self.ui.bouquets_view.setModel(QStandardItemModel(self.ui.bouquets_view))
-        self.ui.fav_view.setModel(QStandardItemModel(self.ui.bouquets_view))
-        self.ui.bouquets_view.setHeaderHidden(True)
-        self.ui.satellite_view.setModel(QStandardItemModel(self.ui.satellite_view))
-        self.ui.satellite_view.header().setSectionResizeMode(QHeaderView.ResizeToContents)
-        self.ui.satellite_update_view.setModel(QStandardItemModel(self.ui.satellite_update_view))
-        self.ui.satellite_update_box.setVisible(False)
-        self.ui.epg_view.setModel(QStandardItemModel(self.ui.epg_view))
-        # Streams.
-        self.ui.media_widget.setAttribute(Qt.WA_DontCreateNativeAncestors)
-        self.ui.media_widget.setAttribute(Qt.WA_NativeWindow)
-        # Popups.
-        self.init_popups()
 
     def init_actions(self):
         # File menu.
-        self.ui.import_action.triggered.connect(self.on_data_import)
-        self.ui.open_action.triggered.connect(self.on_data_open)
-        self.ui.extract_action.triggered.connect(self.on_data_extract)
-        self.ui.exit_action.triggered.connect(self.on_app_exit)
+        self.import_action.triggered.connect(self.on_data_import)
+        self.open_action.triggered.connect(self.on_data_open)
+        self.extract_action.triggered.connect(self.on_data_extract)
+        self.exit_action.triggered.connect(self.on_app_exit)
         # Settings.
-        self.ui.settings_action.triggered.connect(self.on_settings_dialog)
+        self.settings_action.triggered.connect(self.on_settings_dialog)
         # Toolbar.
-        self.ui.download_tool_button.clicked.connect(self.on_data_download)
-        self.ui.upload_tool_button.clicked.connect(self.on_data_upload)
-        self.ui.bouquet_tool_button.toggled.connect(lambda s: self.on_stack_page_changed(s, self.Page.BOUQUETS))
-        self.ui.satellite_tool_button.toggled.connect(lambda s: self.on_stack_page_changed(s, self.Page.SAT))
-        self.ui.picon_tool_button.toggled.connect(lambda s: self.on_stack_page_changed(s, self.Page.PICONS))
-        self.ui.streams_tool_button.toggled.connect(lambda s: self.on_stack_page_changed(s, self.Page.STREAMS))
-        self.ui.epg_tool_button.toggled.connect(lambda s: self.on_stack_page_changed(s, self.Page.EPG))
-        self.ui.timer_tool_button.toggled.connect(lambda s: self.on_stack_page_changed(s, self.Page.TIMER))
-        self.ui.ftp_tool_button.toggled.connect(lambda s: self.on_stack_page_changed(s, self.Page.FTP))
-        self.ui.logo_tool_button.toggled.connect(lambda s: self.on_stack_page_changed(s, self.Page.LOGO))
+        self.download_tool_button.clicked.connect(self.on_data_download)
+        self.upload_tool_button.clicked.connect(self.on_data_upload)
         # Models and Views.
-        self.ui.bouquets_view.selectionModel().selectionChanged.connect(self.on_bouquet_selection)
-        self.ui.fav_view.selectionModel().selectionChanged.connect(self.on_fav_selection)
+        self.bouquets_view.selectionModel().selectionChanged.connect(self.on_bouquet_selection)
+        self.fav_view.selectionModel().selectionChanged.connect(self.on_fav_selection)
         # Streams.
-        self.ui.media_play_tool_button.clicked.connect(self.playback_start)
-        self.ui.media_stop_tool_button.clicked.connect(self.playback_stop)
-        self.ui.media_full_tool_button.clicked.connect(self.show_full_screen)
-        self.ui.fav_view.mouseDoubleClickEvent = self.playback_start
-        self.ui.media_widget.mouseDoubleClickEvent = self.show_full_screen
+        self.media_play_tool_button.clicked.connect(self.playback_start)
+        self.media_stop_tool_button.clicked.connect(self.playback_stop)
+        self.media_full_tool_button.clicked.connect(self.show_full_screen)
+        self.fav_view.mouseDoubleClickEvent = self.playback_start
+        self.media_widget.mouseDoubleClickEvent = self.show_full_screen
         # HTTP API.
         self._update_state_timer.timeout.connect(self.update_state)
         # About.
-        self.ui.about_action.triggered.connect(self.on_about)
+        self.about_action.triggered.connect(self.on_about)
 
     def init_language(self):
         app_locale = self.settings.app_locale
         group = QActionGroup(self)
 
         for name, bcp in LOCALES:
-            action = QAction(name, self.ui.language_menu)
+            action = QAction(name, self.language_menu)
             action.setCheckable(True)
             action.setData(bcp)
             if bcp == app_locale:
                 action.setChecked(True)
                 self.set_locale(bcp)
-            self.ui.language_menu.addAction(action)
+            self.language_menu.addAction(action)
             group.addAction(action)
 
-        group.triggered.connect(self.on_change_language)
-
-    def init_popups(self):
-        # FAV tools menu.
-        menu = QMenu(self.tr("Tools"), self.ui.fav_menu_button)
-        add_stream_action = QAction(QIcon.fromTheme("emblem-shared"), self.tr("Add IPTV or stream service"), menu)
-        menu.addAction(add_stream_action)
-        import_m3u_action = QAction(QIcon.fromTheme("insert-link"), self.tr("Import *m3u"), menu)
-        menu.addAction(import_m3u_action)
-
-        self.ui.fav_menu_button.setMenu(menu)
+        group.triggered.connect(lambda a: self.set_locale(a.data() or ""))
 
     def init_profiles(self):
         for p in self.settings.profiles:
             self._profiles[p.get("name")] = p
-        self.ui.profile_combo_box.setModel(QStringListModel(list(self._profiles)))
-        self.settings.current_profile = self._profiles[self.ui.profile_combo_box.currentText()]
+        self.profile_combo_box.setModel(QStringListModel(list(self._profiles)))
+        self.settings.current_profile = self._profiles[self.profile_combo_box.currentText()]
 
     def init_http_api(self):
         if self._http_api:
@@ -213,28 +157,28 @@ class MainWindow(QMainWindow):
         callbacks = {HttpAPI.Request.INFO: self.update_state_info,
                      HttpAPI.Request.EPG: self.update_single_epg,
                      HttpAPI.Request.STREAM: self.update_playback}
-        self._http_api = HttpAPI(self._profiles.get(self.ui.profile_combo_box.currentText()), callbacks)
+        self._http_api = HttpAPI(self._profiles.get(self.profile_combo_box.currentText()), callbacks)
         self._update_state_timer.start(3000)
 
     # ******************** Actions ******************** #
 
     def on_data_download(self):
         try:
-            self.ui.log_text_browser.clear()
-            page = self.Page(self.ui.stacked_widget.currentIndex())
+            self.log_text_browser.clear()
+            page = Page(self.stacked_widget.currentIndex())
             download_type = DownloadType.ALL
-            if page is self.Page.SAT:
+            if page is Page.SAT:
                 download_type = DownloadType.SATELLITES
 
             download_data(settings=self.settings,
                           download_type=download_type,
-                          callback=self.ui.log_text_browser.append)
+                          callback=self.log_text_browser.append)
         except Exception as e:
             log(e)
-            self.ui.log_text_browser.append("Error: {}".format(str(e)))
-            self.ui.status_bar.showMessage("Error: {}".format(str(e)))
+            self.log_text_browser.append("Error: {}".format(str(e)))
+            self.status_bar.showMessage("Error: {}".format(str(e)))
         else:
-            if page is self.Page.SAT:
+            if page is Page.SAT:
                 self.load_satellites(self.get_data_path() + "satellites.xml")
             else:
                 self.load_data()
@@ -247,16 +191,16 @@ class MainWindow(QMainWindow):
         QMessageBox.information(self, APP_NAME, self.tr("Not implemented yet!"))
 
     def on_data_open(self, state):
-        page = self.Page(self.ui.stacked_widget.currentIndex())
-        if page is self.Page.BOUQUETS:
+        page = Page(self.stacked_widget.currentIndex())
+        if page is Page.BOUQUETS:
             resp = QFileDialog.getExistingDirectory(self, self.tr("Select Directory"), str(Path.home()))
             if resp:
                 self.load_data(resp + os.sep)
-        elif page is self.Page.SAT:
+        elif page is Page.SAT:
             resp = QFileDialog.getOpenFileName(self, self.tr("Select file"), str(Path.home()), " satellites.xml")
             if resp[0]:
                 self.load_satellites(resp[0])
-        elif page is self.Page.PICONS:
+        elif page is Page.PICONS:
             resp = QFileDialog.getExistingDirectory(self, self.tr("Select Directory"), str(Path.home()))
             if resp:
                 self.load_data(resp + os.sep)
@@ -268,32 +212,14 @@ class MainWindow(QMainWindow):
                                             "Archive files (*.gz *.zip)")
         QMessageBox.information(self, APP_NAME, self.tr("Not implemented yet!"))
 
-    def on_app_exit(self, state):
-        self.close()
-
     def on_settings_dialog(self, state):
         SettingsDialog()
         self.init_profiles()
 
-    def on_change_language(self, action):
-        self.set_locale(action.data() or "")
-
     def set_locale(self, locale):
         app = Application.instance()
         app.set_locale(locale)
-        self.ui.retranslateUi(self)
-
-    def on_stack_page_changed(self, state, p_num):
-        if state:
-            self.ui.stacked_widget.setCurrentIndex(p_num)
-            self._current_page = self.Page(p_num)
-            self.ui.fav_splitter.setVisible(
-                p_num not in (self.Page.SAT, self.Page.FTP, self.Page.LOGO, self.Page.TIMER))
-            is_file_action = p_num in (self.Page.BOUQUETS, self.Page.SAT, self.Page.PICONS)
-            self.ui.open_action.setEnabled(is_file_action)
-            self.ui.import_action.setEnabled(is_file_action)
-            self.ui.extract_action.setEnabled(is_file_action)
-            self.ui.upload_tool_button.setEnabled(is_file_action)
+        self.retranslate_ui(self)
 
     def on_bouquet_selection(self, selected_item, deselected_item):
         indexes = selected_item.indexes()
@@ -302,23 +228,11 @@ class MainWindow(QMainWindow):
             self.update_bouquet_services(bq_selected)
 
     def on_fav_selection(self, selected_item, deselected_item):
-        if self._current_page is self.Page.EPG and self._http_api:
+        if self.current_page is Page.EPG and self._http_api:
             ind = selected_item.indexes()
             if len(ind) == 8:
                 ref = self.get_service_ref(ind[Column.FAV_ID].data(), ind[Column.FAV_TYPE].data())
                 self._http_api.send(self._http_api.Request.EPG, ref)
-
-    def on_about(self, state):
-        lic = self.tr("This program comes with absolutely no warranty.<br/>See the <a href=\"{}\">{}</a> for details.")
-        lic = lic.format("http://www.gnu.org/licenses/gpl-3.0.html",
-                         self.tr("GNU General Public License, version 3 or later"))
-        msg = """<h2>{}</h2>
-               <h4>{}</h4>
-               Copyright &copy; 2021 Dmitriy Yefremov<br/><br/>
-               {}
-               """.format(APP_NAME, APP_VERSION, lic)
-
-        QMessageBox.about(self, APP_NAME, msg)
 
     def closeEvent(self, event):
         """ Main window close event. """
@@ -327,7 +241,7 @@ class MainWindow(QMainWindow):
     # ******************** Data loading. ******************** #
 
     def get_data_path(self):
-        profile = self._profiles.get(self.ui.profile_combo_box.currentText())
+        profile = self._profiles.get(self.profile_combo_box.currentText())
         return "{}{}{}".format(self.settings.data_path, profile["name"], os.sep)
 
     def load_data(self, path=None):
@@ -350,7 +264,7 @@ class MainWindow(QMainWindow):
         self.append_services(services)
 
     def append_services(self, services):
-        model = self.ui.services_view.model()
+        model = self.services_view.model()
         for s in services:
             self._services[s.fav_id] = s
             model.appendRow((QStandardItem(i) for i in s))
@@ -358,12 +272,12 @@ class MainWindow(QMainWindow):
         self.set_services_headers()
         # Counting by type of service.
         counter = Counter(s.service_type for s in services)
-        self.ui.data_count_label.setText(str(counter.get("Data")))
-        self.ui.radio_count_label.setText(str(counter.get("Radio")))
-        self.ui.tv_count_label.setText(str(sum(v for k, v in counter.items() if k not in {"Data", "Radio"})))
+        self.data_count_label.setText(str(counter.get("Data")))
+        self.radio_count_label.setText(str(counter.get("Radio")))
+        self.tv_count_label.setText(str(sum(v for k, v in counter.items() if k not in {"Data", "Radio"})))
 
     def append_bouquets(self, bouquets):
-        model = self.ui.bouquets_view.model()
+        model = self.bouquets_view.model()
         root_node = model.invisibleRootItem()
         for i, bqs in enumerate(bouquets):
             root = QStandardItem(QIcon.fromTheme("tv-symbolic" if i == 0 else "radio-symbolic"), bqs.name)
@@ -418,7 +332,7 @@ class MainWindow(QMainWindow):
         services = self._bouquets.get(bq_selected, [])
         ex_services = self._extra_bouquets.get(bq_selected, None)
 
-        model = self.ui.fav_view.model()
+        model = self.fav_view.model()
         model.clear()
 
         for srv_id in services:
@@ -445,9 +359,9 @@ class MainWindow(QMainWindow):
         self.set_fav_headers()
 
     def clean_data(self):
-        self.ui.bouquets_view.model().clear()
-        self.ui.services_view.model().clear()
-        self.ui.fav_view.model().clear()
+        self.bouquets_view.model().clear()
+        self.services_view.model().clear()
+        self.fav_view.model().clear()
 
         for c in (self._bouquets, self._bq_file, self._extra_bouquets,
                   self._services, self._blacklist, self._alt_file, self._picons):
@@ -459,23 +373,23 @@ class MainWindow(QMainWindow):
         for c in (Column.SRV_CAS_FLAGS, Column.SRV_STANDARD, Column.SRV_CODED, Column.SRV_LOCKED, Column.SRV_HIDE,
                   Column.SRV_PICON_ID, Column.SRV_DATA_ID, Column.SRV_FAV_ID, Column.SRV_DATA_ID,
                   Column.SRV_TRANSPONDER):
-            self.ui.services_view.setColumnHidden(c, True)
+            self.services_view.setColumnHidden(c, True)
 
         srv_view_labels = ("", "", "", "Service", "", "", "Package", "Type", "Picon",
                            "", "SID", "Frec", "SR", "Pol", "FEC", "System", "Pos")
-        self.ui.services_view.model().setHorizontalHeaderLabels(srv_view_labels)
+        self.services_view.model().setHorizontalHeaderLabels(srv_view_labels)
 
     def set_fav_headers(self):
         """ Sets FAV view headers. """
         for c in (Column.FAV_CODED, Column.FAV_LOCKED, Column.FAV_HIDE, Column.FAV_ID):
-            self.ui.fav_view.setColumnHidden(c, True)
+            self.fav_view.setColumnHidden(c, True)
         fav_labels = ("", "Service", "Picon", "", "", "Type", "Pos")
-        self.ui.fav_view.model().setHorizontalHeaderLabels(fav_labels)
+        self.fav_view.model().setHorizontalHeaderLabels(fav_labels)
 
     # ******************** Satellites ******************** #
 
     def load_satellites(self, path):
-        model = self.ui.satellite_view.model()
+        model = self.satellite_view.model()
         model.clear()
 
         root_node = model.invisibleRootItem()
@@ -486,23 +400,23 @@ class MainWindow(QMainWindow):
             root_node.appendRow(parent)
 
         model.setHorizontalHeaderLabels(("Satellite", "Frec", "SR", "Pol", "FEC", "System", "Mod"))
-        self.ui.satellite_count_label.setText(str(model.rowCount()))
+        self.satellite_count_label.setText(str(model.rowCount()))
 
     # ******************** Streams ********************* #
 
     def playback_start(self, event=None):
-        if self._current_page is not self.Page.STREAMS:
+        if self.current_page is not Page.STREAMS:
             return
 
         if not self._player:
             from app.streams.media import Player
             try:
-                self._player = Player.make(self.settings.stream_lib, self.ui.media_widget)
+                self._player = Player.make(self.settings.stream_lib, self.media_widget)
             except ImportError as e:
-                self.ui.log_text_browser.append(str(e))
+                self.log_text_browser.append(str(e))
                 return
 
-        indexes = self.ui.fav_view.selectionModel().selectedIndexes()
+        indexes = self.fav_view.selectionModel().selectedIndexes()
         if not indexes or indexes[Column.FAV_TYPE].data() in self._marker_types or not self._http_api:
             return
 
@@ -520,21 +434,21 @@ class MainWindow(QMainWindow):
             self._player.stop()
 
     def show_full_screen(self, event=None):
-        self.ui.media_widget.hide()
-        if self.ui.media_widget.isFullScreen():
-            self.ui.media_widget.setWindowState(Qt.WindowNoState)
-            self.ui.media_widget.setWindowFlags(Qt.Widget)
+        self.media_widget.hide()
+        if self.media_widget.isFullScreen():
+            self.media_widget.setWindowState(Qt.WindowNoState)
+            self.media_widget.setWindowFlags(Qt.Widget)
         else:
-            self.ui.media_widget.setWindowFlags(Qt.Window)
-            self.ui.media_widget.setWindowState(Qt.WindowFullScreen)
-        self.ui.media_widget.show()
+            self.media_widget.setWindowFlags(Qt.Window)
+            self.media_widget.setWindowState(Qt.WindowFullScreen)
+        self.media_widget.show()
 
     # ********************** EPG *********************** #
 
     def update_single_epg(self, epg):
         event_list = epg.get("event_list", [])
 
-        model = self.ui.epg_view.model()
+        model = self.epg_view.model()
         model.clear()
         model.setColumnCount(3)
 
@@ -574,12 +488,27 @@ class MainWindow(QMainWindow):
         if info and not info.get("error", None):
             image = info.get("e2distroversion", "")
             model = info.get("e2model", "")
-            self.ui.status_bar.showMessage(info_text.format("OK", "Current Box: {} Image: {}".format(model, image)))
+            self.status_bar.showMessage(info_text.format("OK", "Current Box: {} Image: {}".format(model, image)))
         else:
-            self.ui.status_bar.showMessage(info_text.format("Disconnected.", ""))
-            if self.ui.log_action.isChecked():
+            self.status_bar.showMessage(info_text.format("Disconnected.", ""))
+            if self.log_action.isChecked():
                 reason = info.get("reason", None)
-                self.ui.log_text_browser.append(reason) if reason else None
+                self.log_text_browser.append(reason) if reason else None
+
+    def on_app_exit(self, state):
+        self.close()
+
+    def on_about(self, state):
+        lic = self.tr("This program comes with absolutely no warranty.<br/>See the <a href=\"{}\">{}</a> for details.")
+        lic = lic.format("http://www.gnu.org/licenses/gpl-3.0.html",
+                         self.tr("GNU General Public License, version 3 or later"))
+        msg = """<h2>{}</h2>
+                  <h4>{}</h4>
+                  Copyright &copy; 2021 Dmitriy Yefremov<br/><br/>
+                  {}
+                  """.format(APP_NAME, APP_VERSION, lic)
+
+        QMessageBox.about(self, APP_NAME, msg)
 
 
 if __name__ == "__main__":
