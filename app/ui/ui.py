@@ -26,6 +26,8 @@ from enum import IntEnum
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 
+from app.ui.views import *
+
 
 class Page(IntEnum):
     """ Main stack widget page. """
@@ -300,12 +302,7 @@ class MainUiWindow(QtWidgets.QMainWindow):
         self.service_search_edit.setObjectName("service_search_edit")
         self.search_filter_layout.addWidget(self.service_search_edit)
         self.services_group_box_layout.addLayout(self.search_filter_layout)
-        self.services_view = QtWidgets.QTableView(self.services_group_box)
-        self.services_view.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
-        self.services_view.setSelectionMode(QtWidgets.QAbstractItemView.ContiguousSelection)
-        self.services_view.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
-        self.services_view.setSortingEnabled(True)
-        self.services_view.setObjectName("services_view")
+        self.services_view = ServicesView(self.services_group_box)
         self.services_group_box_layout.addWidget(self.services_view)
         self.services_bottom_layout = QtWidgets.QHBoxLayout()
         self.services_bottom_layout.setContentsMargins(6, -1, 6, -1)
@@ -379,14 +376,7 @@ class MainUiWindow(QtWidgets.QMainWindow):
         self.satellite_search_edit.setObjectName("satellite_search_edit")
         self.satellite_top_layout.addWidget(self.satellite_search_edit)
         self.satellite_group_box_layout.addLayout(self.satellite_top_layout)
-        self.satellite_view = QtWidgets.QTreeView(self.satellites_group_box)
-        self.satellite_view.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
-        self.satellite_view.setSelectionMode(QtWidgets.QAbstractItemView.ContiguousSelection)
-        self.satellite_view.setHorizontalScrollMode(QtWidgets.QAbstractItemView.ScrollPerItem)
-        self.satellite_view.setObjectName("satellite_view")
-        self.satellite_view.header().setCascadingSectionResizes(False)
-        self.satellite_view.header().setMinimumSectionSize(100)
-        self.satellite_view.header().setStretchLastSection(True)
+        self.satellite_view = SatellitesView(self.satellites_group_box)
         self.satellite_group_box_layout.addWidget(self.satellite_view)
         self.satellite_botton_layout = QtWidgets.QHBoxLayout()
         self.satellite_botton_layout.setContentsMargins(6, -1, 6, -1)
@@ -437,12 +427,7 @@ class MainUiWindow(QtWidgets.QMainWindow):
         self.satellite_update_search_edit.setObjectName("satellite_update_search_edit")
         self.satellite_update_top_layout.addWidget(self.satellite_update_search_edit)
         self.satellite_update_box_layout.addLayout(self.satellite_update_top_layout)
-        self.satellite_update_view = QtWidgets.QListView(self.satellite_update_box)
-        self.satellite_update_view.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
-        self.satellite_update_view.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
-        self.satellite_update_view.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
-        self.satellite_update_view.setResizeMode(QtWidgets.QListView.Fixed)
-        self.satellite_update_view.setObjectName("satellite_update_view")
+        self.satellite_update_view = SatelliteUpdateView(self.satellite_update_box)
         self.satellite_update_box_layout.addWidget(self.satellite_update_view)
         self.satellite_update_botton_layout = QtWidgets.QHBoxLayout()
         self.satellite_update_botton_layout.setContentsMargins(6, -1, 6, -1)
@@ -518,11 +503,7 @@ class MainUiWindow(QtWidgets.QMainWindow):
         self.picon_src_layout.setContentsMargins(2, 6, 2, 0)
         self.picon_src_layout.setVerticalSpacing(6)
         self.picon_src_layout.setObjectName("picon_src_layout")
-        self.picon_src_view = QtWidgets.QTableView(self.picon_src_box)
-        self.picon_src_view.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
-        self.picon_src_view.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
-        self.picon_src_view.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
-        self.picon_src_view.setObjectName("picon_src_view")
+        self.picon_src_view = PiconSrcView(self.picon_src_box)
         self.picon_src_layout.addWidget(self.picon_src_view, 3, 1, 1, 1)
         self.picon_src_top_layout = QtWidgets.QHBoxLayout()
         self.picon_src_top_layout.setContentsMargins(6, -1, 6, -1)
@@ -547,9 +528,7 @@ class MainUiWindow(QtWidgets.QMainWindow):
         self.picon_dest_layout.setContentsMargins(2, 6, 2, 0)
         self.picon_dest_layout.setVerticalSpacing(6)
         self.picon_dest_layout.setObjectName("picon_dest_layout")
-        self.picon_dst_view = QtWidgets.QTreeView(self.picon_dest_box)
-        self.picon_dst_view.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
-        self.picon_dst_view.setObjectName("picon_dst_view")
+        self.picon_dst_view = PiconDstView(self.picon_dest_box)
         self.picon_dest_layout.addWidget(self.picon_dst_view, 3, 0, 1, 1)
         self.picon_dst_top_layout = QtWidgets.QHBoxLayout()
         self.picon_dst_top_layout.setContentsMargins(6, -1, 6, -1)
@@ -660,9 +639,7 @@ class MainUiWindow(QtWidgets.QMainWindow):
         self.epg_search_edit.setObjectName("epg_search_edit")
         self.epg_header_layout.addWidget(self.epg_search_edit)
         self.epg_group_box_layout.addLayout(self.epg_header_layout)
-        self.epg_view = QtWidgets.QListView(self.epg_group_box)
-        self.epg_view.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
-        self.epg_view.setObjectName("epg_view")
+        self.epg_view = EpgView(self.epg_group_box)
         self.epg_group_box_layout.addWidget(self.epg_view)
         self.epg_page_layout.addWidget(self.epg_group_box, 0, 0, 1, 1)
         self.stacked_widget.addWidget(self.epg_page)
@@ -852,14 +829,7 @@ class MainUiWindow(QtWidgets.QMainWindow):
         self.timer_search_edit.setSizePolicy(size_policy)
         self.timer_view_header_layout.addWidget(self.timer_search_edit)
         self.timer_view_layout.addLayout(self.timer_view_header_layout)
-        self.timer_view = QtWidgets.QTableView(self.timer_group_box)
-        self.timer_view.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
-        self.timer_view.setSelectionMode(QtWidgets.QAbstractItemView.ContiguousSelection)
-        self.timer_view.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
-        self.timer_view.setSortingEnabled(True)
-        self.timer_view.horizontalHeader().setMinimumSectionSize(200)
-        self.timer_view.horizontalHeader().setStretchLastSection(True)
-        self.timer_view.setObjectName("timer_view")
+        self.timer_view = TimerView(self.timer_group_box)
         self.timer_view_layout.addWidget(self.timer_view)
         self.timer_group_box_layout.addLayout(self.timer_view_layout)
         self.timer_page_layout.addWidget(self.timer_group_box, 0, 0, 1, 1)
@@ -886,7 +856,7 @@ class MainUiWindow(QtWidgets.QMainWindow):
         ftp_spacer_item = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         self.ftp_src_top_layout.addItem(ftp_spacer_item)
         self.ftp_src_group_box_layout.addLayout(self.ftp_src_top_layout)
-        self.ftp_src_view = QtWidgets.QListView(self.ftp_src_group_box)
+        self.ftp_src_view = FtpView(self.ftp_src_group_box)
         self.ftp_src_view.setObjectName("ftp_src_view")
         self.ftp_src_group_box_layout.addWidget(self.ftp_src_view)
         self.ftp_dest_group_box = QtWidgets.QGroupBox(self.ftp_splitter)
@@ -902,8 +872,7 @@ class MainUiWindow(QtWidgets.QMainWindow):
         ftp_spacer_item2 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         self.ftp_dest_top_layout.addItem(ftp_spacer_item2)
         self.ftp_dest_group_box_layout.addLayout(self.ftp_dest_top_layout)
-        self.ftp_dest_view = QtWidgets.QListView(self.ftp_dest_group_box)
-        self.ftp_dest_view.setObjectName("ftp_dest_view")
+        self.ftp_dest_view = FileView(self.ftp_dest_group_box)
         self.ftp_dest_group_box_layout.addWidget(self.ftp_dest_view)
         self.ftp_page_layout.addWidget(self.ftp_splitter, 0, 0, 1, 1)
         self.stacked_widget.addWidget(self.ftp_page)
@@ -928,11 +897,7 @@ class MainUiWindow(QtWidgets.QMainWindow):
         self.fav_layout.setContentsMargins(2, 6, 2, 2)
         self.fav_layout.setVerticalSpacing(6)
         self.fav_layout.setObjectName("fav_layout")
-        self.fav_view = QtWidgets.QTableView(self.fav_group_box)
-        self.fav_view.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
-        self.fav_view.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
-        self.fav_view.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
-        self.fav_view.setObjectName("fav_view")
+        self.fav_view = FavView(self.fav_group_box)
         self.fav_layout.addWidget(self.fav_view, 3, 1, 1, 1)
         self.fav_h_layout = QtWidgets.QHBoxLayout()
         self.fav_h_layout.setContentsMargins(6, -1, 6, -1)
@@ -973,9 +938,7 @@ class MainUiWindow(QtWidgets.QMainWindow):
         self.bouquets_top_layout.setContentsMargins(2, 6, 2, 2)
         self.bouquets_top_layout.setVerticalSpacing(6)
         self.bouquets_top_layout.setObjectName("bouquets_top_layout")
-        self.bouquets_view = QtWidgets.QTreeView(self.bouquets_group_box)
-        self.bouquets_view.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
-        self.bouquets_view.setObjectName("bouquets_view")
+        self.bouquets_view = BouquetsView(self.bouquets_group_box)
         self.bouquets_top_layout.addWidget(self.bouquets_view, 3, 0, 1, 1)
         self.bq_h_layout = QtWidgets.QHBoxLayout()
         self.bq_h_layout.setContentsMargins(6, -1, 6, -1)
@@ -1140,12 +1103,6 @@ class MainUiWindow(QtWidgets.QMainWindow):
         self.stacked_widget.setCurrentIndex(0)
         self.picons_stacked_widget.setCurrentIndex(0)
         self.log_text_browser.setVisible(False)
-        self.init_models()
-        # Disabled items!!!
-        self.logo_tool_button.setVisible(False)
-        self.control_tool_button.setEnabled(False)
-        self.picon_tool_button.setVisible(False)
-        self.ftp_tool_button.setVisible(False)
         # Current stack page
         self.current_page = Page.BOUQUETS
         # Actions.
@@ -1171,22 +1128,12 @@ class MainUiWindow(QtWidgets.QMainWindow):
         self.logo_tool_button.toggled.connect(lambda s: self.on_stack_page_changed(s, Page.LOGO))
         # Stack pages.
         self.stacked_widget.currentChanged.connect(self.on_current_page_changed)
-
-    def init_models(self):
-        # Services and bouquets.
-        self.services_view.setModel(QtGui.QStandardItemModel(self.services_view))
-        self.bouquets_view.setModel(QtGui.QStandardItemModel(self.bouquets_view))
-        self.fav_view.setModel(QtGui.QStandardItemModel(self.bouquets_view))
-        self.bouquets_view.setHeaderHidden(True)
-        # Satellites.
-        self.satellite_view.setModel(QtGui.QStandardItemModel(self.satellite_view))
-        self.satellite_view.header().setSectionResizeMode(QtWidgets.QHeaderView.ResizeToContents)
-        self.satellite_update_view.setModel(QtGui.QStandardItemModel(self.satellite_update_view))
+        # Disabled items!!!
+        self.logo_tool_button.setVisible(False)
+        self.control_tool_button.setEnabled(False)
+        self.picon_tool_button.setVisible(False)
+        self.ftp_tool_button.setVisible(False)
         self.satellite_update_box.setVisible(False)
-        # Timers.
-        self.timer_view.setModel(QtGui.QStandardItemModel(self.timer_view))
-        # EPG.
-        self.epg_view.setModel(QtGui.QStandardItemModel(self.epg_view))
 
     # ******************** Handlers ******************** #
 

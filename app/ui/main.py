@@ -271,7 +271,6 @@ class MainWindow(MainUiWindow):
             self._services[s.fav_id] = s
             model.appendRow((QStandardItem(i) for i in s))
 
-        self.set_services_headers()
         # Counting by type of service.
         counter = Counter(s.service_type for s in services)
         self.data_count_label.setText(str(counter.get("Data")))
@@ -334,8 +333,8 @@ class MainWindow(MainUiWindow):
         services = self._bouquets.get(bq_selected, [])
         ex_services = self._extra_bouquets.get(bq_selected, None)
 
+        self.fav_view.clear_data()
         model = self.fav_view.model()
-        model.clear()
 
         for srv_id in services:
             srv = self._services.get(srv_id, None)
@@ -358,41 +357,21 @@ class MainWindow(MainUiWindow):
                 s_name = ex_srv_name if ex_srv_name else srv.service
                 row_data = (srv.coded, s_name, picon, srv.locked, srv.hide, srv_type, srv.pos, srv.fav_id)
                 model.appendRow((QStandardItem(i) for i in row_data))
-        self.set_fav_headers()
 
     def clean_data(self):
-        self.bouquets_view.model().clear()
-        self.services_view.model().clear()
-        self.fav_view.model().clear()
+        self.bouquets_view.clear_data()
+        self.services_view.clear_data()
+        self.fav_view.clear_data()
 
         for c in (self._bouquets, self._bq_file, self._extra_bouquets,
                   self._services, self._blacklist, self._alt_file, self._picons):
             c.clear()
 
-    def set_services_headers(self):
-        """ Sets services view headers. """
-        # Setting visible columns.
-        for c in (Column.SRV_CAS_FLAGS, Column.SRV_STANDARD, Column.SRV_CODED, Column.SRV_LOCKED, Column.SRV_HIDE,
-                  Column.SRV_PICON_ID, Column.SRV_DATA_ID, Column.SRV_FAV_ID, Column.SRV_DATA_ID,
-                  Column.SRV_TRANSPONDER):
-            self.services_view.setColumnHidden(c, True)
-
-        srv_view_labels = ("", "", "", "Service", "", "", "Package", "Type", "Picon",
-                           "", "SID", "Frec", "SR", "Pol", "FEC", "System", "Pos")
-        self.services_view.model().setHorizontalHeaderLabels(srv_view_labels)
-
-    def set_fav_headers(self):
-        """ Sets FAV view headers. """
-        for c in (Column.FAV_CODED, Column.FAV_LOCKED, Column.FAV_HIDE, Column.FAV_ID):
-            self.fav_view.setColumnHidden(c, True)
-        fav_labels = ("", "Service", "Picon", "", "", "Type", "Pos")
-        self.fav_view.model().setHorizontalHeaderLabels(fav_labels)
-
     # ******************** Satellites ******************** #
 
     def load_satellites(self, path):
+        self.satellite_view.clear_data()
         model = self.satellite_view.model()
-        model.clear()
 
         root_node = model.invisibleRootItem()
         for sat in get_satellites(path):
@@ -401,7 +380,6 @@ class MainWindow(MainUiWindow):
                 parent.appendRow((QStandardItem(""),) + tuple(QStandardItem(i) for i in t))
             root_node.appendRow(parent)
 
-        model.setHorizontalHeaderLabels(("Satellite", "Frec", "SR", "Pol", "FEC", "System", "Mod"))
         self.satellite_count_label.setText(str(model.rowCount()))
 
     # ******************** Streams ********************* #
@@ -450,9 +428,8 @@ class MainWindow(MainUiWindow):
     def update_single_epg(self, epg):
         event_list = epg.get("event_list", [])
 
+        self.epg_view.clear_data()
         model = self.epg_view.model()
-        model.clear()
-        model.setColumnCount(3)
 
         for event in event_list:
             title = event.get("e2eventtitle", "")
@@ -462,8 +439,6 @@ class MainWindow(MainUiWindow):
             end_time = datetime.fromtimestamp(start + int(event.get("e2eventduration", "0")))
             time_header = "{} - {}".format(start_time.strftime("%A, %H:%M"), end_time.strftime("%H:%M"))
             model.appendRow(QStandardItem(i) for i in (title, time_header, desc))
-
-        model.setHorizontalHeaderLabels(("Title", "Time", "Description"))
 
     def update_multiple_epg(self, epg):
         pass
@@ -477,13 +452,15 @@ class MainWindow(MainUiWindow):
                 return srv.picon_id.rstrip(".png").replace("_", ":")
 
     # ********************* Timer ********************** #
+
     def on_timer_page_show(self):
         self._http_api.send(HttpAPI.Request.TIMER_LIST)
 
     def update_timer_list(self, timer_list):
         timer_list = timer_list.get("timer_list", [])
+
+        self.timer_view.clear_data()
         model = self.timer_view.model()
-        model.clear()
 
         for timer in timer_list:
             name = timer.get("e2name", "") or ""
@@ -495,7 +472,6 @@ class MainWindow(MainUiWindow):
             time_str = "{} - {}".format(start_time.strftime("%A, %H:%M"), end_time.strftime("%H:%M"))
 
             model.appendRow(QStandardItem(i) for i in (name, description, service_name, time_str))
-            model.setHorizontalHeaderLabels(("Name", "Description", "Service", "Time"))
 
     # ******************** HTTP API ******************** #
 
