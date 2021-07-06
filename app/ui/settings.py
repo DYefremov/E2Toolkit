@@ -92,6 +92,22 @@ class Settings(QSettings):
     def app_locale(self, value):
         self.setValue("app_locale", value)
 
+    @property
+    def load_last_config(self):
+        return self.value("load_last_config", False)
+
+    @load_last_config.setter
+    def load_last_config(self, value):
+        self.setValue("load_last_config", value)
+
+    @property
+    def last_config(self):
+        return self.value("last_config", {}, dict)
+
+    @last_config.setter
+    def last_config(self, value):
+        self.setValue("last_config", value)
+
     # ******************** Local paths ******************** #
 
     @property

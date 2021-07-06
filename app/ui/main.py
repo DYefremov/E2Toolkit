@@ -100,6 +100,7 @@ class MainWindow(MainUiWindow):
         self.init_language()
         self.init_profiles()
         self.init_http_api()
+        self.init_last_config()
 
     def init_ui(self):
         self.resize(self.settings.app_window_size)
@@ -161,6 +162,20 @@ class MainWindow(MainUiWindow):
                      HttpAPI.Request.EPG: self.update_single_epg}
         self._http_api = HttpAPI(self._profiles.get(self.profile_combo_box.currentText()), callbacks)
         self._update_state_timer.start(3000)
+
+    def init_last_config(self):
+        """ Initialization of the last configuration. """
+        if self.settings.load_last_config:
+            config = self.settings.last_config
+            self.profile_combo_box.setCurrentText(config.get("last_profile", ""))
+            self.load_data()
+            last_bouquet = config.get("last_bouquet", (-1, -1, -1, -1))
+            # Last selected bouquet.
+            sel_model = self.bouquets_view.selectionModel()
+            root_index = self.bouquets_view.model().index(last_bouquet[0], last_bouquet[1])
+            index = root_index.child(last_bouquet[2], last_bouquet[3])
+            sel_model.select(index, sel_model.ClearAndSelect | sel_model.Rows)
+            sel_model.setCurrentIndex(index, sel_model.NoUpdate)
 
     # ******************** Actions ******************** #
 
@@ -239,6 +254,16 @@ class MainWindow(MainUiWindow):
     def closeEvent(self, event):
         """ Main window close event. """
         self.settings.app_window_size = self.size()
+        if self.settings.load_last_config:
+            config = {"last_profile": self.profile_combo_box.currentText()}
+            indexes = self.bouquets_view.selectionModel().selectedIndexes()
+            if indexes:
+                index = indexes[0]
+                parent = index.parent()
+                config["last_bouquet"] = (parent.row(), parent.column(), index.row(), index.column())
+            else:
+                config["last_bouquet"] = (-1, -1, -1, -1)
+            self.settings.last_config = config
 
     # ******************** Data loading. ******************** #
 
