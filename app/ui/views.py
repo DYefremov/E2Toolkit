@@ -29,7 +29,29 @@ from app.ui.models import *
 from app.ui.uicommons import Column
 
 
-class ServicesView(QtWidgets.QTableView):
+class BaseTableView(QtWidgets.QTableView):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.setEditTriggers(self.NoEditTriggers)
+        self.setSelectionBehavior(self.SelectRows)
+        self.horizontalHeader().setStretchLastSection(True)
+
+    def clear_data(self):
+        model = self.model()
+        model.removeRows(0, model.rowCount())
+
+    def on_remove(self, move_cursor=False):
+        model = self.model()
+        selection_model = self.selectionModel()
+        for i in sorted(selection_model.selectedRows(), reverse=True):
+            model.removeRow(i.row())
+
+        if move_cursor:
+            i = self.moveCursor(self.MoveDown, QtCore.Qt.ControlModifier)
+            selection_model.select(i, selection_model.Select | selection_model.Rows)
+
+
+class ServicesView(BaseTableView):
     class ContextMenu(QtWidgets.QMenu):
 
         def __init__(self, *args, **kwargs):
@@ -69,6 +91,7 @@ class ServicesView(QtWidgets.QTableView):
             self.create_bouquet_menu.addAction(self.create_bq_for_each_type_action)
 
             self.copy_action = QtWidgets.QAction(QtGui.QIcon.fromTheme("edit-copy"), self.tr("Copy"), self)
+            self.copy_action.setShortcut("Ctrl+C")
             self.addAction(self.copy_action)
             self.edit_action = QtWidgets.QAction(QtGui.QIcon.fromTheme("document-edit"), self.tr("Edit"), self)
             self.addAction(self.edit_action)
@@ -80,42 +103,57 @@ class ServicesView(QtWidgets.QTableView):
             self.addAction(self.assign_action)
             self.addSeparator()
             self.remove_action = QtWidgets.QAction(QtGui.QIcon.fromTheme("list-remove"), self.tr("Remove"), self)
+            self.remove_action.setShortcut("Del")
             self.addAction(self.remove_action)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
-        self.setSelectionMode(QtWidgets.QAbstractItemView.ContiguousSelection)
-        self.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
+        self.setSelectionMode(self.ExtendedSelection)
         self.setSortingEnabled(True)
         self.setObjectName("services_view")
         # Model
         self.setModel(ServicesModel(self))
         # Setting visible columns.
-        for c in (Column.SRV_CAS_FLAGS, Column.SRV_STANDARD, Column.SRV_CODED, Column.SRV_LOCKED, Column.SRV_HIDE,
-                  Column.SRV_PICON_ID, Column.SRV_DATA_ID, Column.SRV_FAV_ID, Column.SRV_DATA_ID,
-                  Column.SRV_TRANSPONDER):
+        for c in (Column.CAS_FLAGS, Column.STANDARD, Column.CODED, Column.LOCKED, Column.HIDE, Column.PICON_ID,
+                  Column.DATA_ID, Column.FAV_ID, Column.DATA_ID, Column.TRANSPONDER):
             self.setColumnHidden(c, True)
-        # Popup menu.
+
+        # Drag and Drop
+        self.setDragEnabled(True)
+        # Context [popup] menu.
         self.context_menu = self.ContextMenu(self)
+        self.init_actions()
+
+    def init_actions(self):
+        self.context_menu.remove_action.triggered.connect(self.on_remove)
 
     def contextMenuEvent(self, event):
         self.context_menu.popup(QtGui.QCursor.pos())
 
-    def clear_data(self):
-        model = self.model()
-        model.removeRows(0, model.rowCount())
+    def selectedIndexes(self):
+        """ Overridden to get hidden column values. """
+        return self.selectionModel().selectedIndexes()
+
+    def keyPressEvent(self, event: QtGui.QKeyEvent):
+        key = event.key()
+        if key == QtCore.Qt.Key_Delete:
+            self.on_remove(True)
+        else:
+            super().keyPressEvent(event)
 
 
-class FavView(QtWidgets.QTableView):
+class FavView(BaseTableView):
     class ContextMenu(QtWidgets.QMenu):
         def __init__(self, *args, **kwargs):
             super().__init__(*args, **kwargs)
             self.cut_action = QtWidgets.QAction(QtGui.QIcon.fromTheme("edit-cut"), self.tr("Cut"), self)
+            self.cut_action.setShortcut("Ctrl+X")
             self.addAction(self.cut_action)
             self.copy_action = QtWidgets.QAction(QtGui.QIcon.fromTheme("edit-copy"), self.tr("Copy"), self)
+            self.copy_action.setShortcut("Ctrl+C")
             self.addAction(self.copy_action)
             self.paste_action = QtWidgets.QAction(QtGui.QIcon.fromTheme("edit-paste"), self.tr("Paste"), self)
+            self.paste_action.setShortcut("Ctrl+V")
             self.addAction(self.paste_action)
             self.addSeparator()
             self.edit_action = QtWidgets.QAction(QtGui.QIcon.fromTheme("document-edit"), self.tr("Edit"), self)
@@ -147,28 +185,59 @@ class FavView(QtWidgets.QTableView):
             self.addAction(self.assign_action)
             self.addSeparator()
             self.remove_action = QtWidgets.QAction(QtGui.QIcon.fromTheme("list-remove"), self.tr("Remove"), self)
+            self.remove_action.setShortcut("Del")
             self.addAction(self.remove_action)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
-        self.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
-        self.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
+        self.setSelectionMode(self.ExtendedSelection)
         self.setObjectName("fav_view")
 
         self.setModel(FavModel(self))
         # Setting visible columns.
-        for c in (Column.FAV_CODED, Column.FAV_LOCKED, Column.FAV_HIDE, Column.FAV_ID):
+        for c in (Column.CAS_FLAGS, Column.STANDARD, Column.CODED, Column.LOCKED, Column.HIDE, Column.PACKAGE,
+                  Column.PICON_ID, Column.SSID, Column.FREQ, Column.RATE, Column.POL, Column.FEC, Column.SYSTEM,
+                  Column.DATA_ID, Column.FAV_ID, Column.TRANSPONDER):
             self.setColumnHidden(c, True)
 
+        # Drag and Drop
+        self.setDragEnabled(True)
+        self.setAcceptDrops(True)
+        self.setDragDropOverwriteMode(False)
+        self.setDefaultDropAction(QtCore.Qt.MoveAction)
+        self.verticalHeader().setSectionsMovable(True)
+        # Context menu.
         self.context_menu = self.ContextMenu(self)
+        self.init_actions()
+
+    def init_actions(self):
+        self.context_menu.remove_action.triggered.connect(self.on_remove)
 
     def contextMenuEvent(self, event):
         self.context_menu.popup(QtGui.QCursor.pos())
 
-    def clear_data(self):
-        model = self.model()
-        model.removeRows(0, model.rowCount())
+    def selectedIndexes(self):
+        """ Overridden to get hidden column values. """
+        return self.selectionModel().selectedIndexes()
+
+    def keyPressEvent(self, event: QtGui.QKeyEvent):
+        key = event.key()
+        ctrl = event.modifiers() == QtCore.Qt.ControlModifier
+
+        if ctrl and key == QtCore.Qt.Key_Up:
+            self.move_up()
+        elif ctrl and key == QtCore.Qt.Key_Down:
+            self.move_down()
+        elif key == QtCore.Qt.Key_Delete:
+            self.on_remove(True)
+        else:
+            super().keyPressEvent(event)
+
+    def move_up(self):
+        pass
+
+    def move_down(self):
+        pass
 
 
 class BouquetsView(QtWidgets.QTreeView):
@@ -184,26 +253,35 @@ class BouquetsView(QtWidgets.QTreeView):
             self.addAction(self.export_action)
             self.addSeparator()
             self.cut_action = QtWidgets.QAction(QtGui.QIcon.fromTheme("edit-cut"), self.tr("Cut"), self)
+            self.cut_action.setShortcut("Ctrl+X")
             self.addAction(self.cut_action)
             self.copy_action = QtWidgets.QAction(QtGui.QIcon.fromTheme("edit-copy"), self.tr("Copy"), self)
+            self.copy_action.setShortcut("Ctrl+C")
             self.addAction(self.copy_action)
             self.paste_action = QtWidgets.QAction(QtGui.QIcon.fromTheme("edit-paste"), self.tr("Paste"), self)
+            self.paste_action.setShortcut("Ctrl+V")
             self.addAction(self.paste_action)
             self.addSeparator()
             self.edit_action = QtWidgets.QAction(QtGui.QIcon.fromTheme("document-edit"), self.tr("Edit"), self)
             self.addAction(self.edit_action)
             self.addSeparator()
             self.remove_action = QtWidgets.QAction(QtGui.QIcon.fromTheme("list-remove"), self.tr("Remove"), self)
+            self.remove_action.setShortcut("Del")
             self.addAction(self.remove_action)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
+        self.setEditTriggers(self.NoEditTriggers)
         self.setHeaderHidden(True)
         self.setObjectName("bouquets_view")
 
         self.setModel(BouquetsModel(self))
+        # Context menu.
         self.context_menu = self.ContextMenu(self)
+        self.init_actions()
+
+    def init_actions(self):
+        self.context_menu.remove_action.triggered.connect(self.on_remove)
 
     def contextMenuEvent(self, event):
         self.context_menu.popup(QtGui.QCursor.pos())
@@ -212,13 +290,16 @@ class BouquetsView(QtWidgets.QTreeView):
         model = self.model()
         model.removeRows(0, model.rowCount())
 
+    def on_remove(self):
+        pass
+
 
 class SatellitesView(QtWidgets.QTreeView):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
-        self.setSelectionMode(QtWidgets.QAbstractItemView.ContiguousSelection)
-        self.setHorizontalScrollMode(QtWidgets.QAbstractItemView.ScrollPerItem)
+        self.setEditTriggers(self.NoEditTriggers)
+        self.setSelectionMode(self.ContiguousSelection)
+        self.setHorizontalScrollMode(self.ScrollPerItem)
         self.setObjectName("satellite_view")
 
         header = self.header()
@@ -237,10 +318,10 @@ class SatellitesView(QtWidgets.QTreeView):
 class SatelliteUpdateView(QtWidgets.QListView):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
-        self.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
-        self.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
-        self.setResizeMode(QtWidgets.QListView.Fixed)
+        self.setEditTriggers(self.NoEditTriggers)
+        self.setSelectionMode(self.SingleSelection)
+        self.setSelectionBehavior(self.SelectRows)
+        self.setResizeMode(self.Fixed)
         self.setObjectName("satellite_update_view")
 
         self.setModel(SatelliteUpdateModel(self))
@@ -250,43 +331,38 @@ class SatelliteUpdateView(QtWidgets.QListView):
         model.removeRows(0, model.rowCount())
 
 
-class PiconSrcView(QtWidgets.QTableView):
+class PiconSrcView(BaseTableView):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
-        self.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
-        self.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
+        self.setSelectionMode(self.ExtendedSelection)
         self.setObjectName("picon_src_view")
 
 
-class PiconDstView(QtWidgets.QTableView):
+class PiconDstView(BaseTableView):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
-        self.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
-        self.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
+        self.setSelectionMode(self.ExtendedSelection)
         self.setObjectName("picon_dst_view")
 
 
-class EpgView(QtWidgets.QListView):
+class EpgView(BaseTableView):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
+        self.setSelectionMode(self.SingleSelection)
+        self.setAlternatingRowColors(True)
+        header = self.horizontalHeader()
+        header.setStretchLastSection(True)
+        header.setMinimumSectionSize(200)
+        header.setDefaultAlignment(QtCore.Qt.AlignCenter)
         self.setObjectName("epg_view")
 
         self.setModel(EpgModel(self))
 
-    def clear_data(self):
-        model = self.model()
-        model.removeRows(0, model.rowCount())
 
-
-class TimerView(QtWidgets.QTableView):
+class TimerView(BaseTableView):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
-        self.setSelectionMode(QtWidgets.QAbstractItemView.ContiguousSelection)
-        self.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
+        self.setSelectionMode(self.ContiguousSelection)
         self.setSortingEnabled(True)
         self.horizontalHeader().setMinimumSectionSize(200)
         self.horizontalHeader().setStretchLastSection(True)
@@ -294,15 +370,11 @@ class TimerView(QtWidgets.QTableView):
 
         self.setModel(TimerModel(self))
 
-    def clear_data(self):
-        model = self.model()
-        model.removeRows(0, model.rowCount())
-
 
 class FtpView(QtWidgets.QListView):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
+        self.setEditTriggers(self.NoEditTriggers)
         self.setObjectName("ftp_view")
 
         self.setModel(FtpModel(self))

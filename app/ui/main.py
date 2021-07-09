@@ -326,7 +326,7 @@ class MainWindow(MainUiWindow):
             if s_type in (BqServiceType.MARKER, BqServiceType.IPTV, BqServiceType.SPACE):
                 icon = None
                 picon_id = None
-                data_id = srv.num
+                data_id = str(srv.num)
                 locked = None
 
                 if s_type is BqServiceType.IPTV:
@@ -378,10 +378,10 @@ class MainWindow(MainUiWindow):
                         alt_srv = self._services.get(alt_servs[0].data, None)
                         if alt_srv:
                             picon = self._picons.get(alt_srv.picon_id, None) if srv else None
+                        srv = srv._replace(transponder=None)
 
-                s_name = ex_srv_name if ex_srv_name else srv.service
-                row_data = (srv.coded, s_name, picon, srv.locked, srv.hide, srv_type, srv.pos, srv.fav_id)
-                model.appendRow((QStandardItem(i) for i in row_data))
+                srv = srv._replace(service=ex_srv_name) if ex_srv_name else srv
+                model.appendRow((QStandardItem(i) for i in srv))
 
     def clean_data(self):
         self.bouquets_view.clear_data()

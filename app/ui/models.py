@@ -36,11 +36,16 @@ class ServicesModel(QtGui.QStandardItemModel):
 
 
 class FavModel(QtGui.QStandardItemModel):
-    HEADER_LABELS = ("", "Service", "Picon", "", "", "Type", "Pos", "")
+    HEADER_LABELS = ("", "", "", "Service", "", "", "", "Type", "Picon", "",
+                     "", "", "", "", "", "", "Pos", "", "", "")
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.setHorizontalHeaderLabels(self.HEADER_LABELS)
+
+    def dropMimeData(self, data, action, row, column, parent):
+        """ Overridden to prevent data being dragged into a cell. Column -> 0. """
+        return super().dropMimeData(data, action, row, 0, parent)
 
 
 class BouquetsModel(QtGui.QStandardItemModel):

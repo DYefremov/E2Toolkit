@@ -33,36 +33,26 @@ IPTV_ICON = None
 class Column(IntEnum):
     """ Column nums in the views. """
     # Services
-    SRV_CAS_FLAGS = 0
-    SRV_STANDARD = 1
-    SRV_CODED = 2
-    SRV_SERVICE = 3
-    SRV_LOCKED = 4
-    SRV_HIDE = 5
-    SRV_PACKAGE = 6
-    SRV_TYPE = 7
-    SRV_PICON = 8
-    SRV_PICON_ID = 9
-    SRV_SSID = 10
-    SRV_FREQ = 11
-    SRV_RATE = 12
-    SRV_POL = 13
-    SRV_FEC = 14
-    SRV_SYSTEM = 15
-    SRV_POS = 16
-    SRV_DATA_ID = 17
-    SRV_FAV_ID = 18
-    SRV_TRANSPONDER = 19
-    # FAV
-    FAV_CODED = 0
-    FAV_SERVICE = 1
-    FAV_PICON = 2
-    FAV_LOCKED = 3
-    FAV_HIDE = 4
-    FAV_TYPE = 5
-    FAV_POS = 6
-    FAV_ID = 7
-
+    CAS_FLAGS = 0
+    STANDARD = 1
+    CODED = 2
+    SERVICE = 3
+    LOCKED = 4
+    HIDE = 5
+    PACKAGE = 6
+    TYPE = 7
+    PICON = 8
+    PICON_ID = 9
+    SSID = 10
+    FREQ = 11
+    RATE = 12
+    POL = 13
+    FEC = 14
+    SYSTEM = 15
+    POS = 16
+    DATA_ID = 17
+    FAV_ID = 18
+    TRANSPONDER = 19
     # Bouquets
     BQ_NAME = 0
     BQ_LOCKED = 1
