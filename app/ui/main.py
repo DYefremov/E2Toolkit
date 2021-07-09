@@ -78,6 +78,7 @@ class MainWindow(MainUiWindow):
         # Settings.
         self.settings = Settings()
         self._profiles = OrderedDict()
+        self._bq_selected = ""
         # Cached data.
         self._bouquets = {}
         self._bq_file = {}
@@ -119,6 +120,9 @@ class MainWindow(MainUiWindow):
         # Models and Views.
         self.bouquets_view.selectionModel().selectionChanged.connect(self.on_bouquet_selection)
         self.fav_view.selectionModel().selectionChanged.connect(self.on_fav_selection)
+        self.fav_view.removed.connect(self.remove_favorites)
+        self.services_view.removed.connect(self.remove_services)
+        self.services_view.delete_release.connect(self.on_service_remove_done)
         # Streams.
         self.media_play_tool_button.clicked.connect(self.playback_start)
         self.media_stop_tool_button.clicked.connect(self.playback_stop)
@@ -241,15 +245,17 @@ class MainWindow(MainUiWindow):
     def on_bouquet_selection(self, selected_item, deselected_item):
         indexes = selected_item.indexes()
         if len(indexes) > 1:
-            bq_selected = "{}:{}".format(indexes[Column.BQ_NAME].data(), indexes[Column.BQ_TYPE].data())
-            self.update_bouquet_services(bq_selected)
+            self._bq_selected = "{}:{}".format(indexes[Column.BQ_NAME].data(), indexes[Column.BQ_TYPE].data())
+            self.update_bouquet_services(self._bq_selected)
 
     def on_fav_selection(self, selected_item, deselected_item):
         if self.current_page is Page.EPG and self._http_api:
             ind = selected_item.indexes()
-            if len(ind) == 8:
-                ref = self.get_service_ref(ind[Column.FAV_ID].data(), ind[Column.FAV_TYPE].data())
+
+            if len(ind) == self.fav_view.model().columnCount():
+                ref = self.get_service_ref(ind[Column.FAV_ID].data(), ind[Column.TYPE].data())
                 self._http_api.send(self._http_api.Request.EPG, ref)
+                self.fav_view.setEnabled(False)
 
     def closeEvent(self, event):
         """ Main window close event. """
@@ -296,11 +302,7 @@ class MainWindow(MainUiWindow):
             self._services[s.fav_id] = s
             model.appendRow((QStandardItem(i) for i in s))
 
-        # Counting by type of service.
-        counter = Counter(s.service_type for s in services)
-        self.data_count_label.setText(str(counter.get("Data")))
-        self.radio_count_label.setText(str(counter.get("Radio")))
-        self.tv_count_label.setText(str(sum(v for k, v in counter.items() if k not in {"Data", "Radio"})))
+        self.update_services_count(services)
 
     def append_bouquets(self, bouquets):
         model = self.bouquets_view.model()
@@ -388,9 +390,38 @@ class MainWindow(MainUiWindow):
         self.services_view.clear_data()
         self.fav_view.clear_data()
 
-        for c in (self._bouquets, self._bq_file, self._extra_bouquets,
-                  self._services, self._blacklist, self._alt_file, self._picons):
+        for c in (self._bouquets, self._bq_file, self._extra_bouquets, self._services,
+                  self._blacklist, self._alt_file, self._picons):
             c.clear()
+
+    # ********************* Bouquets ********************* #
+
+    def remove_services(self, rows):
+        list(map(lambda s: self._services.pop(s, None), rows.values()))
+        # Fav model update.
+        ids = set(rows.values())
+        model = self.fav_view.model()
+        sel_model = self.fav_view.selectionModel()
+        for k, v in {model.index(r, 0): model.index(r, Column.FAV_ID).data() for r in range(model.rowCount())}.items():
+            if v in ids:
+                # Rows selection to delete.
+                sel_model.select(k, sel_model.Select | sel_model.Rows)
+        self.fav_view.on_remove()
+
+    def on_service_remove_done(self):
+        self.update_services_count(filter(lambda s: s.pos, self._services.values()))
+
+    def remove_favorites(self, rows):
+        bq = self._bouquets.get(self._bq_selected, None)
+        if bq:
+            list(map(bq.pop, rows))
+
+    def update_services_count(self, services):
+        """ Updates service counters. """
+        counter = Counter(s.service_type for s in services)
+        self.data_count_label.setText(str(counter.get("Data", 0)))
+        self.radio_count_label.setText(str(counter.get("Radio", 0)))
+        self.tv_count_label.setText(str(sum(v for k, v in counter.items() if k not in {"Data", "Radio"})))
 
     # ******************** Satellites ******************** #
 
@@ -422,10 +453,10 @@ class MainWindow(MainUiWindow):
                 return
 
         indexes = self.fav_view.selectionModel().selectedIndexes()
-        if not indexes or indexes[Column.FAV_TYPE].data() in self._marker_types or not self._http_api:
+        if not indexes or indexes[Column.TYPE].data() in self._marker_types or not self._http_api:
             return
 
-        ref = self.get_service_ref(indexes[Column.FAV_ID].data(), indexes[Column.FAV_TYPE].data())
+        ref = self.get_service_ref(indexes[Column.FAV_ID].data(), indexes[Column.TYPE].data())
         self._http_api.send(HttpAPI.Request.STREAM, ref)
 
     def update_playback(self, data):
@@ -452,7 +483,6 @@ class MainWindow(MainUiWindow):
 
     def update_single_epg(self, epg):
         event_list = epg.get("event_list", [])
-
         self.epg_view.clear_data()
         model = self.epg_view.model()
 
@@ -464,6 +494,8 @@ class MainWindow(MainUiWindow):
             end_time = datetime.fromtimestamp(start + int(event.get("e2eventduration", "0")))
             time_header = "{} - {}".format(start_time.strftime("%A, %H:%M"), end_time.strftime("%H:%M"))
             model.appendRow(QStandardItem(i) for i in (title, time_header, desc))
+
+        self.fav_view.setEnabled(True)
 
     def update_multiple_epg(self, epg):
         pass

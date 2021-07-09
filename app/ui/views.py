@@ -30,6 +30,12 @@ from app.ui.uicommons import Column
 
 
 class BaseTableView(QtWidgets.QTableView):
+    # Main signals
+    removed = QtCore.pyqtSignal(dict)  # row -> id
+    # Called when the Delete key is released
+    # or remove called from the context menu.
+    delete_release = QtCore.pyqtSignal()
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.setEditTriggers(self.NoEditTriggers)
@@ -43,15 +49,26 @@ class BaseTableView(QtWidgets.QTableView):
     def on_remove(self, move_cursor=False):
         model = self.model()
         selection_model = self.selectionModel()
-        for i in sorted(selection_model.selectedRows(), reverse=True):
-            model.removeRow(i.row())
+        removed = [i.row() for i in sorted(selection_model.selectedRows(), reverse=True)]
+        self.removed.emit({r: model.index(r, Column.FAV_ID).data() for r in removed})
+        list(map(model.removeRow, removed))
 
         if move_cursor:
             i = self.moveCursor(self.MoveDown, QtCore.Qt.ControlModifier)
             selection_model.select(i, selection_model.Select | selection_model.Rows)
+        else:
+            self.delete_release.emit()
+
+    def keyReleaseEvent(self, event):
+        key = event.key()
+        if key == QtCore.Qt.Key_Delete and not event.isAutoRepeat():
+            self.delete_release.emit()
+        super().keyReleaseEvent(event)
 
 
 class ServicesView(BaseTableView):
+    """ Main class for services list. """
+
     class ContextMenu(QtWidgets.QMenu):
 
         def __init__(self, *args, **kwargs):
@@ -134,15 +151,16 @@ class ServicesView(BaseTableView):
         """ Overridden to get hidden column values. """
         return self.selectionModel().selectedIndexes()
 
-    def keyPressEvent(self, event: QtGui.QKeyEvent):
+    def keyPressEvent(self, event):
         key = event.key()
         if key == QtCore.Qt.Key_Delete:
             self.on_remove(True)
-        else:
-            super().keyPressEvent(event)
+        super().keyPressEvent(event)
 
 
 class FavView(BaseTableView):
+    """ Main class for favorites list. """
+
     class ContextMenu(QtWidgets.QMenu):
         def __init__(self, *args, **kwargs):
             super().__init__(*args, **kwargs)
