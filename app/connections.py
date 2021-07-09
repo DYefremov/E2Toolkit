@@ -529,6 +529,7 @@ class HttpAPI:
         self._ssl_config.setPeerVerifyMode(QSslSocket.VerifyNone)
         # Manager
         self._auth = 0
+        self._token = b"sessionid=0"
         self.network_manager = QNetworkAccessManager()
         self.network_manager.authenticationRequired.connect(self.auth)
         self.network_manager.finished.connect(self.handle_response)
@@ -540,12 +541,16 @@ class HttpAPI:
 
         auth.setUser(self._settings["user"])
         auth.setPassword(self._settings["password"])
+        # Token
+        self._callbacks[self.Request.TOKEN] = self.set_token
+        self.send(self.Request.TOKEN)
 
     def send(self, req, params=None):
         request = QNetworkRequest(QUrl("{}{}{}".format(self._main_url, req, params if params else "")))
         request.setSslConfiguration(self._ssl_config)
         request.setAttribute(request.CustomVerbAttribute, req)
-        self.network_manager.get(request)
+        request.setHeader(QNetworkRequest.ContentTypeHeader, "application/x-www-form-urlencoded")
+        self.network_manager.post(request, self._token)
 
     def handle_response(self, reply):
         req = reply.request().attribute(QNetworkRequest.CustomVerbAttribute)
@@ -578,6 +583,9 @@ class HttpAPI:
 
     def append_callback(self, req, callback):
         self._callbacks[req] = callback
+
+    def set_token(self, data):
+        self._token = "sessionid={}".format(data.get("e2sessionid", "0")).encode()
 
 
 # ******************* Telnet ********************* #
