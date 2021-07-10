@@ -31,6 +31,8 @@ from app.ui.uicommons import Column
 
 class BaseTableView(QtWidgets.QTableView):
     # Main signals
+    copied = QtCore.pyqtSignal(bool)
+    inserted = QtCore.pyqtSignal(bool)
     removed = QtCore.pyqtSignal(dict)  # row -> id
     # Called when the Delete key is released
     # or remove called from the context menu.
@@ -42,9 +44,31 @@ class BaseTableView(QtWidgets.QTableView):
         self.setSelectionBehavior(self.SelectRows)
         self.horizontalHeader().setStretchLastSection(True)
 
+        self.clipboard = QtWidgets.QApplication.instance().clipboard()
+
     def clear_data(self):
         model = self.model()
         model.removeRows(0, model.rowCount())
+
+    def on_copy(self):
+        rows = self.selectedIndexes()
+        if not rows:
+            return
+
+        self.clipboard.setMimeData(self.model().mimeData(sorted(rows, reverse=True)))
+        self.copied.emit(True)
+
+    def on_paste(self):
+        target = self.selectionModel().currentIndex()
+        mime = self.clipboard.mimeData()
+        if mime.hasFormat("application/x-qabstractitemmodeldatalist"):
+            if self.model().dropMimeData(mime, QtCore.Qt.CopyAction, target.row() + 1, 0, QtCore.QModelIndex()):
+                self.clipboard.clear()
+                self.inserted.emit(True)
+
+    def on_cut(self):
+        self.on_copy()
+        self.on_remove()
 
     def on_remove(self, move_cursor=False):
         model = self.model()
@@ -63,7 +87,12 @@ class BaseTableView(QtWidgets.QTableView):
         key = event.key()
         if key == QtCore.Qt.Key_Delete and not event.isAutoRepeat():
             self.delete_release.emit()
-        super().keyReleaseEvent(event)
+        else:
+            super().keyReleaseEvent(event)
+
+    def selectedIndexes(self):
+        """ Overridden to get hidden column values. """
+        return self.selectionModel().selectedIndexes()
 
 
 class ServicesView(BaseTableView):
@@ -143,19 +172,21 @@ class ServicesView(BaseTableView):
 
     def init_actions(self):
         self.context_menu.remove_action.triggered.connect(self.on_remove)
+        self.context_menu.copy_action.triggered.connect(self.on_copy)
 
     def contextMenuEvent(self, event):
         self.context_menu.popup(QtGui.QCursor.pos())
 
-    def selectedIndexes(self):
-        """ Overridden to get hidden column values. """
-        return self.selectionModel().selectedIndexes()
-
     def keyPressEvent(self, event):
         key = event.key()
-        if key == QtCore.Qt.Key_Delete:
+        ctrl = event.modifiers() == QtCore.Qt.ControlModifier
+
+        if ctrl and key == QtCore.Qt.Key_C:
+            self.on_copy()
+        elif key == QtCore.Qt.Key_Delete:
             self.on_remove(True)
-        super().keyPressEvent(event)
+        else:
+            super().keyPressEvent(event)
 
 
 class FavView(BaseTableView):
@@ -172,6 +203,7 @@ class FavView(BaseTableView):
             self.addAction(self.copy_action)
             self.paste_action = QtWidgets.QAction(QtGui.QIcon.fromTheme("edit-paste"), self.tr("Paste"), self)
             self.paste_action.setShortcut("Ctrl+V")
+            self.paste_action.setEnabled(False)
             self.addAction(self.paste_action)
             self.addSeparator()
             self.edit_action = QtWidgets.QAction(QtGui.QIcon.fromTheme("document-edit"), self.tr("Edit"), self)
@@ -230,18 +262,32 @@ class FavView(BaseTableView):
 
     def init_actions(self):
         self.context_menu.remove_action.triggered.connect(self.on_remove)
+        self.context_menu.copy_action.triggered.connect(self.on_copy)
+        self.context_menu.paste_action.triggered.connect(self.on_paste)
+        self.context_menu.cut_action.triggered.connect(self.on_cut)
+        # Copy - Paste items.
+        self.copied.connect(self.context_menu.paste_action.setEnabled)
+        self.inserted.connect(lambda b: self.context_menu.paste_action.setEnabled(not b))
+        self.copied.connect(lambda b: self.context_menu.copy_action.setEnabled(not b))
+        self.inserted.connect(self.context_menu.copy_action.setEnabled)
 
     def contextMenuEvent(self, event):
         self.context_menu.popup(QtGui.QCursor.pos())
 
-    def selectedIndexes(self):
-        """ Overridden to get hidden column values. """
-        return self.selectionModel().selectedIndexes()
+    def dropEvent(self, event):
+        super().dropEvent(event)
+        self.inserted.emit(True)
 
     def keyPressEvent(self, event: QtGui.QKeyEvent):
         key = event.key()
         ctrl = event.modifiers() == QtCore.Qt.ControlModifier
 
+        if ctrl and key == QtCore.Qt.Key_X:
+            self.on_cut()
+        elif ctrl and key == QtCore.Qt.Key_C:
+            self.on_copy()
+        elif ctrl and key == QtCore.Qt.Key_V:
+            self.on_paste()
         if ctrl and key == QtCore.Qt.Key_Up:
             self.move_up()
         elif ctrl and key == QtCore.Qt.Key_Down:

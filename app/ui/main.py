@@ -121,6 +121,7 @@ class MainWindow(MainUiWindow):
         self.bouquets_view.selectionModel().selectionChanged.connect(self.on_bouquet_selection)
         self.fav_view.selectionModel().selectionChanged.connect(self.on_fav_selection)
         self.fav_view.removed.connect(self.remove_favorites)
+        self.fav_view.inserted.connect(self.on_fav_data_changed)
         self.services_view.removed.connect(self.remove_services)
         self.services_view.delete_release.connect(self.on_service_remove_done)
         # Streams.
@@ -133,6 +134,8 @@ class MainWindow(MainUiWindow):
         self._update_state_timer.timeout.connect(self.update_state)
         # About.
         self.about_action.triggered.connect(self.on_about)
+        # Context menu items.
+        self.services_view.copied.connect(self.fav_view.context_menu.paste_action.setEnabled)
 
     def init_language(self):
         app_locale = self.settings.app_locale
@@ -395,6 +398,20 @@ class MainWindow(MainUiWindow):
             c.clear()
 
     # ********************* Bouquets ********************* #
+
+    def on_fav_data_changed(self):
+        """  Refreshes the current bouquet services list.
+
+            Called when the data in the favorites model has changed [insert, move, etc.].
+        """
+        bq = self._bouquets.get(self._bq_selected, None)
+        if bq is None:
+            return
+
+        bq.clear()
+        model = self.fav_view.model()
+        for r in range(model.rowCount()):
+            bq.append(model.index(r, Column.FAV_ID).data())
 
     def remove_services(self, rows):
         list(map(lambda s: self._services.pop(s, None), rows.values()))
