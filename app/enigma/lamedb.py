@@ -182,7 +182,7 @@ class LameDbReader:
                 tr_type, sp, tr = str(transponder).partition(" ")
                 tr_type = TrType(tr_type)
                 tr = tr.split(_SEP)
-                service_type = SERVICE_TYPE.get(data[4], SERVICE_TYPE["-2"])
+                srv_type = SERVICE_TYPE.get(data[4], SERVICE_TYPE["-2"])
                 # Removing all non printable symbols!
                 srv_name = "".join(c for c in srv[1] if c.isprintable())
                 freq = tr[0]
@@ -220,8 +220,8 @@ class LameDbReader:
                 except ValueError as e:
                     log("Parse error [parse_services]: {}".format(e))
 
-                s = Service(srv[2], tr_type.value, coded, srv_name, locked, hide, package, service_type, None,
-                            picon_id, data[0], freq, rate, pol, fec, system, pos, data_id, fav_id, transponder)
+                s = Service(srv[2], tr_type.value, coded, None, picon_id, srv_name, locked, hide, package, srv_type,
+                            data[0], freq, rate, pol, fec, system, pos, data_id, fav_id, transponder)
 
                 services_list.append(s)
         return services_list
@@ -259,7 +259,7 @@ class LameDbReader:
                 tr_lines.append(transponder)
                 tr_set.add(tr_id)
             # Services
-            services_lines.append("{}\n{}\n{}\n".format(srv.data_id, srv.service, srv.flags_cas))
+            services_lines.append("{}\n{}\n{}\n".format(srv.data_id, srv.name, srv.flags_cas))
 
         tr_lines.sort()
         lines.extend(tr_lines)
@@ -325,7 +325,7 @@ class LameDbWriter:
             flags = list(filter(lambda x: x != "p:", srv.flags_cas.split(",")))
             flags = ",".join(flags)
             flags = "," + flags if flags else ""
-            services_lines.append("s:{},\"{}\"{}\n".format(srv.data_id, srv.service, flags))
+            services_lines.append("s:{},\"{}\"{}\n".format(srv.data_id, srv.name, flags))
 
         lines.extend(sorted(tr_set))
         lines.extend(services_lines)

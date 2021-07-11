@@ -25,27 +25,56 @@ __all__ = ["ServicesModel", "FavModel", "BouquetsModel", "SatellitesModel", "Sat
 
 from PyQt5 import QtGui, QtWidgets, QtCore
 
+from app.ui.uicommons import Column
+
 
 class ServicesModel(QtGui.QStandardItemModel):
-    HEADER_LABELS = ("", "", "", "Service", "", "", "Package", "Type", "Picon", "",
+    HEADER_LABELS = ("", "", "", "Picon", "", "Name", "", "", "Package", "Type",
                      "SID", "Frec", "SR", "Pol", "FEC", "System", "Pos", "", "", "")
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.setHorizontalHeaderLabels(self.HEADER_LABELS)
+        self._picon_path = ""
+
+    def data(self, index, role):
+        if index.column() == Column.PICON and role == QtCore.Qt.DecorationRole:
+            return QtGui.QIcon(self._picon_path + self.index(index.row(), Column.PICON_ID).data())
+        return super().data(index, role)
+
+    @property
+    def picon_path(self):
+        return self._picon_path
+
+    @picon_path.setter
+    def picon_path(self, value):
+        self._picon_path = value
 
 
 class FavModel(QtGui.QStandardItemModel):
-    HEADER_LABELS = ("", "", "", "Service", "", "", "", "Type", "Picon", "",
-                     "", "", "", "", "", "", "Pos", "", "", "")
+    HEADER_LABELS = ("", "", "", "Picon", "", "Name", "", "", "", "Type", "", "", "", "", "", "", "Pos", "", "", "")
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.setHorizontalHeaderLabels(self.HEADER_LABELS)
+        self._picon_path = ""
 
     def dropMimeData(self, data, action, row, column, parent):
         """ Overridden to prevent data being dragged into a cell. Column -> 0. """
         return super().dropMimeData(data, action, row, 0, parent)
+
+    def data(self, index, role):
+        if index.column() == Column.PICON and role == QtCore.Qt.DecorationRole:
+            return QtGui.QIcon(self._picon_path + self.index(index.row(), Column.PICON_ID).data())
+        return super().data(index, role)
+
+    @property
+    def picon_path(self):
+        return self._picon_path
+
+    @picon_path.setter
+    def picon_path(self, value):
+        self._picon_path = value
 
 
 class BouquetsModel(QtGui.QStandardItemModel):

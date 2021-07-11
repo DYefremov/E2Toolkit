@@ -159,11 +159,23 @@ class ServicesView(BaseTableView):
         self.setObjectName("services_view")
         # Model
         self.setModel(ServicesModel(self))
+        # Picons size.
+        self.setIconSize(QtCore.QSize(32, 32))
         # Setting visible columns.
         for c in (Column.CAS_FLAGS, Column.STANDARD, Column.CODED, Column.LOCKED, Column.HIDE, Column.PICON_ID,
                   Column.DATA_ID, Column.FAV_ID, Column.DATA_ID, Column.TRANSPONDER):
             self.setColumnHidden(c, True)
 
+        self.setColumnWidth(Column.PICON, 50)
+        self.setColumnWidth(Column.NAME, 150)
+        self.setColumnWidth(Column.TYPE, 75)
+        self.setColumnWidth(Column.SSID, 50)
+        self.setColumnWidth(Column.FREQ, 75)
+        self.setColumnWidth(Column.RATE, 75)
+        self.setColumnWidth(Column.POL, 50)
+        self.setColumnWidth(Column.FEC, 50)
+        self.setColumnWidth(Column.SYSTEM, 75)
+        self.setColumnWidth(Column.POS, 50)
         # Drag and Drop
         self.setDragEnabled(True)
         # Context [popup] menu.
@@ -242,7 +254,6 @@ class FavView(BaseTableView):
         super().__init__(*args, **kwargs)
         self.setSelectionMode(self.ExtendedSelection)
         self.setObjectName("fav_view")
-
         self.setModel(FavModel(self))
         # Setting visible columns.
         for c in (Column.CAS_FLAGS, Column.STANDARD, Column.CODED, Column.LOCKED, Column.HIDE, Column.PACKAGE,
@@ -250,6 +261,11 @@ class FavView(BaseTableView):
                   Column.DATA_ID, Column.FAV_ID, Column.TRANSPONDER):
             self.setColumnHidden(c, True)
 
+        self.setIconSize(QtCore.QSize(32, 32))
+        self.setColumnWidth(Column.PICON, 50)
+        self.setColumnWidth(Column.NAME, 150)
+        self.setColumnWidth(Column.TYPE, 75)
+        self.setColumnWidth(Column.POS, 50)
         # Drag and Drop
         self.setDragEnabled(True)
         self.setAcceptDrops(True)

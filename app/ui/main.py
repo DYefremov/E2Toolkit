@@ -158,6 +158,8 @@ class MainWindow(MainUiWindow):
             self._profiles[p.get("name")] = p
         self.profile_combo_box.setModel(QStringListModel(list(self._profiles)))
         self.settings.current_profile = self._profiles[self.profile_combo_box.currentText()]
+        self.services_view.model().picon_path = self.settings.picon_path
+        self.fav_view.model().picon_path = self.settings.picon_path
 
     def init_http_api(self):
         if self._http_api:
@@ -303,7 +305,7 @@ class MainWindow(MainUiWindow):
         model = self.services_view.model()
         for s in services:
             self._services[s.fav_id] = s
-            model.appendRow((QStandardItem(i) for i in s))
+            model.appendRow(QStandardItem(i) for i in s)
 
         self.update_services_count(services)
 
@@ -341,13 +343,13 @@ class MainWindow(MainUiWindow):
                         data_id = ":".join(fav_id_data[:11])
                         picon_id = "{}_{}_{}_{}_{}_{}_{}_{}_{}_{}.png".format(*fav_id_data[:10])
                         locked = LOCKED_ICON if data_id in self._blacklist else None
-                srv = Service(None, None, icon, srv.name, locked, None, None, s_type.name,
-                              self._picons.get(picon_id, None), picon_id, *agr, data_id, fav_id, None)
+                srv = Service(None, None, icon, None, picon_id, srv.name, locked, None,
+                              None, s_type.name, *agr, data_id, fav_id, None)
                 self._services[fav_id] = srv
             elif s_type is BqServiceType.ALT:
                 self._alt_file.add("{}:{}".format(srv.data, bq_type))
-                srv = Service(None, None, None, srv.name, locked, None, None, s_type.name,
-                              None, None, *agr, srv.data, fav_id, srv.num)
+                srv = Service(None, None, None, None, None, srv.name, locked, None, None, s_type.name,
+                              *agr, srv.data, fav_id, srv.num)
                 self._services[fav_id] = srv
             elif srv.name:
                 extra_services[fav_id] = srv.name
@@ -372,20 +374,14 @@ class MainWindow(MainUiWindow):
             if ex_services:
                 ex_srv_name = ex_services.get(srv_id)
             if srv:
-                # Setting background
-                background = "color" if ex_srv_name else None
-                srv_type = srv.service_type
-                picon = self._picons.get(srv.picon_id, None)
                 # Alternatives
                 if srv.service_type == BqServiceType.ALT.name:
                     alt_servs = srv.transponder
                     if alt_servs:
                         alt_srv = self._services.get(alt_servs[0].data, None)
-                        if alt_srv:
-                            picon = self._picons.get(alt_srv.picon_id, None) if srv else None
                         srv = srv._replace(transponder=None)
 
-                srv = srv._replace(service=ex_srv_name) if ex_srv_name else srv
+                srv = srv._replace(name=ex_srv_name) if ex_srv_name else srv
                 model.appendRow((QStandardItem(i) for i in srv))
 
     def clean_data(self):
@@ -393,8 +389,7 @@ class MainWindow(MainUiWindow):
         self.services_view.clear_data()
         self.fav_view.clear_data()
 
-        for c in (self._bouquets, self._bq_file, self._extra_bouquets, self._services,
-                  self._blacklist, self._alt_file, self._picons):
+        for c in (self._bouquets, self._bq_file, self._extra_bouquets, self._services, self._blacklist, self._alt_file):
             c.clear()
 
     # ********************* Bouquets ********************* #
