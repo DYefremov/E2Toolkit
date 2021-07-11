@@ -33,7 +33,7 @@ from PyQt5.QtGui import QIcon, QStandardItem
 from PyQt5.QtWidgets import QApplication, QMessageBox, QFileDialog, QActionGroup, QAction
 
 from app.commons import APP_VERSION, APP_NAME, LANG_PATH, log, LOCALES
-from app.connections import HttpAPI, download_data, DownloadType
+from app.connections import HttpAPI, DownloadType, DataLoader
 from app.enigma.bouquets import BouquetsReader
 from app.enigma.ecommons import BqServiceType, Service
 from app.enigma.lamedb import get_services
@@ -188,26 +188,30 @@ class MainWindow(MainUiWindow):
 
     # ******************** Actions ******************** #
 
-    def on_data_download(self):
-        try:
-            self.log_text_browser.clear()
-            page = Page(self.stacked_widget.currentIndex())
-            download_type = DownloadType.ALL
-            if page is Page.SAT:
-                download_type = DownloadType.SATELLITES
+    def on_data_download(self, state=False):
+        self.download_tool_button.setEnabled(False)
+        self.log_text_browser.clear()
+        page = Page(self.stacked_widget.currentIndex())
+        download_type = DownloadType.ALL
+        if page is Page.SAT:
+            download_type = DownloadType.SATELLITES
+        elif page is Page.PICONS:
+            download_type = DownloadType.PICONS
 
-            download_data(settings=self.settings,
-                          download_type=download_type,
-                          callback=self.log_text_browser.append)
-        except Exception as e:
-            log(e)
-            self.log_text_browser.append("Error: {}".format(str(e)))
-            self.status_bar.showMessage("Error: {}".format(str(e)))
+        data_loader = DataLoader(self.settings, download_type, parent=self)
+        data_loader.message.connect(self.log_text_browser.append)
+        data_loader.error_message.connect(self.status_bar.showMessage)
+        data_loader.loaded.connect(self.on_data_load_done)
+        data_loader.start()
+
+    def on_data_load_done(self, download_type):
+        self.download_tool_button.setEnabled(True)
+        if download_type is DownloadType.SATELLITES:
+            self.load_satellites(self.get_data_path() + "satellites.xml")
+        if download_type is DownloadType.PICONS:
+            QMessageBox.information(self, APP_NAME, self.tr("Not implemented yet!"))
         else:
-            if page is Page.SAT:
-                self.load_satellites(self.get_data_path() + "satellites.xml")
-            else:
-                self.load_data()
+            self.load_data()
 
     def on_data_upload(self):
         QMessageBox.information(self, APP_NAME, self.tr("Not implemented yet!"))

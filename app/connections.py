@@ -32,7 +32,7 @@ from ftplib import FTP, Error, CRLF, error_perm
 from telnetlib import Telnet
 from urllib.parse import urlencode
 
-from PyQt5.QtCore import QUrl
+from PyQt5.QtCore import QUrl, QThread, pyqtSignal
 from PyQt5.QtNetwork import QNetworkAccessManager, QNetworkRequest, QSslSocket, QSslConfiguration, QNetworkReply
 
 from app.commons import log
@@ -51,6 +51,38 @@ class DownloadType(Enum):
     SATELLITES = 2
     PICONS = 3
     EPG = 4
+
+
+class DataLoader(QThread):
+    """ Data load helper class.
+
+        Loads data in a separate thread.
+    """
+    message = pyqtSignal(str)
+    error_message = pyqtSignal(str)
+    loaded = pyqtSignal(DownloadType)
+
+    def __init__(self, settings, download_type=DownloadType.ALL, upload=False, files_filter=None, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.settings = settings
+        self.download_type = download_type
+        self.upload = upload
+        self.file_filter = files_filter
+        self.finished.connect(lambda: self.loaded.emit(self.download_type))
+
+    def run(self):
+        if self.upload:
+            pass
+        else:
+            try:
+                download_data(settings=self.settings,
+                              download_type=self.download_type,
+                              callback=self.message.emit,
+                              files_filter=self.file_filter)
+            except Exception as e:
+                error_msg = "Error: {}".format(str(e))
+                self.error_message.emit(error_msg)
+                self.message.emit(error_msg)
 
 
 class UtfFTP(FTP):
@@ -352,9 +384,9 @@ def download_data(*, settings, download_type=DownloadType.ALL, callback=log, fil
             ftp.download_xml(save_path, settings.box_satellite_path, STC_XML_FILE, callback)
 
         if download_type is DownloadType.PICONS:
-            picons_local_path = "{}picons{}".format(save_path, os.sep)
+            picons_local_path = "{}{}{}".format(settings.picon_path, settings.current_profile["name"], os.sep)
             os.makedirs(os.path.dirname(picons_local_path), exist_ok=True)
-            ftp.download_picons(settings["box_picon_path"], picons_local_path, callback, files_filter)
+            ftp.download_picons(settings.current_profile["box_picon_path"], picons_local_path, callback, files_filter)
         # epg.dat
         if download_type is DownloadType.EPG:
             log("Not implemented yet!")
