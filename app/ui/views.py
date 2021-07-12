@@ -417,12 +417,29 @@ class PiconSrcView(BaseTableView):
         self.setSelectionMode(self.ExtendedSelection)
         self.setObjectName("picon_src_view")
 
+        self.setModel(PiconModel())
+        self.setIconSize(QtCore.QSize(96, 96))
+        self.verticalHeader().setMinimumSectionSize(96)
+        self.setColumnHidden(1, True)
+
 
 class PiconDstView(BaseTableView):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.setSelectionMode(self.ExtendedSelection)
         self.setObjectName("picon_dst_view")
+
+        self.setModel(PiconModel())
+        self.setIconSize(QtCore.QSize(96, 96))
+        v_header = self.verticalHeader()
+        v_header.setMinimumSectionSize(96)
+        v_header.setSectionResizeMode(v_header.Stretch)
+
+        header = self.horizontalHeader()
+        header.setSectionHidden(1, True)
+        header.setSectionResizeMode(0, header.Stretch)
+        header.setMinimumSectionSize(128)
+        header.setStretchLastSection(False)
 
 
 class EpgView(BaseTableView):

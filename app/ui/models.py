@@ -21,7 +21,7 @@
 #
 
 __all__ = ["ServicesModel", "FavModel", "BouquetsModel", "SatellitesModel", "SatelliteUpdateModel",
-           "PiconsSrcModel", "PiconsDstModel", "EpgModel", "TimerModel", "FtpModel", "FileModel"]
+           "PiconModel", "EpgModel", "TimerModel", "FtpModel", "FileModel"]
 
 from PyQt5 import QtGui, QtWidgets, QtCore
 
@@ -98,14 +98,17 @@ class SatelliteUpdateModel(QtGui.QStandardItemModel):
         self.setHorizontalHeaderLabels(self.HEADER_LABELS)
 
 
-class PiconsSrcModel(QtGui.QStandardItemModel):
+class PiconModel(QtGui.QStandardItemModel):
+    HEADER_LABELS = ("Info", "", "Picon")
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.setHorizontalHeaderLabels(self.HEADER_LABELS)
 
-
-class PiconsDstModel(QtGui.QStandardItemModel):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def data(self, index, role):
+        if index.column() == 2 and role == QtCore.Qt.DecorationRole:
+            return QtGui.QIcon(self.index(index.row(), 1).data())
+        return super().data(index, role)
 
 
 class EpgModel(QtGui.QStandardItemModel):

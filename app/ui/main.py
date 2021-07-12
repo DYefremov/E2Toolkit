@@ -156,10 +156,12 @@ class MainWindow(MainUiWindow):
     def init_profiles(self):
         for p in self.settings.profiles:
             self._profiles[p.get("name")] = p
+
         self.profile_combo_box.setModel(QStringListModel(list(self._profiles)))
         self.settings.current_profile = self._profiles[self.profile_combo_box.currentText()]
-        self.services_view.model().picon_path = self.settings.picon_path
-        self.fav_view.model().picon_path = self.settings.picon_path
+        picon_path = self.get_picon_path()
+        self.services_view.model().picon_path = picon_path
+        self.fav_view.model().picon_path = picon_path
 
     def init_http_api(self):
         if self._http_api:
@@ -209,7 +211,7 @@ class MainWindow(MainUiWindow):
         if download_type is DownloadType.SATELLITES:
             self.load_satellites(self.get_data_path() + "satellites.xml")
         if download_type is DownloadType.PICONS:
-            QMessageBox.information(self, APP_NAME, self.tr("Not implemented yet!"))
+            self.load_picons()
         else:
             self.load_data()
 
@@ -285,6 +287,9 @@ class MainWindow(MainUiWindow):
     def get_data_path(self):
         profile = self._profiles.get(self.profile_combo_box.currentText())
         return "{}{}{}".format(self.settings.data_path, profile["name"], os.sep)
+
+    def get_picon_path(self):
+        return "{}{}{}".format(self.settings.picon_path, self.profile_combo_box.currentText(), os.sep)
 
     def load_data(self, path=None):
         if not path:
@@ -454,11 +459,35 @@ class MainWindow(MainUiWindow):
 
         self.satellite_count_label.setText(str(model.rowCount()))
 
+    # ********************* Picons ********************* #
+
+    def on_picon_page_show(self):
+        self.load_picons()
+
+    def load_picons(self):
+        self.picon_dst_view.clear_data()
+        ids = {s.picon_id: s.fav_id for s in self._services.values()}
+        dst_model = self.picon_dst_view.model()
+        path = Path(self.get_picon_path())
+
+        for f in path.glob("*.png"):
+            info = self.get_service_info(self._services.get(ids.get(f.name, None), None))
+            dst_model.appendRow((QStandardItem(info if info else f.name), QStandardItem(str(f)), None))
+
+    def get_service_info(self, srv):
+        if not srv:
+            return ""
+
+        header = "{}: {}\n{}: {}\n{}: {}\n".format(self.tr("Name"), srv.name,
+                                                   self.tr("Type"), srv.service_type,
+                                                   self.tr("Package"), srv.package)
+        ref = "{}: {}".format(self.tr("Service reference"), srv.picon_id.rstrip(".png"))
+        return "{}\n{}".format(header, ref)
+
     # ******************** Streams ********************* #
 
     def playback_start(self, event=None):
-        if self.current_page is not Page.STREAMS:
-            return
+        self.streams_tool_button.toggle()
 
         if not self._player:
             from app.streams.media import Player

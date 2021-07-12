@@ -222,34 +222,6 @@
          </widget>
         </item>
         <item>
-         <widget class="QToolButton" name="streams_tool_button">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="minimumSize">
-           <size>
-            <width>75</width>
-            <height>0</height>
-           </size>
-          </property>
-          <property name="focusPolicy">
-           <enum>Qt::NoFocus</enum>
-          </property>
-          <property name="text">
-           <string>Streams</string>
-          </property>
-          <property name="checkable">
-           <bool>true</bool>
-          </property>
-          <property name="autoExclusive">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item>
          <widget class="QToolButton" name="epg_tool_button">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -443,7 +415,7 @@
              <number>0</number>
             </property>
             <property name="rightMargin">
-             <number>2</number>
+             <number>6</number>
             </property>
             <property name="bottomMargin">
              <number>2</number>
@@ -682,7 +654,7 @@
              <number>0</number>
             </property>
             <property name="rightMargin">
-             <number>2</number>
+             <number>6</number>
             </property>
             <property name="bottomMargin">
              <number>2</number>
@@ -991,13 +963,13 @@
           <widget class="QWidget" name="picon_page">
            <layout class="QGridLayout" name="picons_page_layout">
             <property name="leftMargin">
-             <number>2</number>
+             <number>0</number>
             </property>
             <property name="topMargin">
              <number>0</number>
             </property>
             <property name="rightMargin">
-             <number>2</number>
+             <number>0</number>
             </property>
             <property name="bottomMargin">
              <number>0</number>
@@ -1007,109 +979,26 @@
               <property name="title">
                <string>Picons</string>
               </property>
-              <layout class="QVBoxLayout" name="picons_broup_box_layout">
+              <layout class="QGridLayout" name="picon_group_box_layout">
                <property name="leftMargin">
                 <number>0</number>
                </property>
                <property name="topMargin">
-                <number>0</number>
+                <number>6</number>
                </property>
                <property name="rightMargin">
-                <number>0</number>
+                <number>6</number>
                </property>
                <property name="bottomMargin">
-                <number>0</number>
+                <number>2</number>
                </property>
-               <item>
-                <layout class="QHBoxLayout" name="picon_header_box">
-                 <property name="spacing">
-                  <number>2</number>
-                 </property>
-                 <property name="leftMargin">
-                  <number>6</number>
-                 </property>
-                 <property name="rightMargin">
-                  <number>6</number>
-                 </property>
-                 <item>
-                  <spacer name="picon_left_header_spacer">
-                   <property name="orientation">
-                    <enum>Qt::Horizontal</enum>
-                   </property>
-                   <property name="sizeHint" stdset="0">
-                    <size>
-                     <width>40</width>
-                     <height>20</height>
-                    </size>
-                   </property>
-                  </spacer>
-                 </item>
-                 <item>
-                  <widget class="QToolButton" name="picon_explorer_button">
-                   <property name="minimumSize">
-                    <size>
-                     <width>85</width>
-                     <height>0</height>
-                    </size>
-                   </property>
-                   <property name="focusPolicy">
-                    <enum>Qt::NoFocus</enum>
-                   </property>
-                   <property name="text">
-                    <string>Explorer</string>
-                   </property>
-                   <property name="checkable">
-                    <bool>true</bool>
-                   </property>
-                   <property name="checked">
-                    <bool>true</bool>
-                   </property>
-                   <property name="autoExclusive">
-                    <bool>true</bool>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QToolButton" name="picon_downloader_button">
-                   <property name="minimumSize">
-                    <size>
-                     <width>85</width>
-                     <height>0</height>
-                    </size>
-                   </property>
-                   <property name="focusPolicy">
-                    <enum>Qt::NoFocus</enum>
-                   </property>
-                   <property name="text">
-                    <string>Downloader</string>
-                   </property>
-                   <property name="checkable">
-                    <bool>true</bool>
-                   </property>
-                   <property name="autoExclusive">
-                    <bool>true</bool>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <spacer name="picon_right_header_spacer">
-                   <property name="orientation">
-                    <enum>Qt::Horizontal</enum>
-                   </property>
-                   <property name="sizeHint" stdset="0">
-                    <size>
-                     <width>40</width>
-                     <height>20</height>
-                    </size>
-                   </property>
-                  </spacer>
-                 </item>
-                </layout>
-               </item>
-               <item>
+               <property name="spacing">
+                <number>6</number>
+               </property>
+               <item row="0" column="0">
                 <widget class="QStackedWidget" name="picons_stacked_widget">
                  <property name="currentIndex">
-                  <number>1</number>
+                  <number>0</number>
                  </property>
                  <widget class="QWidget" name="picon_explorer_page">
                   <layout class="QGridLayout" name="picon_explorer_layout">
@@ -1130,55 +1019,12 @@
                    </property>
                    <item row="0" column="0">
                     <widget class="QSplitter" name="picon_splitter">
-                     <property name="sizePolicy">
-                      <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
-                       <horstretch>0</horstretch>
-                       <verstretch>0</verstretch>
-                      </sizepolicy>
-                     </property>
                      <property name="orientation">
                       <enum>Qt::Horizontal</enum>
                      </property>
-                     <property name="opaqueResize">
-                      <bool>true</bool>
-                     </property>
-                     <property name="handleWidth">
-                      <number>6</number>
-                     </property>
-                     <widget class="QGroupBox" name="picon_src_box">
-                      <property name="title">
-                       <string>Source:</string>
-                      </property>
-                      <layout class="QGridLayout" name="picon_src_layout">
-                       <property name="leftMargin">
-                        <number>2</number>
-                       </property>
-                       <property name="topMargin">
-                        <number>6</number>
-                       </property>
-                       <property name="rightMargin">
-                        <number>2</number>
-                       </property>
-                       <property name="bottomMargin">
-                        <number>0</number>
-                       </property>
-                       <property name="verticalSpacing">
-                        <number>6</number>
-                       </property>
-                       <item row="3" column="1">
-                        <widget class="QTableView" name="picon_src_view">
-                         <property name="editTriggers">
-                          <set>QAbstractItemView::NoEditTriggers</set>
-                         </property>
-                         <property name="selectionMode">
-                          <enum>QAbstractItemView::ExtendedSelection</enum>
-                         </property>
-                         <property name="selectionBehavior">
-                          <enum>QAbstractItemView::SelectRows</enum>
-                         </property>
-                        </widget>
-                       </item>
-                       <item row="0" column="1">
+                     <widget class="QWidget" name="layoutWidget">
+                      <layout class="QVBoxLayout" name="picon_src_layout">
+                       <item>
                         <layout class="QHBoxLayout" name="picon_src_top_layout">
                          <property name="leftMargin">
                           <number>6</number>
@@ -1187,7 +1033,7 @@
                           <number>6</number>
                          </property>
                          <item>
-                          <spacer name="fav_spacer_2">
+                          <spacer name="picon_src_top_spacer">
                            <property name="orientation">
                             <enum>Qt::Horizontal</enum>
                            </property>
@@ -1220,39 +1066,24 @@
                          </item>
                         </layout>
                        </item>
-                      </layout>
-                     </widget>
-                     <widget class="QGroupBox" name="picon_dest_box">
-                      <property name="title">
-                       <string>Destination:</string>
-                      </property>
-                      <property name="alignment">
-                       <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-                      </property>
-                      <layout class="QGridLayout" name="picon_dest_layout">
-                       <property name="leftMargin">
-                        <number>2</number>
-                       </property>
-                       <property name="topMargin">
-                        <number>6</number>
-                       </property>
-                       <property name="rightMargin">
-                        <number>2</number>
-                       </property>
-                       <property name="bottomMargin">
-                        <number>0</number>
-                       </property>
-                       <property name="verticalSpacing">
-                        <number>6</number>
-                       </property>
-                       <item row="3" column="0">
-                        <widget class="QTreeView" name="picon_dst_view">
+                       <item>
+                        <widget class="QTableView" name="picon_src_view">
                          <property name="editTriggers">
                           <set>QAbstractItemView::NoEditTriggers</set>
                          </property>
+                         <property name="selectionMode">
+                          <enum>QAbstractItemView::ExtendedSelection</enum>
+                         </property>
+                         <property name="selectionBehavior">
+                          <enum>QAbstractItemView::SelectRows</enum>
+                         </property>
                         </widget>
                        </item>
-                       <item row="0" column="0">
+                      </layout>
+                     </widget>
+                     <widget class="QWidget" name="layoutWidget_2">
+                      <layout class="QVBoxLayout" name="picon_dst_layout">
+                       <item>
                         <layout class="QHBoxLayout" name="picon_dst_top_layout">
                          <property name="leftMargin">
                           <number>6</number>
@@ -1287,6 +1118,13 @@
                           </widget>
                          </item>
                         </layout>
+                       </item>
+                       <item>
+                        <widget class="QTreeView" name="picon_dst_view">
+                         <property name="editTriggers">
+                          <set>QAbstractItemView::NoEditTriggers</set>
+                         </property>
+                        </widget>
                        </item>
                       </layout>
                      </widget>
@@ -1391,7 +1229,7 @@
                   </property>
                   <property name="icon">
                    <iconset theme="media-playback-start">
-                    <normaloff>../../../../../../.designer/backup</normaloff>../../../../../../.designer/backup</iconset>
+                    <normaloff>../.designer/backup</normaloff>../.designer/backup</iconset>
                   </property>
                  </widget>
                 </item>
@@ -1408,7 +1246,7 @@
                   </property>
                   <property name="icon">
                    <iconset theme="media-playback-stop">
-                    <normaloff>../../../../../../.designer/backup</normaloff>../../../../../../.designer/backup</iconset>
+                    <normaloff>../.designer/backup</normaloff>../.designer/backup</iconset>
                   </property>
                  </widget>
                 </item>
@@ -1432,7 +1270,7 @@
                   </property>
                   <property name="icon">
                    <iconset theme="view-fullscreen">
-                    <normaloff>../../../../../../.designer/backup</normaloff>../../../../../../.designer/backup</iconset>
+                    <normaloff>../.designer/backup</normaloff>../.designer/backup</iconset>
                   </property>
                  </widget>
                 </item>
@@ -1938,8 +1776,8 @@
                       <string>Add</string>
                      </property>
                      <property name="icon">
-                      <iconset theme="add">
-                       <normaloff>../../../../../../Рабочий стол</normaloff>../../../../../../Рабочий стол</iconset>
+                      <iconset theme="list-add">
+                       <normaloff>.</normaloff>.</iconset>
                      </property>
                     </widget>
                    </item>
@@ -1955,8 +1793,8 @@
                       <string>Remove</string>
                      </property>
                      <property name="icon">
-                      <iconset theme="remove">
-                       <normaloff>../../../../../../Рабочий стол</normaloff>../../../../../../Рабочий стол</iconset>
+                      <iconset theme="list-remove">
+                       <normaloff>.</normaloff>.</iconset>
                      </property>
                     </widget>
                    </item>
@@ -2305,8 +2143,8 @@
                  <string>Add</string>
                 </property>
                 <property name="icon">
-                 <iconset theme="add">
-                  <normaloff>../../../../../../../../Рабочий стол</normaloff>../../../../../../../../Рабочий стол</iconset>
+                 <iconset theme="list-add">
+                  <normaloff>.</normaloff>.</iconset>
                 </property>
                 <property name="autoRaise">
                  <bool>false</bool>
@@ -2389,7 +2227,7 @@
      </property>
      <property name="icon">
       <iconset theme="locale">
-       <normaloff>../../../../../../.designer/backup</normaloff>../../../../../../.designer/backup</iconset>
+       <normaloff>../.designer/backup</normaloff>../.designer/backup</iconset>
      </property>
     </widget>
     <addaction name="settings_action"/>
@@ -2406,12 +2244,11 @@
      </property>
      <property name="icon">
       <iconset theme="system-run">
-       <normaloff>.</normaloff>.</iconset>
+       <normaloff>../WORK/projects/E2Toolkit/app/ui/res</normaloff>../WORK/projects/E2Toolkit/app/ui/res</iconset>
      </property>
      <addaction name="bouquets_action"/>
      <addaction name="satellites_action"/>
      <addaction name="picons_action"/>
-     <addaction name="tv_action"/>
      <addaction name="epg_action"/>
      <addaction name="timer_action"/>
      <addaction name="ftp_action"/>
@@ -2430,7 +2267,7 @@
   <action name="open_action">
    <property name="icon">
     <iconset theme="folder-open">
-     <normaloff>../../../../../../.designer/backup</normaloff>../../../../../../.designer/backup</iconset>
+     <normaloff>../.designer/backup</normaloff>../.designer/backup</iconset>
    </property>
    <property name="text">
     <string>Open</string>
@@ -2442,7 +2279,7 @@
   <action name="exit_action">
    <property name="icon">
     <iconset theme="application-exit">
-     <normaloff>../../../../../../.designer/backup</normaloff>../../../../../../.designer/backup</iconset>
+     <normaloff>../.designer/backup</normaloff>../.designer/backup</iconset>
    </property>
    <property name="text">
     <string>Exit</string>
@@ -2454,7 +2291,7 @@
   <action name="settings_action">
    <property name="icon">
     <iconset theme="settings">
-     <normaloff>../../../../../../.designer/backup</normaloff>../../../../../../.designer/backup</iconset>
+     <normaloff>../.designer/backup</normaloff>../.designer/backup</iconset>
    </property>
    <property name="text">
     <string>Settings...</string>
@@ -2491,16 +2328,19 @@
   <action name="import_action">
    <property name="icon">
     <iconset theme="folder-open">
-     <normaloff>../../../../../../.designer/backup</normaloff>../../../../../../.designer/backup</iconset>
+     <normaloff>../.designer/backup</normaloff>../.designer/backup</iconset>
    </property>
    <property name="text">
     <string>Import</string>
+   </property>
+   <property name="shortcut">
+    <string>Del</string>
    </property>
   </action>
   <action name="extract_action">
    <property name="icon">
     <iconset theme="archive">
-     <normaloff>../../../../../../.designer/backup</normaloff>../../../../../../.designer/backup</iconset>
+     <normaloff>../.designer/backup</normaloff>../.designer/backup</iconset>
    </property>
    <property name="text">
     <string>Extract...</string>
@@ -2509,7 +2349,7 @@
   <action name="about_action">
    <property name="icon">
     <iconset theme="help-about">
-     <normaloff>../../../../../../.designer/backup</normaloff>../../../../../../.designer/backup</iconset>
+     <normaloff>../.designer/backup</normaloff>../.designer/backup</iconset>
    </property>
    <property name="text">
     <string>About</string>
@@ -2669,22 +2509,6 @@
     </hint>
     <hint type="destinationlabel">
      <x>447</x>
-     <y>67</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>tv_action</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>streams_tool_button</receiver>
-   <slot>setVisible(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>-1</x>
-     <y>-1</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>524</x>
      <y>67</y>
     </hint>
    </hints>
