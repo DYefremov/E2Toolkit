@@ -94,7 +94,7 @@ class Settings(QSettings):
 
     @property
     def load_last_config(self):
-        return self.value("load_last_config", False)
+        return self.value("load_last_config", False, bool)
 
     @load_last_config.setter
     def load_last_config(self, value):
@@ -107,6 +107,38 @@ class Settings(QSettings):
     @last_config.setter
     def last_config(self, value):
         self.setValue("last_config", value)
+
+    @property
+    def show_srv_hints(self):
+        return self.value("show_srv_hints", True, bool)
+
+    @show_srv_hints.setter
+    def show_srv_hints(self, value):
+        self.setValue("show_srv_hints", value)
+
+    @property
+    def show_fav_hints(self):
+        return self.value("show_fav_hints", True, bool)
+
+    @show_fav_hints.setter
+    def show_fav_hints(self, value):
+        self.setValue("show_fav_hints", value)
+
+    @property
+    def backup_before_save(self):
+        return self.value("backup_before_save", True, bool)
+
+    @backup_before_save.setter
+    def backup_before_save(self, value):
+        self.setValue("backup_before_save", value)
+
+    @property
+    def backup_before_downloading(self):
+        return self.value("backup_before_downloading", True, bool)
+
+    @backup_before_downloading.setter
+    def backup_before_downloading(self, value):
+        self.setValue("backup_before_downloading", value)
 
     # ******************** Local paths ******************** #
 
@@ -252,6 +284,11 @@ class SettingsDialog(QDialog):
         self.ui.picon_path_edit.setText(self.settings.picon_path)
         self.ui.backup_path_edit.setText(self.settings.backup_path)
         # Program
+        self.ui.load_last_config_check_box.setChecked(self.settings.load_last_config)
+        self.ui.show_services_hints_check_box.setChecked(self.settings.show_srv_hints)
+        self.ui.show_fav_hints_check_box.setChecked(self.settings.show_fav_hints)
+        self.ui.backup_befor_save_check_box.setChecked(self.settings.backup_before_save)
+        self.ui.backup_befor_download_check_box.setChecked(self.settings.backup_before_downloading)
         self.ui.stream_lib_combo_box.setCurrentText(self.settings.stream_lib)
 
     def settings_save(self):
@@ -262,6 +299,11 @@ class SettingsDialog(QDialog):
         self.settings.picon_path = self.ui.picon_path_edit.text()
         self.settings.backup_path = self.ui.backup_path_edit.text()
         # Program
+        self.settings.load_last_config = self.ui.load_last_config_check_box.isChecked()
+        self.settings.show_srv_hints = self.ui.show_services_hints_check_box.isChecked()
+        self.settings.show_fav_hints = self.ui.show_fav_hints_check_box.isChecked()
+        self.settings.backup_before_save = self.ui.backup_befor_save_check_box.isChecked()
+        self.settings.backup_before_downloading = self.ui.backup_befor_download_check_box.isChecked()
         self.settings.stream_lib = self.ui.stream_lib_combo_box.currentText()
 
     # ******************** Network ******************** #

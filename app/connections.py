@@ -24,7 +24,6 @@
 import os
 import re
 import socket
-import ssl
 import time
 import xml.etree.ElementTree as ETree
 from enum import Enum
@@ -552,7 +551,7 @@ class HttpAPI:
 
     def __init__(self, settings, callbacks={}):
         host, use_ssl, port = settings["host"], settings["http_use_ssl"], settings["http_port"]
-        self._main_url = "http{}://{}:{}/web/".format("s" if ssl else "", host, port)
+        self._main_url = "http{}://{}:{}/web/".format("s" if use_ssl else "", host, port)
         self._settings = settings
         self._use_ssl = use_ssl
         self._callbacks = callbacks

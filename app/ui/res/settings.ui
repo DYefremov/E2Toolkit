@@ -173,7 +173,7 @@
                  <string>Add</string>
                 </property>
                 <property name="icon">
-                 <iconset theme="add">
+                 <iconset theme="list-add">
                   <normaloff>.</normaloff>.</iconset>
                 </property>
                </widget>
@@ -190,7 +190,7 @@
                  <string>Edit</string>
                 </property>
                 <property name="icon">
-                 <iconset theme="edit">
+                 <iconset theme="document-edit">
                   <normaloff>.</normaloff>.</iconset>
                 </property>
                </widget>
@@ -207,7 +207,7 @@
                  <string>Remove</string>
                 </property>
                 <property name="icon">
-                 <iconset theme="remove">
+                 <iconset theme="list-remove">
                   <normaloff>.</normaloff>.</iconset>
                 </property>
                </widget>
@@ -574,7 +574,7 @@
        </widget>
        <widget class="QWidget" name="program_page">
         <layout class="QGridLayout" name="gridLayout_4">
-         <item row="0" column="0">
+         <item row="2" column="0">
           <widget class="QGroupBox" name="program_streams_box">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
@@ -683,6 +683,148 @@
                </widget>
               </item>
              </layout>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <widget class="QGroupBox" name="program_backup_box">
+           <property name="title">
+            <string>Backups</string>
+           </property>
+           <layout class="QFormLayout" name="backups_layout">
+            <property name="leftMargin">
+             <number>9</number>
+            </property>
+            <property name="topMargin">
+             <number>9</number>
+            </property>
+            <property name="rightMargin">
+             <number>9</number>
+            </property>
+            <property name="bottomMargin">
+             <number>9</number>
+            </property>
+            <item row="0" column="0">
+             <widget class="QLabel" name="backup_before_saving_label">
+              <property name="text">
+               <string>Before saving</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="0">
+             <widget class="QLabel" name="backup_before_download_label">
+              <property name="text">
+               <string>Before downloading from the receiver</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="1">
+             <widget class="QCheckBox" name="backup_befor_save_check_box">
+              <property name="layoutDirection">
+               <enum>Qt::RightToLeft</enum>
+              </property>
+              <property name="text">
+               <string notr="true"/>
+              </property>
+              <property name="shortcut">
+               <string notr="true"/>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="1">
+             <widget class="QCheckBox" name="backup_befor_download_check_box">
+              <property name="layoutDirection">
+               <enum>Qt::RightToLeft</enum>
+              </property>
+              <property name="text">
+               <string notr="true"/>
+              </property>
+              <property name="shortcut">
+               <string notr="true"/>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item row="0" column="0">
+          <widget class="QGroupBox" name="program_lists_box">
+           <property name="title">
+            <string>Lists </string>
+           </property>
+           <layout class="QFormLayout" name="lists_layout">
+            <property name="leftMargin">
+             <number>9</number>
+            </property>
+            <property name="topMargin">
+             <number>9</number>
+            </property>
+            <property name="rightMargin">
+             <number>9</number>
+            </property>
+            <property name="bottomMargin">
+             <number>0</number>
+            </property>
+            <item row="0" column="1">
+             <widget class="QCheckBox" name="load_last_config_check_box">
+              <property name="layoutDirection">
+               <enum>Qt::RightToLeft</enum>
+              </property>
+              <property name="text">
+               <string notr="true"/>
+              </property>
+              <property name="shortcut">
+               <string notr="true"/>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="0">
+             <widget class="QLabel" name="load_last_config_label">
+              <property name="text">
+               <string>Load the last open configuration at program startup</string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="1">
+             <widget class="QCheckBox" name="show_fav_hints_check_box">
+              <property name="layoutDirection">
+               <enum>Qt::RightToLeft</enum>
+              </property>
+              <property name="text">
+               <string notr="true"/>
+              </property>
+              <property name="shortcut">
+               <string notr="true"/>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="0">
+             <widget class="QLabel" name="fav_hints_label">
+              <property name="text">
+               <string>Show detailed info as hints in the favorites list</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="0">
+             <widget class="QLabel" name="services_hints_label">
+              <property name="text">
+               <string>Show short info as hints in the main services list</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="1">
+             <widget class="QCheckBox" name="show_services_hints_check_box">
+              <property name="layoutDirection">
+               <enum>Qt::RightToLeft</enum>
+              </property>
+              <property name="text">
+               <string notr="true"/>
+              </property>
+              <property name="shortcut">
+               <string notr="true"/>
+              </property>
+             </widget>
             </item>
            </layout>
           </widget>

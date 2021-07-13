@@ -1207,8 +1207,11 @@ class MainUiWindow(QtWidgets.QMainWindow):
         self.current_page = page
         if page is Page.PICONS:
             self.on_picon_page_show()
-        if page is Page.TIMER:
+        elif page is Page.TIMER:
             self.on_timer_page_show()
+
+        if page is not Page.STREAMS:
+            self.media_stop_tool_button.click()
 
     def on_picon_page_show(self):
         pass
