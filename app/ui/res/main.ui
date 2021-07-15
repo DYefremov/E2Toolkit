@@ -757,6 +757,9 @@
                     <property name="placeholderText">
                      <string>Search...</string>
                     </property>
+                    <property name="clearButtonEnabled">
+                     <bool>true</bool>
+                    </property>
                    </widget>
                   </item>
                  </layout>
@@ -896,6 +899,9 @@
                     </property>
                     <property name="placeholderText">
                      <string>Search...</string>
+                    </property>
+                    <property name="clearButtonEnabled">
+                     <bool>true</bool>
                     </property>
                    </widget>
                   </item>
@@ -1062,6 +1068,9 @@
                            <property name="placeholderText">
                             <string>Search...</string>
                            </property>
+                           <property name="clearButtonEnabled">
+                            <bool>true</bool>
+                           </property>
                           </widget>
                          </item>
                         </layout>
@@ -1114,6 +1123,9 @@
                            </property>
                            <property name="text">
                             <string>Filter...</string>
+                           </property>
+                           <property name="clearButtonEnabled">
+                            <bool>true</bool>
                            </property>
                           </widget>
                          </item>
@@ -1346,6 +1358,9 @@
                    </property>
                    <property name="placeholderText">
                     <string>Search...</string>
+                   </property>
+                   <property name="clearButtonEnabled">
+                    <bool>true</bool>
                    </property>
                   </widget>
                  </item>
@@ -1816,6 +1831,9 @@
                      <property name="placeholderText">
                       <string>Search...</string>
                      </property>
+                     <property name="clearButtonEnabled">
+                      <bool>true</bool>
+                     </property>
                     </widget>
                    </item>
                   </layout>
@@ -2078,6 +2096,9 @@
                 <property name="placeholderText">
                  <string>Search...</string>
                 </property>
+                <property name="clearButtonEnabled">
+                 <bool>true</bool>
+                </property>
                </widget>
               </item>
              </layout>
@@ -2258,8 +2279,41 @@
     <addaction name="separator"/>
     <addaction name="tools_menu"/>
    </widget>
+   <widget class="QMenu" name="audio_menu">
+    <property name="title">
+     <string>Audio</string>
+    </property>
+    <addaction name="audio_track_action"/>
+   </widget>
+   <widget class="QMenu" name="video_menu">
+    <property name="title">
+     <string>Video</string>
+    </property>
+    <widget class="QMenu" name="aspect_ratio_menu">
+     <property name="title">
+      <string>Aspect ratio</string>
+     </property>
+    </widget>
+    <addaction name="aspect_ratio_menu"/>
+   </widget>
+   <widget class="QMenu" name="subtitle_menu">
+    <property name="title">
+     <string>Subtitle</string>
+    </property>
+    <addaction name="subtitle_track_action"/>
+   </widget>
+   <widget class="QMenu" name="playback_menu">
+    <property name="title">
+     <string>Playback</string>
+    </property>
+    <addaction name="close_playback_action"/>
+   </widget>
    <addaction name="file_menu"/>
    <addaction name="view_menu"/>
+   <addaction name="playback_menu"/>
+   <addaction name="audio_menu"/>
+   <addaction name="video_menu"/>
+   <addaction name="subtitle_menu"/>
    <addaction name="settings_menu"/>
    <addaction name="help_menu"/>
   </widget>
@@ -2460,6 +2514,56 @@
    </property>
    <property name="text">
     <string>Log</string>
+   </property>
+  </action>
+  <action name="subtitle_track_action">
+   <property name="text">
+    <string>Subtitle Track</string>
+   </property>
+  </action>
+  <action name="audio_track_action">
+   <property name="text">
+    <string>Audio Track</string>
+   </property>
+  </action>
+  <action name="aspect_default_action">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Default</string>
+   </property>
+  </action>
+  <action name="aspect_16_9_action">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>16:9</string>
+   </property>
+  </action>
+  <action name="aspect_4_3_action">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>4:3</string>
+   </property>
+  </action>
+  <action name="aspect_1_1_action">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>1:1</string>
+   </property>
+   <property name="visible">
+    <bool>true</bool>
+   </property>
+  </action>
+  <action name="close_playback_action">
+   <property name="text">
+    <string>Close Playback</string>
    </property>
   </action>
  </widget>

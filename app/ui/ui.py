@@ -359,6 +359,7 @@ class MainUiWindow(QtWidgets.QMainWindow):
         size_policy.setVerticalStretch(0)
         size_policy.setHeightForWidth(self.satellite_search_edit.sizePolicy().hasHeightForWidth())
         self.satellite_search_edit.setSizePolicy(size_policy)
+        self.satellite_search_edit.setClearButtonEnabled(True)
         self.satellite_search_edit.setObjectName("satellite_search_edit")
         self.satellite_top_layout.addWidget(self.satellite_search_edit)
         self.satellite_group_box_layout.addLayout(self.satellite_top_layout)
@@ -410,6 +411,7 @@ class MainUiWindow(QtWidgets.QMainWindow):
         size_policy.setVerticalStretch(0)
         size_policy.setHeightForWidth(self.satellite_update_search_edit.sizePolicy().hasHeightForWidth())
         self.satellite_update_search_edit.setSizePolicy(size_policy)
+        self.satellite_update_search_edit.setClearButtonEnabled(True)
         self.satellite_update_search_edit.setObjectName("satellite_update_search_edit")
         self.satellite_update_top_layout.addWidget(self.satellite_update_search_edit)
         self.satellite_update_box_layout.addLayout(self.satellite_update_top_layout)
@@ -471,6 +473,7 @@ class MainUiWindow(QtWidgets.QMainWindow):
         self.picon_src_filter_edit.setSizePolicy(size_policy)
         self.picon_src_filter_edit.setInputMask("")
         self.picon_src_filter_edit.setText("Filter...")
+        self.picon_src_filter_edit.setClearButtonEnabled(True)
         self.picon_src_filter_edit.setObjectName("picon_src_filter_edit")
         self.picon_src_top_layout.addWidget(self.picon_src_filter_edit)
         self.picon_src_layout.addLayout(self.picon_src_top_layout)
@@ -496,7 +499,8 @@ class MainUiWindow(QtWidgets.QMainWindow):
         size_policy.setVerticalStretch(0)
         size_policy.setHeightForWidth(self.picon_dest_filter_edit.sizePolicy().hasHeightForWidth())
         self.picon_dest_filter_edit.setSizePolicy(size_policy)
-        self.picon_dest_filter_edit.setObjectName("picon_dest_filter_edit_2")
+        self.picon_dest_filter_edit.setClearButtonEnabled(True)
+        self.picon_dest_filter_edit.setObjectName("picon_dest_filter_edit")
         self.picon_dst_top_layout.addWidget(self.picon_dest_filter_edit)
         self.picon_dst_layout.addLayout(self.picon_dst_top_layout)
         self.picon_dst_view = PiconDstView(self.picon_layout_widget)
@@ -595,6 +599,7 @@ class MainUiWindow(QtWidgets.QMainWindow):
         size_policy.setVerticalStretch(0)
         size_policy.setHeightForWidth(self.epg_search_edit.sizePolicy().hasHeightForWidth())
         self.epg_search_edit.setSizePolicy(size_policy)
+        self.epg_search_edit.setClearButtonEnabled(True)
         self.epg_search_edit.setObjectName("epg_search_edit")
         self.epg_header_layout.addWidget(self.epg_search_edit)
         self.epg_group_box_layout.addLayout(self.epg_header_layout)
@@ -780,6 +785,7 @@ class MainUiWindow(QtWidgets.QMainWindow):
         timer_sp_item2 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         self.timer_view_header_layout.addItem(timer_sp_item2)
         self.timer_search_edit = QtWidgets.QLineEdit(self.timer_group_box)
+        self.timer_search_edit.setClearButtonEnabled(True)
         self.timer_search_edit.setObjectName("timer_search_edit")
         size_policy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         size_policy.setHorizontalStretch(0)
@@ -878,6 +884,7 @@ class MainUiWindow(QtWidgets.QMainWindow):
         self.bq_service_search_edit.setSizePolicy(size_policy)
         self.bq_service_search_edit.setInputMask("")
         self.bq_service_search_edit.setText("")
+        self.bq_service_search_edit.setClearButtonEnabled(True)
         self.bq_service_search_edit.setObjectName("bq_service_search_edit")
         self.fav_h_layout.addWidget(self.bq_service_search_edit)
         self.fav_layout.addLayout(self.fav_h_layout, 0, 1, 1, 1)
@@ -913,9 +920,8 @@ class MainUiWindow(QtWidgets.QMainWindow):
         self.setCentralWidget(self.central_widget)
         # ******************** Menu bar ******************** #
         self.menu_bar = QtWidgets.QMenuBar(self)
-        self.menu_bar.setGeometry(QtCore.QRect(0, 0, 1087, 22))
+        self.menu_bar.setGeometry(QtCore.QRect(0, 0, 1000, 22))
         self.menu_bar.setObjectName("menu_bar")
-        # File menu.
         self.file_menu = QtWidgets.QMenu(self.menu_bar)
         self.file_menu.setObjectName("file_menu")
         self.help_menu = QtWidgets.QMenu(self.menu_bar)
@@ -932,6 +938,16 @@ class MainUiWindow(QtWidgets.QMainWindow):
         icon = QtGui.QIcon.fromTheme("system-run")
         self.tools_menu.setIcon(icon)
         self.tools_menu.setObjectName("tools_menu")
+        self.playback_menu = QtWidgets.QMenu(self.menu_bar)
+        self.playback_menu.setObjectName("playback_menu")
+        self.audio_menu = QtWidgets.QMenu(self.menu_bar)
+        self.audio_menu.setObjectName("audio_menu")
+        self.video_menu = QtWidgets.QMenu(self.menu_bar)
+        self.video_menu.setObjectName("video_menu")
+        self.aspect_ratio_menu = QtWidgets.QMenu(self.video_menu)
+        self.aspect_ratio_menu.setObjectName("aspect_ratio_menu")
+        self.subtitle_menu = QtWidgets.QMenu(self.menu_bar)
+        self.subtitle_menu.setObjectName("subtitle_menu")
         self.setMenuBar(self.menu_bar)
         self.open_action = QtWidgets.QAction(self)
         icon = QtGui.QIcon.fromTheme("folder-open")
@@ -975,11 +991,11 @@ class MainUiWindow(QtWidgets.QMainWindow):
         self.bouquets_action.setObjectName("bouquets_action")
         self.satellites_action = QtWidgets.QAction(self)
         self.satellites_action.setCheckable(True)
-        self.satellites_action.setChecked(True)
+        self.satellites_action.setEnabled(False)
         self.satellites_action.setObjectName("satellites_action")
         self.picons_action = QtWidgets.QAction(self)
         self.picons_action.setCheckable(True)
-        self.picons_action.setChecked(True)
+        self.picons_action.setEnabled(False)
         self.picons_action.setObjectName("picons_action")
         self.epg_action = QtWidgets.QAction(self)
         self.epg_action.setCheckable(True)
@@ -987,7 +1003,7 @@ class MainUiWindow(QtWidgets.QMainWindow):
         self.epg_action.setObjectName("epg_action")
         self.timer_action = QtWidgets.QAction(self)
         self.timer_action.setCheckable(True)
-        self.timer_action.setChecked(True)
+        self.timer_action.setEnabled(False)
         self.timer_action.setObjectName("timer_action")
         self.ftp_action = QtWidgets.QAction(self)
         self.ftp_action.setCheckable(True)
@@ -1000,6 +1016,12 @@ class MainUiWindow(QtWidgets.QMainWindow):
         self.log_action = QtWidgets.QAction(self)
         self.log_action.setCheckable(True)
         self.log_action.setObjectName("log_action")
+        self.subtitle_track_action = QtWidgets.QAction(self)
+        self.subtitle_track_action.setObjectName("subtitle_track_action")
+        self.audio_track_action = QtWidgets.QAction(self)
+        self.audio_track_action.setObjectName("audio_track_action")
+        self.close_playback_action = QtWidgets.QAction(self)
+        self.close_playback_action.setObjectName("close_playback_action")
         self.file_menu.addAction(self.import_action)
         self.file_menu.addAction(self.open_action)
         self.file_menu.addAction(self.extract_action)
@@ -1019,9 +1041,24 @@ class MainUiWindow(QtWidgets.QMainWindow):
         self.view_menu.addAction(self.log_action)
         self.view_menu.addSeparator()
         self.view_menu.addAction(self.tools_menu.menuAction())
-        self.menu_bar.addAction(self.file_menu.menuAction())
-        self.menu_bar.addAction(self.view_menu.menuAction())
-        self.menu_bar.addAction(self.settings_menu.menuAction())
+        self.audio_menu.addAction(self.audio_track_action)
+        self.video_menu.addAction(self.aspect_ratio_menu.menuAction())
+        self.subtitle_menu.addAction(self.subtitle_track_action)
+        self.playback_menu.addAction(self.close_playback_action)
+        self.file_menu_action = self.file_menu.menuAction()
+        self.menu_bar.addAction(self.file_menu_action)
+        self.view_menu_action = self.view_menu.menuAction()
+        self.menu_bar.addAction(self.view_menu_action)
+        self.playback_menu_action = self.playback_menu.menuAction()
+        self.menu_bar.addAction(self.playback_menu_action)
+        self.audio_menu_action = self.audio_menu.menuAction()
+        self.menu_bar.addAction(self.audio_menu_action)
+        self.video_menu_action = self.video_menu.menuAction()
+        self.menu_bar.addAction(self.video_menu_action)
+        self.subtitle_menu_action = self.subtitle_menu.menuAction()
+        self.menu_bar.addAction(self.subtitle_menu_action)
+        self.settings_menu_action = self.settings_menu.menuAction()
+        self.menu_bar.addAction(self.settings_menu_action)
         self.menu_bar.addAction(self.help_menu.menuAction())
         # ******************** Status bar ******************** #
         self.status_bar = QtWidgets.QStatusBar(self)
@@ -1043,6 +1080,10 @@ class MainUiWindow(QtWidgets.QMainWindow):
         self.stacked_widget.setCurrentIndex(0)
         self.picons_stacked_widget.setCurrentIndex(0)
         self.log_text_browser.setVisible(False)
+        self.playback_menu_action.setVisible(False)
+        self.audio_menu_action.setVisible(False)
+        self.video_menu_action.setVisible(False)
+        self.subtitle_menu_action.setVisible(False)
         # Current stack page
         self.current_page = Page.BOUQUETS
         # Actions.
@@ -1067,12 +1108,42 @@ class MainUiWindow(QtWidgets.QMainWindow):
         self.logo_tool_button.toggled.connect(lambda s: self.on_stack_page_changed(s, Page.LOGO))
         # Stack pages.
         self.stacked_widget.currentChanged.connect(self.on_current_page_changed)
+        # Playback.
+        self.init_playback_elements()
         # Disabled items!!!
         self.logo_tool_button.setVisible(False)
         self.control_tool_button.setEnabled(False)
         self.ftp_tool_button.setVisible(False)
         self.satellite_update_box.setVisible(False)
         self.picon_src_widget.setVisible(False)
+
+    def init_playback_elements(self):
+        # Aspect ratio.
+        ratios = ("Default", "16:9", "4:3", "1:1", "16:10", "5:4")
+        group = QtWidgets.QActionGroup(self.aspect_ratio_menu)
+        group.triggered.connect(self.set_ratio)
+
+        for ratio in ratios:
+            action = QtWidgets.QAction(ratio, self.aspect_ratio_menu)
+            action.setCheckable(True)
+            action.setData(ratio)
+            self.aspect_ratio_menu.addAction(action)
+            group.addAction(action)
+
+        group.actions()[0].setChecked(True)
+
+        self.streams_tool_button.toggled.connect(self.set_menu_elements_visibility)
+        self.close_playback_action.triggered.connect(self.bouquet_tool_button.toggle)
+
+    @QtCore.pyqtSlot(bool)
+    def set_menu_elements_visibility(self, visible):
+        self.playback_menu_action.setVisible(visible)
+        self.audio_menu_action.setVisible(visible)
+        self.video_menu_action.setVisible(visible)
+        self.subtitle_menu_action.setVisible(visible)
+        self.file_menu_action.setVisible(not visible)
+        self.view_menu_action.setVisible(not visible)
+        self.file_menu_action.setVisible(not visible)
 
     # ******************** Handlers ******************** #
 
@@ -1171,6 +1242,16 @@ class MainUiWindow(QtWidgets.QMainWindow):
         self.exit_action.setText(_translate("MainWindow", "Exit"))
         self.exit_action.setShortcut(_translate("MainWindow", "Ctrl+Q"))
         self.settings_action.setText(_translate("MainWindow", "Settings..."))
+        self.view_menu.setTitle(_translate("MainWindow", "View"))
+        self.tools_menu.setTitle(_translate("MainWindow", "Tools"))
+        self.playback_menu.setTitle(_translate("MainWindow", "Playback"))
+        self.close_playback_action.setText(_translate("MainWindow", "Close Playback"))
+        self.audio_menu.setTitle(_translate("MainWindow", "Audio"))
+        self.audio_track_action.setText(_translate("MainWindow", "Audio Track"))
+        self.video_menu.setTitle(_translate("MainWindow", "Video"))
+        self.aspect_ratio_menu.setTitle(_translate("MainWindow", "Aspect ratio"))
+        self.subtitle_menu.setTitle(_translate("MainWindow", "Subtitle"))
+        self.subtitle_track_action.setText(_translate("MainWindow", "Subtitle Track"))
         self.menu_action_search.setText(_translate("MainWindow", "Search"))
         self.menu_action_search.setShortcut(_translate("MainWindow", "Ctrl+F"))
         self.menu_action_filter.setText(_translate("MainWindow", "Filter"))
@@ -1213,8 +1294,13 @@ class MainUiWindow(QtWidgets.QMainWindow):
         if page is not Page.STREAMS:
             self.media_stop_tool_button.click()
 
+    # Pages
     def on_picon_page_show(self):
         pass
 
     def on_timer_page_show(self):
+        pass
+
+    # Playback
+    def set_ratio(self, action):
         pass
