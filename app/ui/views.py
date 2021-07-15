@@ -95,6 +95,35 @@ class BaseTableView(QtWidgets.QTableView):
         return self.selectionModel().selectedIndexes()
 
 
+class BaseTreeView(QtWidgets.QTreeView):
+    removed = QtCore.pyqtSignal(list)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.setEditTriggers(self.NoEditTriggers)
+        self.setSelectionBehavior(self.SelectRows)
+
+    def clear_data(self):
+        model = self.model()
+        model.removeRows(0, model.rowCount())
+
+    def on_remove(self, move_cursor=False):
+        model = self.model()
+        selection_model = self.selectionModel()
+        removed = [(i.row(), i.parent()) for i in sorted(selection_model.selectedRows(), reverse=True) if
+                   i.parent() and i.parent().row() >= 0]
+        self.removed.emit([[model.index(r[0], c, r[1]) for c in range(model.columnCount(r[1]))] for r in removed])
+        list(map(lambda r: model.removeRow(*r), removed))
+
+        if move_cursor:
+            i = self.moveCursor(self.MoveDown, QtCore.Qt.ControlModifier)
+            selection_model.select(i, selection_model.Select | selection_model.Rows)
+
+    def selectedIndexes(self):
+        """ Overridden to get hidden column values. """
+        return self.selectionModel().selectedIndexes()
+
+
 class ServicesView(BaseTableView):
     """ Main class for services list. """
 
@@ -320,7 +349,7 @@ class FavView(BaseTableView):
         pass
 
 
-class BouquetsView(QtWidgets.QTreeView):
+class BouquetsView(BaseTreeView):
     class ContextMenu(QtWidgets.QMenu):
         def __init__(self, *args, **kwargs):
             super().__init__(*args, **kwargs)
@@ -352,6 +381,7 @@ class BouquetsView(QtWidgets.QTreeView):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.setEditTriggers(self.NoEditTriggers)
+        self.setSelectionMode(self.ExtendedSelection)
         self.setHeaderHidden(True)
         self.setObjectName("bouquets_view")
 
@@ -366,15 +396,8 @@ class BouquetsView(QtWidgets.QTreeView):
     def contextMenuEvent(self, event):
         self.context_menu.popup(QtGui.QCursor.pos())
 
-    def clear_data(self):
-        model = self.model()
-        model.removeRows(0, model.rowCount())
 
-    def on_remove(self):
-        pass
-
-
-class SatellitesView(QtWidgets.QTreeView):
+class SatellitesView(BaseTreeView):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.setEditTriggers(self.NoEditTriggers)
@@ -389,10 +412,6 @@ class SatellitesView(QtWidgets.QTreeView):
         header.setStretchLastSection(True)
 
         self.setModel(SatellitesModel(self))
-
-    def clear_data(self):
-        model = self.model()
-        model.removeRows(0, model.rowCount())
 
 
 class SatelliteUpdateView(QtWidgets.QListView):

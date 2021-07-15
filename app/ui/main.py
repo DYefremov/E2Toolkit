@@ -124,6 +124,7 @@ class MainWindow(MainUiWindow):
         self.fav_view.inserted.connect(self.on_fav_data_changed)
         self.services_view.removed.connect(self.remove_services)
         self.services_view.delete_release.connect(self.on_service_remove_done)
+        self.bouquets_view.removed.connect(self.remove_bouquets)
         # Streams.
         self.media_play_tool_button.clicked.connect(self.playback_start)
         self.media_stop_tool_button.clicked.connect(self.playback_stop)
@@ -436,6 +437,11 @@ class MainWindow(MainUiWindow):
         bq = self._bouquets.get(self._bq_selected, None)
         if bq:
             list(map(bq.pop, rows))
+
+    def remove_bouquets(self, rows):
+        bqs = {"{}:{}".format(r[Column.BQ_NAME].data(), r[Column.BQ_TYPE].data()) for r in rows}
+        list(map(self._bouquets.pop, bqs))
+        self.fav_view.clear_data() if self._bq_selected in bqs else None
 
     def update_services_count(self, services):
         """ Updates service counters. """
