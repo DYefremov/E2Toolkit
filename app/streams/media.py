@@ -22,44 +22,57 @@
 
 
 import sys
-from abc import ABC, abstractmethod
+
+from PyQt5.QtCore import QObject, pyqtSignal
 
 from app.commons import log
 
 
-class Player(ABC):
+class Player(QObject):
     """ Base player class. Also used as a factory. """
 
-    @abstractmethod
+    error = pyqtSignal(str)
+    message = pyqtSignal(str)
+    position = pyqtSignal(int)
+    played = pyqtSignal()
+    audio_track = pyqtSignal(list)  # list -> (id, description)
+    subtitle_track = pyqtSignal(list)  # list -> (id, description)
+
     def play(self, mrl=None):
         pass
 
-    @abstractmethod
     def stop(self):
         pass
 
-    @abstractmethod
     def pause(self):
         pass
 
-    @abstractmethod
-    def set_time(self, time):
+    def set_time(self, tm):
         pass
 
-    @abstractmethod
     def release(self):
         pass
 
-    @abstractmethod
     def is_playing(self):
         pass
 
-    @abstractmethod
-    def get_instance(self, mode, widget, buf_cb, position_cb, error_cb, playing_cb):
+    def set_audio_track(self, track):
+        pass
+
+    def get_audio_track(self):
+        pass
+
+    def set_subtitle_track(self, track):
+        pass
+
+    def set_aspect_ratio(self, ratio):
+        pass
+
+    def get_instance(self, widget):
         pass
 
     @staticmethod
-    def make(name, widget, buf_cb=None, position_cb=None, error_cb=None, playing_cb=None):
+    def make(name, widget):
         """ Factory method. We will not use a separate factory to return a specific implementation.
 
             @param name: implementation name.
@@ -72,11 +85,11 @@ class Player(ABC):
             Throws a NameError if there is no implementation for the given name.
         """
         if name == "MPV":
-            return MpvPlayer.get_instance(widget, buf_cb, position_cb, error_cb, playing_cb)
+            return MpvPlayer.get_instance(widget)
         elif name == "GStreamer":
-            return GstPlayer.get_instance(widget, buf_cb, position_cb, error_cb, playing_cb)
+            return GstPlayer.get_instance(widget)
         elif name == "VLC":
-            return VlcPlayer.get_instance(widget, buf_cb, position_cb, error_cb, playing_cb)
+            return VlcPlayer.get_instance(widget)
         else:
             raise NameError("There is no such [{}] implementation.".format(name))
 
@@ -88,7 +101,8 @@ class MpvPlayer(Player):
     """
     __INSTANCE = None
 
-    def __init__(self, widget, buf_cb, position_cb, error_cb, playing_cb):
+    def __init__(self, widget, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         try:
             from app.streams import mpv
 
@@ -105,21 +119,20 @@ class MpvPlayer(Player):
             @self._player.event_callback(mpv.MpvEventID.FILE_LOADED)
             def on_open(event):
                 log("Starting playback...")
-                if playing_cb:
-                    playing_cb()
+                self.played.emit()
 
             @self._player.event_callback(mpv.MpvEventID.END_FILE)
             def on_end(event):
                 event = event.get("event", {})
                 if event.get("reason", mpv.MpvEventEndFile.ERROR) == mpv.MpvEventEndFile.ERROR:
-                    log("Stream playback error: {}".format(event.get("error", mpv.ErrorCode.GENERIC)))
-                    if error_cb:
-                        error_cb()
+                    error_msg = "Stream playback error: {}".format(event.get("error", mpv.ErrorCode.GENERIC))
+                    log(error_msg)
+                    self.error.emit(error_msg)
 
     @classmethod
-    def get_instance(cls, widget, buf_cb, position_cb, error_cb, playing_cb):
+    def get_instance(cls, widget):
         if not cls.__INSTANCE:
-            cls.__INSTANCE = MpvPlayer(widget, buf_cb, position_cb, error_cb, playing_cb)
+            cls.__INSTANCE = MpvPlayer(widget)
         return cls.__INSTANCE
 
     def play(self, mrl=None):
@@ -152,7 +165,8 @@ class GstPlayer(Player):
 
     __INSTANCE = None
 
-    def __init__(self, widget, buf_cb, position_cb, error_cb, playing_cb):
+    def __init__(self, widget, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         try:
             import gi
 
@@ -165,9 +179,6 @@ class GstPlayer(Player):
             log("{}: Load library error: {}".format(__class__.__name__, e))
             raise ImportError("No GStreamer is found. Check that it is installed!")
         else:
-            self._error_cb = error_cb
-            self._playing_cb = playing_cb
-
             self.STATE = Gst.State
             self.STAT_RETURN = Gst.StateChangeReturn
 
@@ -182,9 +193,9 @@ class GstPlayer(Player):
             bus.connect("message::eos", self.on_eos)
 
     @classmethod
-    def get_instance(cls, widget, buf_cb=None, position_cb=None, error_cb=None, playing_cb=None):
+    def get_instance(cls, widget):
         if not cls.__INSTANCE:
-            cls.__INSTANCE = GstPlayer(widget, buf_cb, position_cb, error_cb, playing_cb)
+            cls.__INSTANCE = GstPlayer(widget)
         return cls.__INSTANCE
 
     def play(self, mrl=None):
@@ -203,9 +214,10 @@ class GstPlayer(Player):
             self._is_playing = True
 
     def stop(self):
-        log("Stop playback...")
-        self._player.set_state(self.STATE.READY)
-        self._is_playing = False
+        if self._is_playing:
+            log("Stop playback...")
+            self._player.set_state(self.STATE.READY)
+            self._is_playing = False
 
     def pause(self):
         self._player.set_state(self.STATE.PAUSED)
@@ -227,8 +239,7 @@ class GstPlayer(Player):
     def on_error(self, bus, msg):
         err, dbg = msg.parse_error()
         log(err)
-        if self._error_cb:
-            self._error_cb()
+        self.error.emit(err)
 
     def on_state_changed(self, bus, msg):
         if not msg.src == self._player:
@@ -238,8 +249,7 @@ class GstPlayer(Player):
         old_state, new_state, pending = msg.parse_state_changed()
         if new_state is self.STATE.PLAYING:
             log("Starting playback...")
-            if self._playing_cb:
-                self._playing_cb()
+            self.played.emit()
             self.get_stream_info()
 
     def on_eos(self, bus, msg):
@@ -255,7 +265,9 @@ class GstPlayer(Player):
             tags = self._player.emit("get-video-tags", i)
             if tags:
                 _, cod = tags.get_string("video-codec")
-                log("Video codec: {}".format(cod or "unknown"))
+                msg = "Video codec: {}".format(cod or "unknown")
+                log(msg)
+                self.message.emit(msg)
 
         nr_audio = self._player.get_property("n-audio")
         for i in range(nr_audio):
@@ -263,7 +275,9 @@ class GstPlayer(Player):
             tags = self._player.emit("get-audio-tags", i)
             if tags:
                 _, cod = tags.get_string("audio-codec")
-                log("Audio codec: {}".format(cod or "unknown"))
+                msg = "Audio codec: {}".format(cod or "unknown")
+                log(msg)
+                self.message.emit(msg)
 
 
 class VlcPlayer(Player):
@@ -274,7 +288,8 @@ class VlcPlayer(Player):
 
     __VLC_INSTANCE = None
 
-    def __init__(self, widget, buf_cb, position_cb, error_cb, playing_cb):
+    def __init__(self, widget, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         try:
             from app.streams import vlc
             from app.streams.vlc import EventType
@@ -288,38 +303,27 @@ class VlcPlayer(Player):
             raise ImportError("No VLC is found. Check that it is installed!")
         else:
             self._is_playing = False
+            self._mrl = None
 
             ev_mgr = self._player.event_manager()
-
-            if buf_cb:
-                # TODO look other EventType options
-                ev_mgr.event_attach(EventType.MediaPlayerBuffering,
-                                    lambda et, p: buf_cb(p.get_media().get_duration()),
-                                    self._player)
-            if position_cb:
-                ev_mgr.event_attach(EventType.MediaPlayerTimeChanged,
-                                    lambda et, p: position_cb(p.get_time()),
-                                    self._player)
-
-            if error_cb:
-                ev_mgr.event_attach(EventType.MediaPlayerEncounteredError,
-                                    lambda et, p: error_cb(),
-                                    self._player)
-            if playing_cb:
-                ev_mgr.event_attach(EventType.MediaPlayerPlaying,
-                                    lambda et, p: playing_cb(),
-                                    self._player)
+            # Position
+            ev_mgr.event_attach(EventType.MediaPlayerPositionChanged, self.position_changed)
+            # Error
+            ev_mgr.event_attach(EventType.MediaPlayerEncounteredError, self.on_error)
+            # Playback
+            ev_mgr.event_attach(EventType.MediaPlayerVout, self.on_playback_start)
 
             self.init_video_widget(widget)
 
     @classmethod
-    def get_instance(cls, widget, buf_cb=None, position_cb=None, error_cb=None, playing_cb=None):
+    def get_instance(cls, widget):
         if not cls.__VLC_INSTANCE:
-            cls.__VLC_INSTANCE = VlcPlayer(widget, buf_cb, position_cb, error_cb, playing_cb)
+            cls.__VLC_INSTANCE = VlcPlayer(widget)
         return cls.__VLC_INSTANCE
 
     def play(self, mrl=None):
-        if mrl:
+        if mrl and self._mrl != mrl:
+            self._mrl = mrl
             self._player.set_mrl(mrl)
         self._player.play()
         self._is_playing = True
@@ -348,6 +352,18 @@ class VlcPlayer(Player):
     def is_playing(self):
         return self._is_playing
 
+    def set_audio_track(self, track):
+        self._player.audio_set_track(track)
+
+    def get_audio_track(self):
+        return self._player.audio_get_track()
+
+    def set_subtitle_track(self, track):
+        self._player.video_set_spu(track)
+
+    def set_aspect_ratio(self, ratio):
+        self._player.video_set_aspect_ratio(ratio)
+
     def init_video_widget(self, widget):
         win_id = int(widget.winId())
         if sys.platform == "linux":
@@ -356,6 +372,20 @@ class VlcPlayer(Player):
             self._player.set_nsobject(win_id)
         else:
             self._player.set_hwnd(win_id)
+
+    def position_changed(self, event):
+        pass
+
+    def on_error(self, event):
+        self.error.emit("Can't Playback!")
+
+    def on_playback_start(self, event):
+        # Audio tracks
+        a_desc = self._player.audio_get_track_description()
+        self.audio_track.emit([(t[0], t[1].decode(encoding="utf-8", errors="ignore")) for t in a_desc])
+        # Subtitle
+        s_desc = self._player.video_get_spu_description()
+        self.subtitle_track.emit([(s[0], s[1].decode(encoding="utf-8", errors="ignore")) for s in s_desc])
 
 
 if __name__ == "__main__":

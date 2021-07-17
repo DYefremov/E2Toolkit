@@ -946,6 +946,9 @@ class MainUiWindow(QtWidgets.QMainWindow):
         self.video_menu.setObjectName("video_menu")
         self.aspect_ratio_menu = QtWidgets.QMenu(self.video_menu)
         self.aspect_ratio_menu.setObjectName("aspect_ratio_menu")
+        self.default_ratio_action = QtWidgets.QAction(self.aspect_ratio_menu)
+        self.default_ratio_action.setCheckable(True)
+        self.aspect_ratio_menu.addAction(self.default_ratio_action)
         self.subtitle_menu = QtWidgets.QMenu(self.menu_bar)
         self.subtitle_menu.setObjectName("subtitle_menu")
         self.setMenuBar(self.menu_bar)
@@ -1016,10 +1019,10 @@ class MainUiWindow(QtWidgets.QMainWindow):
         self.log_action = QtWidgets.QAction(self)
         self.log_action.setCheckable(True)
         self.log_action.setObjectName("log_action")
-        self.subtitle_track_action = QtWidgets.QAction(self)
-        self.subtitle_track_action.setObjectName("subtitle_track_action")
-        self.audio_track_action = QtWidgets.QAction(self)
-        self.audio_track_action.setObjectName("audio_track_action")
+        self.subtitle_track_menu = QtWidgets.QMenu(self)
+        self.subtitle_track_menu.setObjectName("subtitle_track_menu")
+        self.audio_track_menu = QtWidgets.QMenu(self)
+        self.audio_track_menu.setObjectName("audio_track_menu")
         self.close_playback_action = QtWidgets.QAction(self)
         self.close_playback_action.setObjectName("close_playback_action")
         self.file_menu.addAction(self.import_action)
@@ -1041,9 +1044,9 @@ class MainUiWindow(QtWidgets.QMainWindow):
         self.view_menu.addAction(self.log_action)
         self.view_menu.addSeparator()
         self.view_menu.addAction(self.tools_menu.menuAction())
-        self.audio_menu.addAction(self.audio_track_action)
+        self.audio_menu.addAction(self.audio_track_menu.menuAction())
         self.video_menu.addAction(self.aspect_ratio_menu.menuAction())
-        self.subtitle_menu.addAction(self.subtitle_track_action)
+        self.subtitle_menu.addAction(self.subtitle_track_menu.menuAction())
         self.playback_menu.addAction(self.close_playback_action)
         self.file_menu_action = self.file_menu.menuAction()
         self.menu_bar.addAction(self.file_menu_action)
@@ -1119,9 +1122,11 @@ class MainUiWindow(QtWidgets.QMainWindow):
 
     def init_playback_elements(self):
         # Aspect ratio.
-        ratios = ("Default", "16:9", "4:3", "1:1", "16:10", "5:4")
+        ratios = ("16:9", "4:3", "1:1", "16:10", "5:4")
         group = QtWidgets.QActionGroup(self.aspect_ratio_menu)
-        group.triggered.connect(self.set_ratio)
+        group.addAction(self.default_ratio_action)
+        self.default_ratio_action.setChecked(True)
+        group.triggered.connect(self.set_aspect_ratio)
 
         for ratio in ratios:
             action = QtWidgets.QAction(ratio, self.aspect_ratio_menu)
@@ -1129,8 +1134,6 @@ class MainUiWindow(QtWidgets.QMainWindow):
             action.setData(ratio)
             self.aspect_ratio_menu.addAction(action)
             group.addAction(action)
-
-        group.actions()[0].setChecked(True)
 
         self.streams_tool_button.toggled.connect(self.set_menu_elements_visibility)
         self.close_playback_action.triggered.connect(self.bouquet_tool_button.toggle)
@@ -1247,11 +1250,12 @@ class MainUiWindow(QtWidgets.QMainWindow):
         self.playback_menu.setTitle(_translate("MainWindow", "Playback"))
         self.close_playback_action.setText(_translate("MainWindow", "Close Playback"))
         self.audio_menu.setTitle(_translate("MainWindow", "Audio"))
-        self.audio_track_action.setText(_translate("MainWindow", "Audio Track"))
+        self.audio_track_menu.setTitle(_translate("MainWindow", "Audio Track"))
         self.video_menu.setTitle(_translate("MainWindow", "Video"))
         self.aspect_ratio_menu.setTitle(_translate("MainWindow", "Aspect ratio"))
+        self.default_ratio_action.setText(_translate("MainWindow", "Default"))
         self.subtitle_menu.setTitle(_translate("MainWindow", "Subtitle"))
-        self.subtitle_track_action.setText(_translate("MainWindow", "Subtitle Track"))
+        self.subtitle_track_menu.setTitle(_translate("MainWindow", "Subtitle Track"))
         self.menu_action_search.setText(_translate("MainWindow", "Search"))
         self.menu_action_search.setShortcut(_translate("MainWindow", "Ctrl+F"))
         self.menu_action_filter.setText(_translate("MainWindow", "Filter"))
@@ -1302,5 +1306,5 @@ class MainUiWindow(QtWidgets.QMainWindow):
         pass
 
     # Playback
-    def set_ratio(self, action):
+    def set_aspect_ratio(self, action):
         pass

@@ -499,6 +499,8 @@ class MainWindow(MainUiWindow):
             from app.streams.media import Player
             try:
                 self._player = Player.make(self.settings.stream_lib, self.media_widget)
+                self._player.audio_track.connect(self.update_audio_tracks)
+                self._player.subtitle_track.connect(self.update_subtitle_tracks)
             except ImportError as e:
                 self.log_text_browser.append(str(e))
                 return
@@ -529,6 +531,44 @@ class MainWindow(MainUiWindow):
             self.media_widget.setWindowFlags(Qt.Window)
             self.media_widget.setWindowState(Qt.WindowFullScreen)
         self.media_widget.show()
+
+    def update_audio_tracks(self, tracks):
+        self.audio_track_menu.clear()
+        current_track = self._player.get_audio_track()
+        group = QActionGroup(self.audio_track_menu)
+        for t in tracks:
+            action = QAction(t[1], self.audio_track_menu)
+            action.setCheckable(True)
+            track = t[0]
+            action.setData(track)
+            action.setChecked(current_track == track)
+            self.audio_track_menu.addAction(action)
+            group.addAction(action)
+
+        group.triggered.connect(self.set_audio_track)
+
+    def update_subtitle_tracks(self, tracks):
+        self.subtitle_track_menu.clear()
+        group = QActionGroup(self.subtitle_track_menu)
+        for t in tracks:
+            action = QAction(t[1], self.subtitle_track_menu)
+            action.setCheckable(True)
+            action.setData(t[0])
+            self.subtitle_track_menu.addAction(action)
+            group.addAction(action)
+
+        if group.actions():
+            group.actions()[0].setChecked(True)
+            group.triggered.connect(self.set_subtitle_track)
+
+    def set_audio_track(self, action):
+        self._player.set_audio_track(action.data())
+
+    def set_subtitle_track(self, action):
+        self._player.set_subtitle_track(action.data())
+
+    def set_aspect_ratio(self, action):
+        self._player.set_aspect_ratio(action.data())
 
     # ********************** EPG *********************** #
 
