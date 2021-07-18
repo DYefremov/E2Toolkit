@@ -78,15 +78,14 @@ class MainWindow(MainUiWindow):
         # Settings.
         self.settings = Settings()
         self._profiles = OrderedDict()
-        self._bq_selected = ""
         # Cached data.
+        self._bq_selected = ""
         self._bouquets = {}
         self._bq_file = {}
         self._extra_bouquets = {}
         self._services = {}
         self._blacklist = set()
         self._alt_file = set()
-        self._picons = {}
         self._marker_types = {BqServiceType.MARKER.name,
                               BqServiceType.SPACE.name,
                               BqServiceType.ALT.name}
@@ -324,6 +323,7 @@ class MainWindow(MainUiWindow):
         root_node = model.invisibleRootItem()
         for i, bqs in enumerate(bouquets):
             root = QStandardItem(QIcon.fromTheme("tv-symbolic" if i == 0 else "radio-symbolic"), bqs.name)
+            root.setDragEnabled(False)
             for bq in bqs.bouquets:
                 self.append_bouquet(bq, root)
             root_node.appendRow(root)

@@ -32,14 +32,20 @@ class ServicesModel(QtGui.QStandardItemModel):
     HEADER_LABELS = ("", "", "", "Picon", "", "Name", "", "", "Package", "Type",
                      "SID", "Frec", "SR", "Pol", "FEC", "System", "Pos", "", "", "")
 
+    CENTERED_COLUMNS = {Column.TYPE, Column.SSID, Column.RATE, Column.FREQ,
+                        Column.POL, Column.FEC, Column.SYSTEM, Column.POS}
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.setHorizontalHeaderLabels(self.HEADER_LABELS)
         self._picon_path = ""
 
     def data(self, index, role):
-        if index.column() == Column.PICON and role == QtCore.Qt.DecorationRole:
+        column = index.column()
+        if role == QtCore.Qt.DecorationRole and column == Column.PICON:
             return QtGui.QIcon(self._picon_path + self.index(index.row(), Column.PICON_ID).data())
+        elif role == QtCore.Qt.TextAlignmentRole and column in self.CENTERED_COLUMNS:
+            return QtCore.Qt.AlignCenter
         return super().data(index, role)
 
     @property
@@ -53,6 +59,7 @@ class ServicesModel(QtGui.QStandardItemModel):
 
 class FavModel(QtGui.QStandardItemModel):
     HEADER_LABELS = ("", "", "", "Picon", "", "Name", "", "", "", "Type", "", "", "", "", "", "", "Pos", "", "", "")
+    CENTERED_COLUMNS = {Column.TYPE, Column.POS}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -64,9 +71,13 @@ class FavModel(QtGui.QStandardItemModel):
         return super().dropMimeData(data, action, row, 0, parent)
 
     def data(self, index, role):
-        if index.column() == Column.PICON and role == QtCore.Qt.DecorationRole:
+        column = index.column()
+        if role == QtCore.Qt.DecorationRole and column == Column.PICON:
             return QtGui.QIcon(self._picon_path + self.index(index.row(), Column.PICON_ID).data())
-        return super().data(index, role)
+        elif role == QtCore.Qt.TextAlignmentRole and column in self.CENTERED_COLUMNS:
+            return QtCore.Qt.AlignCenter
+        else:
+            return super().data(index, role)
 
     @property
     def picon_path(self):
@@ -80,6 +91,14 @@ class FavModel(QtGui.QStandardItemModel):
 class BouquetsModel(QtGui.QStandardItemModel):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+    def dropMimeData(self, data, action, row, column, parent):
+        """ Overridden to prevent child creation when dragged onto an element. """
+        if row < 0:
+            row = parent.row() + 1
+            parent = parent.parent()
+
+        return super().dropMimeData(data, action, row, 0, parent)
 
 
 class SatellitesModel(QtGui.QStandardItemModel):

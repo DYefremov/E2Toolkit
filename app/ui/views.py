@@ -46,6 +46,17 @@ class BaseTableView(QtWidgets.QTableView):
 
         self.clipboard = QtWidgets.QApplication.instance().clipboard()
 
+    def keyReleaseEvent(self, event):
+        key = event.key()
+        if key == QtCore.Qt.Key_Delete and not event.isAutoRepeat():
+            self.delete_release.emit()
+        else:
+            super().keyReleaseEvent(event)
+
+    def selectedIndexes(self):
+        """ Overridden to get hidden column values. """
+        return self.selectionModel().selectedIndexes()
+
     def clear_data(self):
         model = self.model()
         model.removeRows(0, model.rowCount())
@@ -83,45 +94,79 @@ class BaseTableView(QtWidgets.QTableView):
         else:
             self.delete_release.emit()
 
-    def keyReleaseEvent(self, event):
-        key = event.key()
-        if key == QtCore.Qt.Key_Delete and not event.isAutoRepeat():
-            self.delete_release.emit()
-        else:
-            super().keyReleaseEvent(event)
-
-    def selectedIndexes(self):
-        """ Overridden to get hidden column values. """
-        return self.selectionModel().selectedIndexes()
-
 
 class BaseTreeView(QtWidgets.QTreeView):
+    copied = QtCore.pyqtSignal(bool)
+    inserted = QtCore.pyqtSignal(bool)
     removed = QtCore.pyqtSignal(list)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.setEditTriggers(self.NoEditTriggers)
         self.setSelectionBehavior(self.SelectRows)
+        # We will use it as a local clipboard.
+        self.clipboard = []
+        # Drag and Drop
+        self.setDragEnabled(True)
+        self.setAcceptDrops(True)
+        self.setDragDropOverwriteMode(False)
+        self.setDragDropMode(self.InternalMove)
+
+    def selectedIndexes(self):
+        """ Overridden to get hidden column values. """
+        return self.selectionModel().selectedIndexes()
 
     def clear_data(self):
         model = self.model()
         model.removeRows(0, model.rowCount())
 
-    def on_remove(self, move_cursor=False):
+    def on_copy(self):
+        indexes = self.selectedIndexes()
+        if not indexes:
+            return
+
+        indexes = sorted(filter(lambda i: i.parent() and i.parent().row() >= 0, indexes), reverse=True)
+        mime = self.model().mimeData(indexes)
+        if mime:
+            self.clipboard.append(mime)
+            self.copied.emit(True)
+
+    def on_paste(self):
+        if not self.clipboard:
+            return
+
+        target = self.selectionModel().currentIndex()
+        target_row = target.row() + 1
+        target_index = target.parent()
+        # Root element.
+        if target.parent().row() == -1:
+            target_index = target
+            target_row = 0
+
+        mime = self.clipboard.pop()
+        if mime and mime.hasFormat("application/x-qabstractitemmodeldatalist"):
+            if self.model().dropMimeData(mime, QtCore.Qt.CopyAction, target_row, 0, target_index):
+                self.inserted.emit(True)
+
+    def on_cut(self):
+        self.on_copy()
+        self.on_remove()
+
+    def on_remove(self, move_cursor=False, root=False):
+        """ Removes elements from tree.
+
+            When root=True -> allowed to delete root elements.
+        """
         model = self.model()
         selection_model = self.selectionModel()
         removed = [(i.row(), i.parent()) for i in sorted(selection_model.selectedRows(), reverse=True) if
-                   i.parent() and i.parent().row() >= 0]
+                   (i.parent() and i.parent().row() >= 0) or root]
         self.removed.emit([[model.index(r[0], c, r[1]) for c in range(model.columnCount(r[1]))] for r in removed])
         list(map(lambda r: model.removeRow(*r), removed))
 
         if move_cursor:
             i = self.moveCursor(self.MoveDown, QtCore.Qt.ControlModifier)
             selection_model.select(i, selection_model.Select | selection_model.Rows)
-
-    def selectedIndexes(self):
-        """ Overridden to get hidden column values. """
-        return self.selectionModel().selectedIndexes()
 
 
 class ServicesView(BaseTableView):
@@ -323,7 +368,7 @@ class FavView(BaseTableView):
         super().dropEvent(event)
         self.inserted.emit(True)
 
-    def keyPressEvent(self, event: QtGui.QKeyEvent):
+    def keyPressEvent(self, event):
         key = event.key()
         ctrl = event.modifiers() == QtCore.Qt.ControlModifier
 
@@ -391,13 +436,39 @@ class BouquetsView(BaseTreeView):
         self.init_actions()
 
     def init_actions(self):
+        self.context_menu.copy_action.triggered.connect(self.on_copy)
+        self.context_menu.paste_action.triggered.connect(self.on_paste)
+        self.context_menu.cut_action.triggered.connect(self.on_cut)
         self.context_menu.remove_action.triggered.connect(self.on_remove)
 
     def contextMenuEvent(self, event):
         self.context_menu.popup(QtGui.QCursor.pos())
 
+    def keyPressEvent(self, event):
+        key = event.key()
+        ctrl = event.modifiers() == QtCore.Qt.ControlModifier
+
+        if ctrl and key == QtCore.Qt.Key_X:
+            self.on_cut()
+        elif ctrl and key == QtCore.Qt.Key_C:
+            self.on_copy()
+        elif ctrl and key == QtCore.Qt.Key_V:
+            self.on_paste()
+        elif key == QtCore.Qt.Key_Delete:
+            self.on_remove(True)
+        else:
+            super().keyPressEvent(event)
+
 
 class SatellitesView(BaseTreeView):
+    class ContextMenu(QtWidgets.QMenu):
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+
+            self.remove_action = QtWidgets.QAction(QtGui.QIcon.fromTheme("list-remove"), self.tr("Remove"), self)
+            self.remove_action.setShortcut("Del")
+            self.addAction(self.remove_action)
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.setEditTriggers(self.NoEditTriggers)
@@ -412,6 +483,27 @@ class SatellitesView(BaseTreeView):
         header.setStretchLastSection(True)
 
         self.setModel(SatellitesModel(self))
+
+        self.context_menu = self.ContextMenu(self)
+        self.init_actions()
+
+    def init_actions(self):
+        self.context_menu.remove_action.triggered.connect(self.remove)
+
+    def contextMenuEvent(self, event):
+        if self.model().rowCount():
+            self.context_menu.popup(QtGui.QCursor.pos())
+
+    def keyPressEvent(self, event):
+        key = event.key()
+
+        if key == QtCore.Qt.Key_Delete:
+            self.remove()
+        else:
+            super().keyPressEvent(event)
+
+    def remove(self):
+        self.on_remove(True, True)
 
 
 class SatelliteUpdateView(QtWidgets.QListView):
