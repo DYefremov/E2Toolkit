@@ -1405,6 +1405,8 @@ class MainUiWindow(QtWidgets.QMainWindow):
         self.control_tool_button.toggled.connect(lambda s: self.on_stack_page_changed(s, Page.CONTROL))
         # Stack pages.
         self.stacked_widget.currentChanged.connect(self.on_current_page_changed)
+        # Styled elements.
+        self.init_styled()
         # Playback.
         self.init_playback_elements()
         # Disabled items!!!
@@ -1412,6 +1414,13 @@ class MainUiWindow(QtWidgets.QMainWindow):
         self.ftp_tool_button.setVisible(False)
         self.satellite_update_box.setVisible(False)
         self.picon_src_widget.setVisible(False)
+        self.timer_edit_box.setVisible(False)
+
+    def init_styled(self):
+        self.red_button.setStyleSheet("background-color: red; border: 2px solid red")
+        self.green_button.setStyleSheet("background-color: green; border: 2px solid green")
+        self.yellow_button.setStyleSheet("background-color: yellow; border: 2px solid yellow")
+        self.blue_button.setStyleSheet("background-color: blue; border: 2px solid blue")
 
     def init_playback_elements(self):
         # Aspect ratio.

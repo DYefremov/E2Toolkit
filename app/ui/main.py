@@ -130,6 +130,37 @@ class MainWindow(MainUiWindow):
         self.media_full_tool_button.clicked.connect(self.show_full_screen)
         self.fav_view.mouseDoubleClickEvent = self.playback_start
         self.media_widget.mouseDoubleClickEvent = self.show_full_screen
+        # Remote controller actions.
+        self.control_up_button.clicked.connect(lambda b: self.on_remote_action(HttpAPI.Remote.UP))
+        self.control_down_button.clicked.connect(lambda b: self.on_remote_action(HttpAPI.Remote.DOWN))
+        self.control_left_button.clicked.connect(lambda b: self.on_remote_action(HttpAPI.Remote.LEFT))
+        self.control_right_button.clicked.connect(lambda b: self.on_remote_action(HttpAPI.Remote.RIGHT))
+        self.control_ok_button.clicked.connect(lambda b: self.on_remote_action(HttpAPI.Remote.OK))
+        self.control_menu_button.clicked.connect(lambda b: self.on_remote_action(HttpAPI.Remote.MENU))
+        self.control_exit_button.clicked.connect(lambda b: self.on_remote_action(HttpAPI.Remote.EXIT))
+        self.control_info_button.clicked.connect(lambda b: self.on_remote_action(HttpAPI.Remote.INFO))
+        self.control_back_button.clicked.connect(lambda b: self.on_remote_action(HttpAPI.Remote.BACK))
+        self.red_button.clicked.connect(lambda b: self.on_remote_action(HttpAPI.Remote.RED))
+        self.green_button.clicked.connect(lambda b: self.on_remote_action(HttpAPI.Remote.GREEN))
+        self.yellow_button.clicked.connect(lambda b: self.on_remote_action(HttpAPI.Remote.YELLOW))
+        self.blue_button.clicked.connect(lambda b: self.on_remote_action(HttpAPI.Remote.BLUE))
+        # Media
+        self.media_prev_button.clicked.connect(lambda b: self.on_remote_action(HttpAPI.Remote.PLAYER_PREV))
+        self.media_next_button.clicked.connect(lambda b: self.on_remote_action(HttpAPI.Remote.PLAYER_NEXT))
+        self.media_play_button.clicked.connect(lambda b: self.on_remote_action(HttpAPI.Remote.PLAYER_PLAY))
+        self.media_stop_button.clicked.connect(lambda b: self.on_remote_action(HttpAPI.Remote.PLAYER_STOP))
+        # Power
+        self.power_standby_button.clicked.connect(lambda b: self.on_power_action(HttpAPI.Power.STANDBY))
+        self.power_wake_up_button.clicked.connect(lambda b: self.on_power_action(HttpAPI.Power.WAKEUP))
+        self.power_reboot_button.clicked.connect(lambda b: self.on_power_action(HttpAPI.Power.REBOOT))
+        self.power_restart_gui_button.clicked.connect(lambda b: self.on_power_action(HttpAPI.Power.RESTART_GUI))
+        self.power_shutdown_button.clicked.connect(lambda b: self.on_power_action(HttpAPI.Power.DEEP_STANDBY))
+        # Screenshots
+        self.screenshot_all_button.clicked.connect(self.on_screenshot_all)
+        self.screenshot_video_button.clicked.connect(self.on_screenshot_video)
+        self.screenshot_osd_button.clicked.connect(self.on_screenshot_osd)
+        # Volume
+        self.control_volume_dial.valueChanged.connect(self.on_volume_changed)
         # HTTP API.
         self._update_state_timer.timeout.connect(self.update_state)
         # About.
@@ -620,6 +651,26 @@ class MainWindow(MainUiWindow):
             time_str = "{} - {}".format(start_time.strftime("%A, %H:%M"), end_time.strftime("%H:%M"))
 
             model.appendRow(QStandardItem(i) for i in (name, description, service_name, time_str))
+
+    # ******************** Control ********************* #
+
+    def on_remote_action(self, action):
+        self._http_api.send(HttpAPI.Request.REMOTE, action)
+
+    def on_power_action(self, action):
+        self._http_api.send(HttpAPI.Request.POWER, action)
+
+    def on_screenshot_all(self, state):
+        QMessageBox.information(self, APP_NAME, self.tr("Not implemented yet!"))
+
+    def on_screenshot_video(self, state):
+        QMessageBox.information(self, APP_NAME, self.tr("Not implemented yet!"))
+
+    def on_screenshot_osd(self, state):
+        QMessageBox.information(self, APP_NAME, self.tr("Not implemented yet!"))
+
+    def on_volume_changed(self, value):
+        self._http_api.send(HttpAPI.Request.VOL, value)
 
     # ******************** HTTP API ******************** #
 

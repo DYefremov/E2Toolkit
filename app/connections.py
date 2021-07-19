@@ -509,10 +509,7 @@ class HttpAPI:
         # Player
         PLAY = "mediaplayerplay?file="
         PLAYER_LIST = "mediaplayerlist?path=playlist"
-        PLAYER_PLAY = "mediaplayercmd?command=play"
-        PLAYER_NEXT = "mediaplayercmd?command=next"
-        PLAYER_PREV = "mediaplayercmd?command=previous"
-        PLAYER_STOP = "mediaplayercmd?command=stop"
+
         PLAYER_REMOVE = "mediaplayerremove?file="
         # Remote control
         POWER = "powerstate?newstate="
@@ -535,10 +532,16 @@ class HttpAPI:
         MENU = "139"
         EXIT = "174"
         OK = "352"
+        INFO = "358"
         RED = "398"
         GREEN = "399"
         YELLOW = "400"
         BLUE = "401"
+        BACK = "412"
+        PLAYER_PLAY = "mediaplayercmd?command=play"
+        PLAYER_NEXT = "mediaplayercmd?command=next"
+        PLAYER_PREV = "mediaplayercmd?command=previous"
+        PLAYER_STOP = "mediaplayercmd?command=stop"
 
     class Power(str, Enum):
         """ Args for HttpRequestType [POWER] class. """
