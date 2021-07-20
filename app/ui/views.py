@@ -488,7 +488,7 @@ class SatellitesView(BaseTreeView):
         self.init_actions()
 
     def init_actions(self):
-        self.context_menu.remove_action.triggered.connect(self.remove)
+        self.context_menu.remove_action.triggered.connect(self.on_remove)
 
     def contextMenuEvent(self, event):
         if self.model().rowCount():
@@ -568,6 +568,19 @@ class EpgView(BaseTableView):
 
 
 class TimerView(BaseTableView):
+    edited = QtCore.pyqtSignal(int)  # row -> index
+
+    class ContextMenu(QtWidgets.QMenu):
+
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            self.edit_action = QtWidgets.QAction(QtGui.QIcon.fromTheme("document-edit"), self.tr("Edit"), self)
+            self.addAction(self.edit_action)
+            self.addSeparator()
+            self.remove_action = QtWidgets.QAction(QtGui.QIcon.fromTheme("list-remove"), self.tr("Remove"), self)
+            self.remove_action.setShortcut("Del")
+            self.addAction(self.remove_action)
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.setSelectionMode(self.ContiguousSelection)
@@ -577,6 +590,25 @@ class TimerView(BaseTableView):
         self.setObjectName("timer_view")
 
         self.setModel(TimerModel(self))
+        self.context_menu = self.ContextMenu(self)
+        self.init_actions()
+
+    def init_actions(self):
+        self.context_menu.edit_action.triggered.connect(self.on_edit)
+        self.context_menu.remove_action.triggered.connect(self.on_remove)
+
+    def contextMenuEvent(self, event):
+        if self.model().rowCount():
+            self.context_menu.popup(QtGui.QCursor.pos())
+
+    def mouseDoubleClickEvent(self, event):
+        index = self.indexAt(event.pos())
+        if index.isValid():
+            self.edited.emit(index.row())
+
+    def on_edit(self):
+        if self.selectionModel().selectedRows():
+            self.edited.emit(self.currentIndex().row())
 
 
 class FtpView(QtWidgets.QListView):

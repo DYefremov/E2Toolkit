@@ -52,7 +52,7 @@
         <item>
          <widget class="QComboBox" name="profile_combo_box">
           <property name="sizePolicy">
-           <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+           <sizepolicy hsizetype="Fixed" vsizetype="Ignored">
             <horstretch>0</horstretch>
             <verstretch>0</verstretch>
            </sizepolicy>
@@ -61,6 +61,12 @@
            <size>
             <width>100</width>
             <height>0</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>16777215</width>
+            <height>16777215</height>
            </size>
           </property>
           <property name="toolTip">
@@ -407,7 +413,7 @@
            </sizepolicy>
           </property>
           <property name="currentIndex">
-           <number>8</number>
+           <number>0</number>
           </property>
           <widget class="QWidget" name="bouquet_page">
            <layout class="QGridLayout" name="bouquets_page_layout">
@@ -499,20 +505,44 @@
                  <item>
                   <widget class="QComboBox" name="filter_type_combo_box">
                    <property name="sizePolicy">
-                    <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                    <sizepolicy hsizetype="Preferred" vsizetype="Ignored">
                      <horstretch>0</horstretch>
                      <verstretch>0</verstretch>
                     </sizepolicy>
+                   </property>
+                   <property name="minimumSize">
+                    <size>
+                     <width>100</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>16777215</width>
+                     <height>16777215</height>
+                    </size>
                    </property>
                   </widget>
                  </item>
                  <item>
                   <widget class="QComboBox" name="filter_pos_combo_box">
                    <property name="sizePolicy">
-                    <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                    <sizepolicy hsizetype="Preferred" vsizetype="Ignored">
                      <horstretch>0</horstretch>
                      <verstretch>0</verstretch>
                     </sizepolicy>
+                   </property>
+                   <property name="minimumSize">
+                    <size>
+                     <width>75</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>16777215</width>
+                     <height>16777215</height>
+                    </size>
                    </property>
                   </widget>
                  </item>
@@ -865,10 +895,22 @@
                   <item>
                    <widget class="QComboBox" name="satellite_update_src_box">
                     <property name="sizePolicy">
-                     <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                     <sizepolicy hsizetype="Preferred" vsizetype="Ignored">
                       <horstretch>0</horstretch>
                       <verstretch>0</verstretch>
                      </sizepolicy>
+                    </property>
+                    <property name="minimumSize">
+                     <size>
+                      <width>100</width>
+                      <height>0</height>
+                     </size>
+                    </property>
+                    <property name="maximumSize">
+                     <size>
+                      <width>16777215</width>
+                      <height>16777215</height>
+                     </size>
                     </property>
                    </widget>
                   </item>
@@ -1007,7 +1049,7 @@
                <item row="0" column="0">
                 <widget class="QStackedWidget" name="picons_stacked_widget">
                  <property name="currentIndex">
-                  <number>1</number>
+                  <number>0</number>
                  </property>
                  <widget class="QWidget" name="picon_explorer_page">
                   <layout class="QGridLayout" name="picon_explorer_layout">
@@ -1400,7 +1442,7 @@
               <property name="title">
                <string>Timers</string>
               </property>
-              <layout class="QHBoxLayout" name="timer_broup_box_layout">
+              <layout class="QHBoxLayout" name="timer_group_box_layout">
                <property name="leftMargin">
                 <number>0</number>
                </property>
@@ -1413,368 +1455,6 @@
                <property name="bottomMargin">
                 <number>0</number>
                </property>
-               <item>
-                <widget class="QGroupBox" name="timer_edit_box">
-                 <property name="sizePolicy">
-                  <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-                   <horstretch>0</horstretch>
-                   <verstretch>0</verstretch>
-                  </sizepolicy>
-                 </property>
-                 <layout class="QFormLayout" name="timer_edit_gruop_box">
-                  <property name="leftMargin">
-                   <number>9</number>
-                  </property>
-                  <property name="topMargin">
-                   <number>9</number>
-                  </property>
-                  <property name="rightMargin">
-                   <number>9</number>
-                  </property>
-                  <property name="bottomMargin">
-                   <number>9</number>
-                  </property>
-                  <item row="0" column="1">
-                   <widget class="QWidget" name="timer_enable_widget" native="true">
-                    <layout class="QHBoxLayout" name="timer_edit_enable_box">
-                     <property name="leftMargin">
-                      <number>0</number>
-                     </property>
-                     <property name="topMargin">
-                      <number>0</number>
-                     </property>
-                     <property name="rightMargin">
-                      <number>0</number>
-                     </property>
-                     <property name="bottomMargin">
-                      <number>0</number>
-                     </property>
-                     <item>
-                      <spacer name="timer_enable_widget_soacer">
-                       <property name="orientation">
-                        <enum>Qt::Horizontal</enum>
-                       </property>
-                       <property name="sizeHint" stdset="0">
-                        <size>
-                         <width>40</width>
-                         <height>20</height>
-                        </size>
-                       </property>
-                      </spacer>
-                     </item>
-                     <item>
-                      <widget class="QToolButton" name="timer_enable_button">
-                       <property name="minimumSize">
-                        <size>
-                         <width>85</width>
-                         <height>0</height>
-                        </size>
-                       </property>
-                       <property name="text">
-                        <string>Enabled</string>
-                       </property>
-                       <property name="checkable">
-                        <bool>true</bool>
-                       </property>
-                      </widget>
-                     </item>
-                    </layout>
-                   </widget>
-                  </item>
-                  <item row="1" column="0">
-                   <widget class="QLabel" name="timer_name_label">
-                    <property name="text">
-                     <string>Name:</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="1" column="1">
-                   <widget class="QLineEdit" name="timer_name_edit"/>
-                  </item>
-                  <item row="2" column="0">
-                   <widget class="QLabel" name="timer_description_label">
-                    <property name="text">
-                     <string>Description:</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="2" column="1">
-                   <widget class="QLineEdit" name="timer_description_edit"/>
-                  </item>
-                  <item row="3" column="0">
-                   <widget class="QLabel" name="timer_service_label">
-                    <property name="text">
-                     <string>Service:</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="3" column="1">
-                   <widget class="QLineEdit" name="timer_service_edit"/>
-                  </item>
-                  <item row="4" column="0">
-                   <widget class="QLabel" name="timer_service_ref_label">
-                    <property name="text">
-                     <string>Service reference:</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="4" column="1">
-                   <widget class="QLineEdit" name="timer_ref_edit"/>
-                  </item>
-                  <item row="5" column="0">
-                   <widget class="QLabel" name="timer_event_id_label">
-                    <property name="text">
-                     <string>Event ID:</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="5" column="1">
-                   <widget class="QLineEdit" name="timer_event_id_edit"/>
-                  </item>
-                  <item row="6" column="0">
-                   <widget class="QLabel" name="timer_begins_label">
-                    <property name="text">
-                     <string>Begins:</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="6" column="1">
-                   <widget class="QLineEdit" name="timer_begins_edit"/>
-                  </item>
-                  <item row="7" column="0">
-                   <widget class="QLabel" name="timer_ends_label">
-                    <property name="text">
-                     <string>Ends:</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="7" column="1">
-                   <widget class="QLineEdit" name="timer_ends_edit"/>
-                  </item>
-                  <item row="8" column="0">
-                   <widget class="QLabel" name="timer_repeated_label">
-                    <property name="text">
-                     <string>Repeated:</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="8" column="1">
-                   <layout class="QGridLayout" name="timer_repeated_grid">
-                    <property name="leftMargin">
-                     <number>0</number>
-                    </property>
-                    <property name="rightMargin">
-                     <number>9</number>
-                    </property>
-                    <property name="verticalSpacing">
-                     <number>0</number>
-                    </property>
-                    <item row="0" column="3">
-                     <widget class="QLabel" name="timer_th_label">
-                      <property name="text">
-                       <string>Th</string>
-                      </property>
-                      <property name="alignment">
-                       <set>Qt::AlignCenter</set>
-                      </property>
-                     </widget>
-                    </item>
-                    <item row="0" column="6">
-                     <widget class="QLabel" name="timer_su_label">
-                      <property name="text">
-                       <string>Su</string>
-                      </property>
-                      <property name="alignment">
-                       <set>Qt::AlignCenter</set>
-                      </property>
-                     </widget>
-                    </item>
-                    <item row="0" column="1">
-                     <widget class="QLabel" name="timer_tu_label">
-                      <property name="text">
-                       <string>Tu</string>
-                      </property>
-                      <property name="alignment">
-                       <set>Qt::AlignCenter</set>
-                      </property>
-                     </widget>
-                    </item>
-                    <item row="0" column="5">
-                     <widget class="QLabel" name="timer_sa_label">
-                      <property name="text">
-                       <string>Sa</string>
-                      </property>
-                      <property name="alignment">
-                       <set>Qt::AlignCenter</set>
-                      </property>
-                     </widget>
-                    </item>
-                    <item row="0" column="0">
-                     <widget class="QLabel" name="timer_mo_label">
-                      <property name="text">
-                       <string>Mo</string>
-                      </property>
-                      <property name="alignment">
-                       <set>Qt::AlignCenter</set>
-                      </property>
-                     </widget>
-                    </item>
-                    <item row="0" column="2">
-                     <widget class="QLabel" name="timer_we_label">
-                      <property name="text">
-                       <string>We</string>
-                      </property>
-                      <property name="alignment">
-                       <set>Qt::AlignCenter</set>
-                      </property>
-                     </widget>
-                    </item>
-                    <item row="0" column="4">
-                     <widget class="QLabel" name="timer_fr_label">
-                      <property name="text">
-                       <string>Fr</string>
-                      </property>
-                      <property name="alignment">
-                       <set>Qt::AlignCenter</set>
-                      </property>
-                     </widget>
-                    </item>
-                    <item row="1" column="0">
-                     <widget class="QCheckBox" name="timer_mo_check_box">
-                      <property name="sizePolicy">
-                       <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                        <horstretch>0</horstretch>
-                        <verstretch>0</verstretch>
-                       </sizepolicy>
-                      </property>
-                      <property name="text">
-                       <string notr="true"/>
-                      </property>
-                     </widget>
-                    </item>
-                    <item row="1" column="1">
-                     <widget class="QCheckBox" name="timer_tu_check_box">
-                      <property name="sizePolicy">
-                       <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                        <horstretch>0</horstretch>
-                        <verstretch>0</verstretch>
-                       </sizepolicy>
-                      </property>
-                      <property name="text">
-                       <string notr="true"/>
-                      </property>
-                     </widget>
-                    </item>
-                    <item row="1" column="2">
-                     <widget class="QCheckBox" name="timer_we_check_box">
-                      <property name="sizePolicy">
-                       <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                        <horstretch>0</horstretch>
-                        <verstretch>0</verstretch>
-                       </sizepolicy>
-                      </property>
-                      <property name="text">
-                       <string notr="true"/>
-                      </property>
-                     </widget>
-                    </item>
-                    <item row="1" column="3">
-                     <widget class="QCheckBox" name="timer_th_check_box">
-                      <property name="sizePolicy">
-                       <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                        <horstretch>0</horstretch>
-                        <verstretch>0</verstretch>
-                       </sizepolicy>
-                      </property>
-                      <property name="text">
-                       <string notr="true"/>
-                      </property>
-                     </widget>
-                    </item>
-                    <item row="1" column="4">
-                     <widget class="QCheckBox" name="timer_fr_check_box">
-                      <property name="sizePolicy">
-                       <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                        <horstretch>0</horstretch>
-                        <verstretch>0</verstretch>
-                       </sizepolicy>
-                      </property>
-                      <property name="text">
-                       <string notr="true"/>
-                      </property>
-                     </widget>
-                    </item>
-                    <item row="1" column="5">
-                     <widget class="QCheckBox" name="timer_sa_check_box">
-                      <property name="sizePolicy">
-                       <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                        <horstretch>0</horstretch>
-                        <verstretch>0</verstretch>
-                       </sizepolicy>
-                      </property>
-                      <property name="text">
-                       <string notr="true"/>
-                      </property>
-                     </widget>
-                    </item>
-                    <item row="1" column="6">
-                     <widget class="QCheckBox" name="timer_su_check_box">
-                      <property name="sizePolicy">
-                       <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                        <horstretch>0</horstretch>
-                        <verstretch>0</verstretch>
-                       </sizepolicy>
-                      </property>
-                      <property name="layoutDirection">
-                       <enum>Qt::LeftToRight</enum>
-                      </property>
-                      <property name="text">
-                       <string notr="true"/>
-                      </property>
-                     </widget>
-                    </item>
-                   </layout>
-                  </item>
-                  <item row="9" column="0">
-                   <widget class="QLabel" name="timer_action_label">
-                    <property name="text">
-                     <string>Action:</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="9" column="1">
-                   <widget class="QComboBox" name="timer_action_combo_box"/>
-                  </item>
-                  <item row="10" column="0">
-                   <widget class="QLabel" name="timer_after_event_label">
-                    <property name="text">
-                     <string>After event:</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="10" column="1">
-                   <widget class="QComboBox" name="timer_after_event_combo_box"/>
-                  </item>
-                  <item row="11" column="0">
-                   <widget class="QLabel" name="timer_location_label">
-                    <property name="text">
-                     <string>Location:</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="11" column="1">
-                   <widget class="QComboBox" name="timer_location_combo_box"/>
-                  </item>
-                  <item row="12" column="1">
-                   <widget class="QDialogButtonBox" name="timer_edit_button_box">
-                    <property name="standardButtons">
-                     <set>QDialogButtonBox::Cancel|QDialogButtonBox::Save</set>
-                    </property>
-                   </widget>
-                  </item>
-                 </layout>
-                </widget>
-               </item>
                <item>
                 <layout class="QVBoxLayout" name="timer_view_layout">
                  <property name="topMargin">
@@ -1792,8 +1472,14 @@
                     <widget class="QToolButton" name="timer_add_button">
                      <property name="minimumSize">
                       <size>
-                       <width>32</width>
-                       <height>0</height>
+                       <width>24</width>
+                       <height>24</height>
+                      </size>
+                     </property>
+                     <property name="maximumSize">
+                      <size>
+                       <width>24</width>
+                       <height>24</height>
                       </size>
                      </property>
                      <property name="text">
@@ -1809,8 +1495,14 @@
                     <widget class="QToolButton" name="timer_remove_button">
                      <property name="minimumSize">
                       <size>
-                       <width>32</width>
-                       <height>0</height>
+                       <width>24</width>
+                       <height>24</height>
+                      </size>
+                     </property>
+                     <property name="maximumSize">
+                      <size>
+                       <width>24</width>
+                       <height>24</height>
                       </size>
                      </property>
                      <property name="text">
@@ -1837,6 +1529,12 @@
                    </item>
                    <item>
                     <widget class="QLineEdit" name="timer_search_edit">
+                     <property name="sizePolicy">
+                      <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                       <horstretch>0</horstretch>
+                       <verstretch>0</verstretch>
+                      </sizepolicy>
+                     </property>
                      <property name="placeholderText">
                       <string>Search...</string>
                      </property>
@@ -2023,7 +1721,7 @@
                   <number>16</number>
                  </property>
                  <property name="bottomMargin">
-                  <number>0</number>
+                  <number>2</number>
                  </property>
                  <item>
                   <spacer name="power_control_left_spacer">
@@ -2652,7 +2350,13 @@
                 <property name="minimumSize">
                  <size>
                   <width>48</width>
-                  <height>0</height>
+                  <height>24</height>
+                 </size>
+                </property>
+                <property name="maximumSize">
+                 <size>
+                  <width>48</width>
+                  <height>24</height>
                  </size>
                 </property>
                 <property name="toolTip">
@@ -2772,8 +2476,14 @@
                 </property>
                 <property name="minimumSize">
                  <size>
-                  <width>32</width>
-                  <height>0</height>
+                  <width>24</width>
+                  <height>24</height>
+                 </size>
+                </property>
+                <property name="maximumSize">
+                 <size>
+                  <width>24</width>
+                  <height>24</height>
                  </size>
                 </property>
                 <property name="toolTip">
@@ -2838,7 +2548,7 @@
      <x>0</x>
      <y>0</y>
      <width>1000</width>
-     <height>22</height>
+     <height>26</height>
     </rect>
    </property>
    <widget class="QMenu" name="file_menu">

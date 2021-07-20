@@ -38,6 +38,7 @@ from app.enigma.bouquets import BouquetsReader
 from app.enigma.ecommons import BqServiceType, Service
 from app.enigma.lamedb import get_services
 from app.satellites.satxml import get_satellites
+from app.ui.dialogs import TimerDialog
 from app.ui.settings import SettingsDialog, Settings
 from app.ui.uicommons import Column, IPTV_ICON, LOCKED_ICON
 from .ui import MainUiWindow, Page
@@ -130,6 +131,8 @@ class MainWindow(MainUiWindow):
         self.media_full_tool_button.clicked.connect(self.show_full_screen)
         self.fav_view.mouseDoubleClickEvent = self.playback_start
         self.media_widget.mouseDoubleClickEvent = self.show_full_screen
+        # Timers.
+        self.timer_view.edited.connect(self.on_timer_edit)
         # Remote controller actions.
         self.control_up_button.clicked.connect(lambda b: self.on_remote_action(HttpAPI.Remote.UP))
         self.control_down_button.clicked.connect(lambda b: self.on_remote_action(HttpAPI.Remote.DOWN))
@@ -651,6 +654,9 @@ class MainWindow(MainUiWindow):
             time_str = "{} - {}".format(start_time.strftime("%A, %H:%M"), end_time.strftime("%H:%M"))
 
             model.appendRow(QStandardItem(i) for i in (name, description, service_name, time_str))
+
+    def on_timer_edit(self, row):
+        TimerDialog().exec()
 
     # ******************** Control ********************* #
 
