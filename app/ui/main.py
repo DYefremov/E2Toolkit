@@ -38,7 +38,7 @@ from app.enigma.bouquets import BouquetsReader
 from app.enigma.ecommons import BqServiceType, Service
 from app.enigma.lamedb import get_services
 from app.satellites.satxml import get_satellites
-from app.ui.dialogs import TimerDialog
+from app.ui.dialogs import TimerDialog, ServiceDialog
 from app.ui.settings import SettingsDialog, Settings
 from app.ui.uicommons import Column, IPTV_ICON, LOCKED_ICON
 from .ui import MainUiWindow, Page
@@ -120,8 +120,10 @@ class MainWindow(MainUiWindow):
         # Models and Views.
         self.bouquets_view.selectionModel().selectionChanged.connect(self.on_bouquet_selection)
         self.fav_view.selectionModel().selectionChanged.connect(self.on_fav_selection)
+        self.fav_view.edited.connect(self.on_service_edit)
         self.fav_view.removed.connect(self.remove_favorites)
         self.fav_view.inserted.connect(self.on_fav_data_changed)
+        self.services_view.edited.connect(self.on_service_edit)
         self.services_view.removed.connect(self.remove_services)
         self.services_view.delete_release.connect(self.on_service_remove_done)
         self.bouquets_view.removed.connect(self.remove_bouquets)
@@ -451,6 +453,9 @@ class MainWindow(MainUiWindow):
         model = self.fav_view.model()
         for r in range(model.rowCount()):
             bq.append(model.index(r, Column.FAV_ID).data())
+
+    def on_service_edit(self, row):
+        ServiceDialog().exec()
 
     def remove_services(self, rows):
         list(map(lambda s: self._services.pop(s, None), rows.values()))

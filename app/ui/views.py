@@ -34,6 +34,7 @@ class BaseTableView(QtWidgets.QTableView):
     copied = QtCore.pyqtSignal(bool)
     inserted = QtCore.pyqtSignal(bool)
     removed = QtCore.pyqtSignal(dict)  # row -> id
+    edited = QtCore.pyqtSignal(int)  # row index
     # Called when the Delete key is released
     # or remove called from the context menu.
     delete_release = QtCore.pyqtSignal()
@@ -93,6 +94,10 @@ class BaseTableView(QtWidgets.QTableView):
             selection_model.select(i, selection_model.Select | selection_model.Rows)
         else:
             self.delete_release.emit()
+
+    def on_edit(self):
+        if self.selectionModel().selectedRows():
+            self.edited.emit(self.currentIndex().row())
 
 
 class BaseTreeView(QtWidgets.QTreeView):
@@ -171,7 +176,6 @@ class BaseTreeView(QtWidgets.QTreeView):
 
 class ServicesView(BaseTableView):
     """ Main class for services list. """
-
     class ContextMenu(QtWidgets.QMenu):
 
         def __init__(self, *args, **kwargs):
@@ -259,6 +263,7 @@ class ServicesView(BaseTableView):
     def init_actions(self):
         self.context_menu.remove_action.triggered.connect(self.on_remove)
         self.context_menu.copy_action.triggered.connect(self.on_copy)
+        self.context_menu.edit_action.triggered.connect(self.on_edit)
 
     def contextMenuEvent(self, event):
         self.context_menu.popup(QtGui.QCursor.pos())
@@ -273,6 +278,11 @@ class ServicesView(BaseTableView):
             self.on_remove(True)
         else:
             super().keyPressEvent(event)
+
+    def mouseDoubleClickEvent(self, event):
+        index = self.indexAt(event.pos())
+        if index.isValid():
+            self.edited.emit(index.row())
 
 
 class FavView(BaseTableView):
@@ -355,6 +365,7 @@ class FavView(BaseTableView):
         self.context_menu.copy_action.triggered.connect(self.on_copy)
         self.context_menu.paste_action.triggered.connect(self.on_paste)
         self.context_menu.cut_action.triggered.connect(self.on_cut)
+        self.context_menu.edit_action.triggered.connect(self.on_edit)
         # Copy - Paste items.
         self.copied.connect(self.context_menu.paste_action.setEnabled)
         self.inserted.connect(lambda b: self.context_menu.paste_action.setEnabled(not b))
@@ -568,7 +579,6 @@ class EpgView(BaseTableView):
 
 
 class TimerView(BaseTableView):
-    edited = QtCore.pyqtSignal(int)  # row -> index
 
     class ContextMenu(QtWidgets.QMenu):
 
@@ -605,10 +615,6 @@ class TimerView(BaseTableView):
         index = self.indexAt(event.pos())
         if index.isValid():
             self.edited.emit(index.row())
-
-    def on_edit(self):
-        if self.selectionModel().selectedRows():
-            self.edited.emit(self.currentIndex().row())
 
 
 class FtpView(QtWidgets.QListView):
