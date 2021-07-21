@@ -541,12 +541,7 @@ class MainUiWindow(QtWidgets.QMainWindow):
         self.streams_layout.setSpacing(6)
         self.streams_layout.setObjectName("streams_layout")
         # Media widget.
-        self.media_widget = QtWidgets.QGraphicsView(self.streams_page)
-        self.media_widget.setAutoFillBackground(True)
-        self.media_widget.setInteractive(True)
-        self.media_widget.setAlignment(QtCore.Qt.AlignLeading | QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
-        self.media_widget.setCacheMode(QtWidgets.QGraphicsView.CacheNone)
-        self.media_widget.setObjectName("media_widget")
+        self.media_widget = MediaView(self.streams_page)
         self.streams_layout.addWidget(self.media_widget)
         # Extra options
         self.media_widget.setAttribute(QtCore.Qt.WA_DontCreateNativeAncestors)
@@ -1246,7 +1241,6 @@ class MainUiWindow(QtWidgets.QMainWindow):
         self.green_button.setStyleSheet("background-color: green; border: 2px solid green")
         self.yellow_button.setStyleSheet("background-color: yellow; border: 2px solid yellow")
         self.blue_button.setStyleSheet("background-color: blue; border: 2px solid blue")
-        self.media_widget.setStyleSheet("background-color: black; border: 2px solid black")
 
     def init_playback_elements(self):
         # Aspect ratio.

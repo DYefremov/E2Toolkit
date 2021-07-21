@@ -131,8 +131,8 @@ class MainWindow(MainUiWindow):
         self.media_play_tool_button.clicked.connect(self.playback_start)
         self.media_stop_tool_button.clicked.connect(self.playback_stop)
         self.media_full_tool_button.clicked.connect(self.show_full_screen)
-        self.fav_view.mouseDoubleClickEvent = self.playback_start
-        self.media_widget.mouseDoubleClickEvent = self.show_full_screen
+        self.fav_view.double_clicked.connect(self.playback_start)
+        self.media_widget.double_clicked.connect(self.show_full_screen)
         # Timers.
         self.timer_view.edited.connect(self.on_timer_edit)
         # Remote controller actions.

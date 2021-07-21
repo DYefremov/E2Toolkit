@@ -21,7 +21,7 @@
 #
 
 __all__ = ["ServicesView", "FavView", "BouquetsView", "SatellitesView", "SatelliteUpdateView",
-           "PiconSrcView", "PiconDstView", "EpgView", "TimerView", "FtpView", "FileView"]
+           "PiconSrcView", "PiconDstView", "EpgView", "TimerView", "FtpView", "FileView", "MediaView"]
 
 from PyQt5 import QtWidgets, QtCore, QtGui
 
@@ -176,6 +176,7 @@ class BaseTreeView(QtWidgets.QTreeView):
 
 class ServicesView(BaseTableView):
     """ Main class for services list. """
+
     class ContextMenu(QtWidgets.QMenu):
 
         def __init__(self, *args, **kwargs):
@@ -287,6 +288,7 @@ class ServicesView(BaseTableView):
 
 class FavView(BaseTableView):
     """ Main class for favorites list. """
+    double_clicked = QtCore.pyqtSignal()
 
     class ContextMenu(QtWidgets.QMenu):
         def __init__(self, *args, **kwargs):
@@ -397,6 +399,9 @@ class FavView(BaseTableView):
             self.on_remove(True)
         else:
             super().keyPressEvent(event)
+
+    def mouseDoubleClickEvent(self, event):
+        self.double_clicked.emit()
 
     def move_up(self):
         pass
@@ -579,7 +584,6 @@ class EpgView(BaseTableView):
 
 
 class TimerView(BaseTableView):
-
     class ContextMenu(QtWidgets.QMenu):
 
         def __init__(self, *args, **kwargs):
@@ -640,3 +644,29 @@ class FileView(QtWidgets.QListView):
         model.setRootPath(root_path)
         self.setModel(model)
         self.setRootIndex(model.index(root_path))
+
+
+class MediaView(QtWidgets.QGraphicsView):
+    """ Media playback view. """
+    double_clicked = QtCore.pyqtSignal()
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.setAutoFillBackground(True)
+        self.setInteractive(True)
+        self.setAlignment(QtCore.Qt.AlignLeading | QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
+        self.setCacheMode(QtWidgets.QGraphicsView.CacheNone)
+        self.setMouseTracking(True)
+        self.setStyleSheet("background-color: black; border: 2px solid black")
+        self.setObjectName("media_view")
+        # Mouse cursor hide timer.
+        self.cursor_hide_timer = QtCore.QTimer(self)
+        self.cursor_hide_timer.setSingleShot(True)
+        self.cursor_hide_timer.timeout.connect(lambda: self.setCursor(QtCore.Qt.BlankCursor))
+
+    def mouseDoubleClickEvent(self, event):
+        self.double_clicked.emit()
+
+    def mouseMoveEvent(self, event):
+        self.setCursor(QtCore.Qt.ArrowCursor)
+        self.cursor_hide_timer.start(3000)
