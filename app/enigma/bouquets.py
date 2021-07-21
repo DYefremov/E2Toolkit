@@ -110,11 +110,11 @@ class BouquetsWriter:
 
                     alt_path = "{}/{}".format(p.parent, f_name)
                     bouquet.append(self._ALT.format(f_name))
-                    self.write_bouquet(alt_path, srv.service, services)
+                    self.write_bouquet(alt_path, srv.name, services)
             else:
                 data = to_bouquet_id(srv)
-                if srv.service:
-                    bouquet.append("#SERVICE {}:{}\n#DESCRIPTION {}\n".format(data, srv.service, srv.service))
+                if srv.name:
+                    bouquet.append("#SERVICE {}:{}\n#DESCRIPTION {}\n".format(data, srv.name, srv.name))
                 else:
                     bouquet.append("#SERVICE {}\n".format(data))
 

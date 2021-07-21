@@ -34,9 +34,11 @@ from PyQt5.QtWidgets import QApplication, QMessageBox, QFileDialog, QActionGroup
 
 from app.commons import APP_VERSION, APP_NAME, LANG_PATH, log, LOCALES
 from app.connections import HttpAPI, DownloadType, DataLoader
-from app.enigma.bouquets import BouquetsReader
-from app.enigma.ecommons import BqServiceType, Service
-from app.enigma.lamedb import get_services
+from app.enigma.backup import backup_data, clear_data_path
+from app.enigma.blacklist import write_blacklist
+from app.enigma.bouquets import BouquetsReader, BouquetsWriter
+from app.enigma.ecommons import BqServiceType, Service, Bouquet, Bouquets, BqType
+from app.enigma.lamedb import get_services, LameDbWriter
 from app.satellites.satxml import get_satellites
 from app.ui.dialogs import TimerDialog, ServiceDialog
 from app.ui.settings import SettingsDialog, Settings
@@ -111,6 +113,7 @@ class MainWindow(MainUiWindow):
         self.import_action.triggered.connect(self.on_data_import)
         self.open_action.triggered.connect(self.on_data_open)
         self.extract_action.triggered.connect(self.on_data_extract)
+        self.save_action.triggered.connect(self.on_data_save)
         self.exit_action.triggered.connect(self.on_app_exit)
         # Settings.
         self.settings_action.triggered.connect(self.on_settings_dialog)
@@ -439,6 +442,54 @@ class MainWindow(MainUiWindow):
         for c in (self._bouquets, self._bq_file, self._extra_bouquets, self._services, self._blacklist, self._alt_file):
             c.clear()
 
+    def on_data_save(self):
+        if QMessageBox.question(self, APP_NAME, self.tr("Are you sure?")) != QMessageBox.Yes:
+            return
+
+        if self.current_page is Page.BOUQUETS:
+            if self.bouquets_view.model().rowCount():
+                self.save_data(self.get_data_path())
+            else:
+                QMessageBox.critical(self, APP_NAME, self.tr("No data to save!"))
+        else:
+            QMessageBox.information(self, APP_NAME, self.tr("Not implemented yet!"))
+
+    def save_data(self, path):
+        if self.settings.backup_before_save:
+            backup_data(path, self.settings.backup_path)
+        else:
+            clear_data_path(path)
+
+        # Processing bouquets.
+        model = self.bouquets_view.model()
+        bq_tv_index, bq_radio_index = model.index(0, Column.BQ_NAME), model.index(1, Column.BQ_NAME)
+        bouquets = []
+        #  TV bouquets processing.
+        tv_bqs = [self.get_bouquet(model.index(i, Column.BQ_NAME, bq_tv_index).data(),
+                                   model.index(i, Column.BQ_LOCKED, bq_tv_index).data(),
+                                   model.index(i, Column.BQ_HIDDEN, bq_tv_index).data(),
+                                   model.index(i, Column.BQ_TYPE, bq_tv_index).data()) for i in
+                  range(model.rowCount(bq_tv_index))]
+        bouquets.append(Bouquets(bq_tv_index.data(), BqType.TV.value, tv_bqs))
+        # Radio bouquets processing.
+        radio_bqs = [self.get_bouquet(model.index(i, Column.BQ_NAME, bq_radio_index).data(),
+                                      model.index(i, Column.BQ_LOCKED, bq_radio_index).data(),
+                                      model.index(i, Column.BQ_HIDDEN, bq_radio_index).data(),
+                                      model.index(i, Column.BQ_TYPE, bq_radio_index).data()) for i in
+                     range(model.rowCount(bq_radio_index))]
+        bouquets.append(Bouquets(bq_radio_index.data(), BqType.RADIO.value, radio_bqs))
+        # Bouquets writing.
+        BouquetsWriter(path, bouquets).write()
+
+        # Processing services.
+        model = self.services_view.model()
+        c_count = model.columnCount()
+        services = (Service(*(model.index(r, c).data() for c in range(c_count))) for r in range(model.rowCount()))
+        LameDbWriter(path, services).write()
+
+        # Blacklist.
+        write_blacklist(path, self._blacklist)
+
     # ********************* Bouquets ********************* #
 
     def on_fav_data_changed(self):
@@ -489,6 +540,29 @@ class MainWindow(MainUiWindow):
         self.data_count_label.setText(str(counter.get("Data", 0)))
         self.radio_count_label.setText(str(counter.get("Radio", 0)))
         self.tv_count_label.setText(str(sum(v for k, v in counter.items() if k not in {"Data", "Radio"})))
+
+    def get_bouquet(self, bq_name, locked, hidden, bq_type):
+        """ Constructs and returns Bouquet class instance. """
+        bq_id = "{}:{}".format(bq_name, bq_type)
+        ext_services = self._extra_bouquets.get(bq_id, None)
+        bq_s = list(filter(None, [self._services.get(f_id, None) for f_id in self._bouquets.get(bq_id, [])]))
+        bq_s = self.get_bq_services(bq_s, ext_services)
+
+        return Bouquet(bq_name, bq_type, bq_s, locked, hidden, self._bq_file.get(bq_id, None))
+
+    def get_bq_services(self, services, ext_services):
+        """ Preparing a list of services for the Enigma2 bouquet. """
+        s_list = []
+        for srv in services:
+            if srv.service_type == BqServiceType.ALT.name:
+                # Alternatives to service in a bouquet.
+                alts = list(map(lambda s: s._replace(name=None),
+                                filter(None, [self._services.get(s.data, None) for s in srv.transponder or []])))
+                s_list.append(srv._replace(transponder=alts))
+            else:
+                # Extra names for service in bouquet.
+                s_list.append(srv._replace(name=ext_services.get(srv.fav_id, None) if ext_services else srv))
+        return s_list
 
     # ******************** Satellites ******************** #
 

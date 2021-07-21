@@ -32,7 +32,7 @@ from .ecommons import Service, POLARIZATION, FEC, SERVICE_TYPE, Flag, T_FEC, TrT
 _HEADER = "eDVB services /{}/"
 _SEP = ":"  # separator
 _FILE_NAME = "lamedb"
-_END_LINE = "# File was created in DemonEditor.\n# ....Enjoy watching!....\n"
+_END_LINE = "# File was created in E2Toolkit.\n#\t....Enjoy watching!....\n"
 
 
 def get_services(path, format_version=4):
