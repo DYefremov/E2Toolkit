@@ -498,7 +498,10 @@
                     <string notr="true"/>
                    </property>
                    <property name="placeholderText">
-                    <string notr="true">Filter..</string>
+                    <string>Filter..</string>
+                   </property>
+                   <property name="clearButtonEnabled">
+                    <bool>true</bool>
                    </property>
                   </widget>
                  </item>
@@ -1108,10 +1111,10 @@
                             <string notr="true"/>
                            </property>
                            <property name="text">
-                            <string notr="true">Filter...</string>
+                            <string notr="true"/>
                            </property>
                            <property name="placeholderText">
-                            <string>Search...</string>
+                            <string>Filter...</string>
                            </property>
                            <property name="clearButtonEnabled">
                             <bool>true</bool>
@@ -1167,6 +1170,9 @@
                             </sizepolicy>
                            </property>
                            <property name="text">
+                            <string notr="true"/>
+                           </property>
+                           <property name="placeholderText">
                             <string>Filter...</string>
                            </property>
                            <property name="clearButtonEnabled">
@@ -2548,7 +2554,7 @@
      <x>0</x>
      <y>0</y>
      <width>1000</width>
-     <height>26</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="file_menu">

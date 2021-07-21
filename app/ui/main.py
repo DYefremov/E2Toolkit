@@ -434,6 +434,7 @@ class MainWindow(MainUiWindow):
         self.bouquets_view.clear_data()
         self.services_view.clear_data()
         self.fav_view.clear_data()
+        self.service_filter_edit.setText("")
 
         for c in (self._bouquets, self._bq_file, self._extra_bouquets, self._services, self._blacklist, self._alt_file):
             c.clear()

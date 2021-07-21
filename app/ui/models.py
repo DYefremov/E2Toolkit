@@ -28,17 +28,26 @@ from PyQt5 import QtGui, QtWidgets, QtCore
 from app.ui.uicommons import Column
 
 
-class ServicesModel(QtGui.QStandardItemModel):
+class ServicesModel(QtCore.QSortFilterProxyModel):
     HEADER_LABELS = ("", "", "", "Picon", "", "Name", "", "", "Package", "Type",
                      "SID", "Frec", "SR", "Pol", "FEC", "System", "Pos", "", "", "")
 
     CENTERED_COLUMNS = {Column.TYPE, Column.SSID, Column.RATE, Column.FREQ,
                         Column.POL, Column.FEC, Column.SYSTEM, Column.POS}
 
+    FILTER_COLUMNS = (Column.NAME, Column.PACKAGE, Column.TYPE, Column.POS)
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.setHorizontalHeaderLabels(self.HEADER_LABELS)
+        self.model = QtGui.QStandardItemModel(self)
+        self.model.setHorizontalHeaderLabels(self.HEADER_LABELS)
+        self.setSourceModel(self.model)
         self._picon_path = ""
+        self._filter_text = ""
+        # Filter delay timer
+        self.filter_timer = QtCore.QTimer(self)
+        self.filter_timer.setSingleShot(True)
+        self.filter_timer.timeout.connect(self.filter)
 
     def data(self, index, role):
         column = index.column()
@@ -48,6 +57,9 @@ class ServicesModel(QtGui.QStandardItemModel):
             return QtCore.Qt.AlignCenter
         return super().data(index, role)
 
+    def appendRow(self, *__args):
+        self.model.appendRow(*__args)
+
     @property
     def picon_path(self):
         return self._picon_path
@@ -55,6 +67,25 @@ class ServicesModel(QtGui.QStandardItemModel):
     @picon_path.setter
     def picon_path(self, value):
         self._picon_path = value
+
+    def set_filter_text(self, text):
+        """ Sets text for filter and starts delay timer. """
+        self._filter_text = text
+        self.filter_timer.start(500)
+
+    def filter(self):
+        """ Filter by the specified text in the main visible columns [NAME, PACKAGE, etc.]. """
+        reg = QtCore.QRegExp(self._filter_text, QtCore.Qt.CaseInsensitive, QtCore.QRegExp.RegExp)
+        self.setFilterRegExp(reg)
+        self.invalidateFilter()
+
+    def filterAcceptsRow(self, source_row: int, source_parent) -> bool:
+        regex = self.filterRegExp()
+        if regex.isEmpty():
+            return True
+
+        ans = (regex.indexIn(self.model.index(source_row, c, source_parent).data()) != -1 for c in self.FILTER_COLUMNS)
+        return any(ans)
 
 
 class FavModel(QtGui.QStandardItemModel):
@@ -117,17 +148,27 @@ class SatelliteUpdateModel(QtGui.QStandardItemModel):
         self.setHorizontalHeaderLabels(self.HEADER_LABELS)
 
 
-class PiconModel(QtGui.QStandardItemModel):
+class PiconModel(QtCore.QSortFilterProxyModel):
     HEADER_LABELS = ("Info", "", "Picon")
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.setHorizontalHeaderLabels(self.HEADER_LABELS)
+        self.model = QtGui.QStandardItemModel(self)
+        self.model.setHorizontalHeaderLabels(self.HEADER_LABELS)
+        self.setSourceModel(self.model)
 
     def data(self, index, role):
         if index.column() == 2 and role == QtCore.Qt.DecorationRole:
             return QtGui.QIcon(self.index(index.row(), 1).data())
         return super().data(index, role)
+
+    def appendRow(self, *__args):
+        self.model.appendRow(*__args)
+
+    def filter(self, text):
+        reg = QtCore.QRegExp(text, QtCore.Qt.CaseInsensitive, QtCore.QRegExp.FixedString)
+        self.setFilterRegExp(reg)
+        self.setFilterKeyColumn(0)
 
 
 class EpgModel(QtGui.QStandardItemModel):
