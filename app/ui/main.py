@@ -275,7 +275,7 @@ class MainWindow(MainUiWindow):
         elif page is Page.PICONS:
             resp = QFileDialog.getExistingDirectory(self, self.tr("Select Directory"), str(Path.home()))
             if resp:
-                self.load_data(resp + os.sep)
+                self.load_picons(resp + os.sep)
         else:
             QMessageBox.information(self, APP_NAME, self.tr("Not implemented yet!"))
 
@@ -359,6 +359,7 @@ class MainWindow(MainUiWindow):
                     self.load_satellites(s_path)
                 else:
                     QMessageBox.critical(self, APP_NAME, self.tr("File not found!"))
+
             arch_path.cleanup()
 
     def get_archive_path(self, data_path):
@@ -385,7 +386,7 @@ class MainWindow(MainUiWindow):
         else:
             tmp_path.cleanup()
             log("Error getting the path for the archive. Unsupported file format: {}".format(data_path))
-            self.show_error_dialog("Unsupported format!")
+            QMessageBox.critical(self, APP_NAME, self.tr("Unsupported format!"))
             return
 
         return tmp_path
@@ -640,19 +641,31 @@ class MainWindow(MainUiWindow):
     # ********************* Picons ********************* #
 
     def on_picon_page_show(self):
+        self.picon_src_widget.setVisible(False)
         self.load_picons()
 
-    def load_picons(self):
+    def load_picons(self, path=None):
         self.picon_dst_view.clear_data()
         ids = {s.picon_id: s.fav_id for s in self._services.values()}
-        dst_model = self.picon_dst_view.model()
-        path = Path(self.get_picon_path())
+        self.append_picons(Path(self.get_picon_path()), self.picon_dst_view.model(), ids)
 
+        if path:
+            self.picon_src_widget.setVisible(True)
+            self.append_picons(Path(path), self.picon_src_view.model(), ids)
+
+    def append_picons(self, path, model, ids):
+        """ Appends picons to the given model.
+
+            @param path: load path.
+            @param model: model to add data.
+            @param ids: service ids.
+        """
         for f in path.glob("*.png"):
             info = self.get_service_info(self._services.get(ids.get(f.name, None), None))
-            dst_model.appendRow((QStandardItem(info if info else f.name), QStandardItem(str(f)), None))
+            model.appendRow((QStandardItem(info if info else f.name), QStandardItem(str(f)), None))
 
     def get_service_info(self, srv):
+        """ Returns info string representation about the service. """
         if not srv:
             return ""
 

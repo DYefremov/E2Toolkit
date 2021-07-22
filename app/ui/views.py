@@ -21,7 +21,7 @@
 #
 
 __all__ = ["ServicesView", "FavView", "BouquetsView", "SatellitesView", "SatelliteUpdateView",
-           "PiconSrcView", "PiconDstView", "EpgView", "TimerView", "FtpView", "FileView", "MediaView"]
+           "PiconView", "EpgView", "TimerView", "FtpView", "FileView", "MediaView"]
 
 from PyQt5 import QtWidgets, QtCore, QtGui
 
@@ -538,23 +538,11 @@ class SatelliteUpdateView(QtWidgets.QListView):
         model.removeRows(0, model.rowCount())
 
 
-class PiconSrcView(BaseTableView):
+class PiconView(BaseTableView):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.setSelectionMode(self.ExtendedSelection)
-        self.setObjectName("picon_src_view")
-
-        self.setModel(PiconModel())
-        self.setIconSize(QtCore.QSize(96, 96))
-        self.verticalHeader().setMinimumSectionSize(96)
-        self.setColumnHidden(1, True)
-
-
-class PiconDstView(BaseTableView):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.setSelectionMode(self.ExtendedSelection)
-        self.setObjectName("picon_dst_view")
+        self.setObjectName("picon_view")
 
         self.setModel(PiconModel())
         self.setIconSize(QtCore.QSize(96, 96))
