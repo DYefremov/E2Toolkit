@@ -1,4 +1,7 @@
-from PyQt5 import QtWidgets, QtCore
+from PyQt5 import QtWidgets, QtCore, QtGui
+
+from app.enigma.ecommons import Pids, Flag
+from app.ui.models import ServiceTypeModel
 
 
 class TimerDialog(QtWidgets.QDialog):
@@ -234,7 +237,7 @@ class TimerDialog(QtWidgets.QDialog):
 
 
 class ServiceDialog(QtWidgets.QDialog):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, service, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.setObjectName("service_dialog")
         self.resize(330, 470)
@@ -247,7 +250,7 @@ class ServiceDialog(QtWidgets.QDialog):
         self.service_group_box = QtWidgets.QGroupBox(self)
         self.service_group_box.setObjectName("service_group_box")
         self.service_group_box_layout = QtWidgets.QFormLayout(self.service_group_box)
-        self.service_group_box_layout.setContentsMargins(0, 0, 0, 0)
+        self.service_group_box_layout.setContentsMargins(6, 6, 6, 6)
         self.service_group_box_layout.setObjectName("service_group_box_layout")
         self.name_label = QtWidgets.QLabel(self.service_group_box)
         self.name_label.setObjectName("name_label")
@@ -273,8 +276,8 @@ class ServiceDialog(QtWidgets.QDialog):
         self.ref_edit = QtWidgets.QLineEdit(self.service_group_box)
         self.ref_edit.setObjectName("ref_edit")
         self.service_group_box_layout.setWidget(3, QtWidgets.QFormLayout.FieldRole, self.ref_edit)
-        self.gridLayout_2 = QtWidgets.QGridLayout()
-        self.gridLayout_2.setObjectName("gridLayout_2")
+        self.sid_type_layout = QtWidgets.QGridLayout()
+        self.sid_type_layout.setObjectName("gridLayout_2")
         self.type_label = QtWidgets.QLabel(self.service_group_box)
         size_policy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
         size_policy.setHorizontalStretch(0)
@@ -284,7 +287,7 @@ class ServiceDialog(QtWidgets.QDialog):
         self.type_label.setLayoutDirection(QtCore.Qt.RightToLeft)
         self.type_label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
         self.type_label.setObjectName("type_label")
-        self.gridLayout_2.addWidget(self.type_label, 0, 2, 1, 1)
+        self.sid_type_layout.addWidget(self.type_label, 0, 2, 1, 1)
         self.ssid_edit = QtWidgets.QLineEdit(self.service_group_box)
         size_policy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         size_policy.setHorizontalStretch(0)
@@ -294,7 +297,7 @@ class ServiceDialog(QtWidgets.QDialog):
         self.ssid_edit.setMaximumSize(QtCore.QSize(70, 16777215))
         self.ssid_edit.setText("")
         self.ssid_edit.setObjectName("ssid_edit")
-        self.gridLayout_2.addWidget(self.ssid_edit, 0, 1, 1, 1)
+        self.sid_type_layout.addWidget(self.ssid_edit, 0, 1, 1, 1)
         self.type_combo_box = QtWidgets.QComboBox(self.service_group_box)
         size_policy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Ignored)
         size_policy.setHorizontalStretch(0)
@@ -303,8 +306,8 @@ class ServiceDialog(QtWidgets.QDialog):
         self.type_combo_box.setSizePolicy(size_policy)
         self.type_combo_box.setMinimumSize(QtCore.QSize(100, 0))
         self.type_combo_box.setObjectName("type_combo_box")
-        self.gridLayout_2.addWidget(self.type_combo_box, 0, 3, 1, 1)
-        self.service_group_box_layout.setLayout(4, QtWidgets.QFormLayout.FieldRole, self.gridLayout_2)
+        self.sid_type_layout.addWidget(self.type_combo_box, 0, 3, 1, 1)
+        self.service_group_box_layout.setLayout(4, QtWidgets.QFormLayout.FieldRole, self.sid_type_layout)
         self.ssid_label = QtWidgets.QLabel(self.service_group_box)
         self.ssid_label.setObjectName("ssid_label")
         self.service_group_box_layout.setWidget(4, QtWidgets.QFormLayout.LabelRole, self.ssid_label)
@@ -318,7 +321,7 @@ class ServiceDialog(QtWidgets.QDialog):
         self.pids_group_box = QtWidgets.QGroupBox(self)
         self.pids_group_box.setObjectName("pids_group_box")
         self.pids_group_box_layout = QtWidgets.QGridLayout(self.pids_group_box)
-        self.pids_group_box_layout.setContentsMargins(0, 0, 0, 0)
+        self.pids_group_box_layout.setContentsMargins(6, 6, 6, 6)
         self.pids_group_box_layout.setObjectName("pids_group_box_layout")
         self.video_label = QtWidgets.QLabel(self.pids_group_box)
         self.video_label.setAlignment(QtCore.Qt.AlignCenter)
@@ -428,7 +431,7 @@ class ServiceDialog(QtWidgets.QDialog):
         self.flags_group_box = QtWidgets.QGroupBox(self)
         self.flags_group_box.setObjectName("flags_group_box")
         self.flags_group_box_layout = QtWidgets.QHBoxLayout(self.flags_group_box)
-        self.flags_group_box_layout.setContentsMargins(0, 0, 0, 0)
+        self.flags_group_box_layout.setContentsMargins(6, 6, 6, 6)
         self.flags_group_box_layout.setObjectName("flags_group_box_layout")
         self.keep_flag_check_box = QtWidgets.QCheckBox(self.flags_group_box)
         self.keep_flag_check_box.setObjectName("keep_flag_check_box")
@@ -449,14 +452,102 @@ class ServiceDialog(QtWidgets.QDialog):
         self.button_box.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel | QtWidgets.QDialogButtonBox.Save)
         self.button_box.setObjectName("button_box")
         self.dialog_layout.addWidget(self.button_box, 1, 0, 1, 1)
-        # Setting service types
-        service_types = ("TV", "TV (H264)", "TV (HD)", "TV (UHD)", "Radio", "Data")
-        self.type_combo_box.setModel(QtCore.QStringListModel(service_types, self.type_combo_box))
+        # Types.
+        self.type_combo_box.setModel(ServiceTypeModel(self.type_combo_box))
+        self.type_combo_box.currentTextChanged.connect(self.update_reference_entry)
+        self.ssid_edit.textChanged.connect(self.update_reference_entry)
+        # Value validation.
+        self.ssid_edit.setValidator(QtGui.QIntValidator(self.ssid_edit))
+        self.video_pid_edit.setValidator(QtGui.QIntValidator(self.video_pid_edit))
+        self.audio_pid_edit.setValidator(QtGui.QIntValidator(self.audio_pid_edit))
+        self.teletext_pid_edit.setValidator(QtGui.QIntValidator(self.teletext_pid_edit))
+        self.pcr_pid_edit.setValidator(QtGui.QIntValidator(self.pcr_pid_edit))
+        self.ac3_pid_edit.setValidator(QtGui.QIntValidator(self.ac3_pid_edit))
+        self.ac3p_pid_edit.setValidator(QtGui.QIntValidator(self.ac3p_pid_edit))
+        self.acc_pid_edit.setValidator(QtGui.QIntValidator(self.acc_pid_edit))
+        self.he_acc_pid_edit.setValidator(QtGui.QIntValidator(self.he_acc_pid_edit))
 
         self.retranslate_ui()
         self.button_box.accepted.connect(self.accept)
         self.button_box.rejected.connect(self.reject)
         QtCore.QMetaObject.connectSlotsByName(self)
+        # Data init
+        self._service = service
+        self._tid = 0
+        self._nid = 0
+        self._namespace = 0
+        self.init_service_data()
+
+    def init_service_data(self):
+        """ Service data initialisation. """
+        self.name_edit.setText(self._service.name)
+        self.package_edit.setText(self._service.package)
+        self.ssid_edit.setText(str(int(self._service.ssid, 16)))
+        self.type_combo_box.setCurrentText(self._service.service_type)
+
+        flags = self._service.flags_cas
+        if flags:
+            flags = flags.split(",")
+            self.init_flags(flags)
+            self.init_pids(flags)
+            self.init_cas(flags)
+        # Transponder
+        data = self._service.data_id.split(":")
+        self._tid = int(data[2], 16)
+        self._nid = int(data[3], 16)
+        self._namespace = int(data[1], 16)
+
+    def init_flags(self, flags):
+        f_flags = list(filter(lambda x: x.startswith("f:"), flags))
+        if f_flags:
+            value = int(f_flags[0][2:])
+            self.keep_flag_check_box.setChecked(Flag.is_keep(value))
+            self.hide_flag_check_box.setChecked(Flag.is_hide(value))
+            self.use_pids_flag_check_box.setChecked(Flag.is_pids(value))
+            self.new_flag_check_box.setChecked(Flag.is_new(value))
+
+    def init_cas(self, flags):
+        cas = list(filter(lambda x: x.startswith("C:"), flags))
+        if cas:
+            self.caids_edit.setText(",".join(cas))
+
+    def init_pids(self, flags):
+        pids = list(filter(lambda x: x.startswith("c:"), flags))
+        if pids:
+            extra_pids = []
+            for pid in pids:
+                if pid.startswith(Pids.VIDEO.value):
+                    self.video_pid_edit.setText(str(int(pid[4:], 16)))
+                elif pid.startswith(Pids.AUDIO.value):
+                    self.audio_pid_edit.setText(str(int(pid[4:], 16)))
+                elif pid.startswith(Pids.TELETEXT.value):
+                    self.teletext_pid_edit.setText(str(int(pid[4:], 16)))
+                elif pid.startswith(Pids.PCR.value):
+                    self.pcr_pid_edit.setText(str(int(pid[4:], 16)))
+                elif pid.startswith(Pids.AC3.value):
+                    self.ac3_pid_edit.setText(str(int(pid[4:], 16)))
+                elif pid.startswith(Pids.VIDEO_TYPE.value):
+                    extra_pids.append(pid)
+                elif pid.startswith(Pids.AUDIO_CHANNEL.value):
+                    extra_pids.append(pid)
+                elif pid.startswith(Pids.BIT_STREAM_DELAY.value):
+                    # str(int(pid[4:], 16)))
+                    pass
+                elif pid.startswith(Pids.PCM_DELAY.value):
+                    # str(int(pid[4:], 16))
+                    pass
+                elif pid.startswith(Pids.SUBTITLE.value):
+                    extra_pids.append(pid)
+                else:
+                    extra_pids.append(pid)
+
+            self.extra_edit.setText(",".join(extra_pids))
+
+    def update_reference_entry(self):
+        s_type = int(self.type_combo_box.model().index(self.type_combo_box.currentIndex(), 1).data())
+        ssid = int(self.ssid_edit.text() or 0)
+        ref = "1:0:{:X}:{:X}:{:X}:{:X}:{:X}:0:0:0".format(s_type, ssid, self._tid, self._nid, self._namespace)
+        self.ref_edit.setText(ref)
 
     def retranslate_ui(self):
         _translate = QtCore.QCoreApplication.translate

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>328</width>
-    <height>467</height>
+    <width>340</width>
+    <height>510</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -29,16 +29,16 @@
        </property>
        <layout class="QFormLayout" name="service_group_box_layout">
         <property name="leftMargin">
-         <number>0</number>
+         <number>6</number>
         </property>
         <property name="topMargin">
-         <number>0</number>
+         <number>6</number>
         </property>
         <property name="rightMargin">
-         <number>0</number>
+         <number>6</number>
         </property>
         <property name="bottomMargin">
-         <number>0</number>
+         <number>6</number>
         </property>
         <item row="0" column="0">
          <widget class="QLabel" name="name_label">
@@ -81,7 +81,7 @@
          <widget class="QLineEdit" name="ref_edit"/>
         </item>
         <item row="4" column="1">
-         <layout class="QGridLayout" name="gridLayout_2">
+         <layout class="QGridLayout" name="sid_type_layout">
           <item row="0" column="2">
            <widget class="QLabel" name="type_label">
             <property name="sizePolicy">
@@ -165,16 +165,16 @@
        </property>
        <layout class="QGridLayout" name="pids_group_box_layout">
         <property name="leftMargin">
-         <number>0</number>
+         <number>6</number>
         </property>
         <property name="topMargin">
-         <number>0</number>
+         <number>6</number>
         </property>
         <property name="rightMargin">
-         <number>0</number>
+         <number>6</number>
         </property>
         <property name="bottomMargin">
-         <number>0</number>
+         <number>6</number>
         </property>
         <item row="0" column="0">
          <widget class="QLabel" name="video_label">
@@ -394,16 +394,16 @@
        </property>
        <layout class="QHBoxLayout" name="flags_group_box_layout">
         <property name="leftMargin">
-         <number>0</number>
+         <number>6</number>
         </property>
         <property name="topMargin">
-         <number>0</number>
+         <number>6</number>
         </property>
         <property name="rightMargin">
-         <number>0</number>
+         <number>6</number>
         </property>
         <property name="bottomMargin">
-         <number>0</number>
+         <number>6</number>
         </property>
         <item>
          <widget class="QCheckBox" name="keep_flag_check_box">

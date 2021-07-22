@@ -21,7 +21,7 @@
 #
 
 __all__ = ["ServicesModel", "FavModel", "BouquetsModel", "SatellitesModel", "SatelliteUpdateModel",
-           "PiconModel", "EpgModel", "TimerModel", "FtpModel", "FileModel"]
+           "PiconModel", "EpgModel", "TimerModel", "FtpModel", "FileModel", "ServiceTypeModel"]
 
 from PyQt5 import QtGui, QtWidgets, QtCore
 
@@ -200,3 +200,10 @@ class FileModel(QtWidgets.QFileSystemModel):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.setFilter(QtCore.QDir.AllDirs | QtCore.QDir.AllEntries | QtCore.QDir.NoDot)
+
+
+class ServiceTypeModel(QtGui.QStandardItemModel):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for t in ("TV", "1"), ("TV (H264)", "22"), ("TV (HD)", "25"), ("TV (UHD)", "31"), ("Radio", "2"), ("Data", "3"):
+            self.appendRow((QtGui.QStandardItem(t[0]), QtGui.QStandardItem(t[1])))

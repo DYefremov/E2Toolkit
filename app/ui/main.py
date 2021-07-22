@@ -124,10 +124,10 @@ class MainWindow(MainUiWindow):
         # Models and Views.
         self.bouquets_view.selectionModel().selectionChanged.connect(self.on_bouquet_selection)
         self.fav_view.selectionModel().selectionChanged.connect(self.on_fav_selection)
-        self.fav_view.edited.connect(self.on_service_edit)
+        self.fav_view.edited.connect(lambda r: self.on_service_edit(r, self.fav_view.model()))
         self.fav_view.removed.connect(self.remove_favorites)
         self.fav_view.inserted.connect(self.on_fav_data_changed)
-        self.services_view.edited.connect(self.on_service_edit)
+        self.services_view.edited.connect(lambda r: self.on_service_edit(r, self.services_view.model()))
         self.services_view.removed.connect(self.remove_services)
         self.services_view.delete_release.connect(self.on_service_remove_done)
         self.bouquets_view.removed.connect(self.remove_bouquets)
@@ -565,8 +565,17 @@ class MainWindow(MainUiWindow):
         for r in range(model.rowCount()):
             bq.append(model.index(r, Column.FAV_ID).data())
 
-    def on_service_edit(self, row):
-        ServiceDialog().exec()
+    def on_service_edit(self, row, model):
+        service = self._services.get(model.index(row, Column.FAV_ID).data(), None)
+        if service:
+            if service.service_type in self._marker_types:
+                return
+            elif service.service_type == BqServiceType.IPTV.value:
+                QMessageBox.information(self, APP_NAME, self.tr("Not implemented yet!"))
+            else:
+                service_dialog = ServiceDialog(service)
+                if service_dialog.exec():
+                    QMessageBox.information(self, APP_NAME, self.tr("Not implemented yet!"))
 
     def remove_services(self, rows):
         list(map(lambda s: self._services.pop(s, None), rows.values()))
