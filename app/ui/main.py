@@ -280,9 +280,10 @@ class MainWindow(MainUiWindow):
             QMessageBox.information(self, APP_NAME, self.tr("Not implemented yet!"))
 
     def on_data_extract(self, state):
-        resp = QFileDialog.getOpenFileNames(self, self.tr("Select Archive"), str(Path.home()),
-                                            "Archive files (*.gz *.zip)")
-        QMessageBox.information(self, APP_NAME, self.tr("Not implemented yet!"))
+        resp = QFileDialog.getOpenFileName(self, self.tr("Select Archive"), str(Path.home()),
+                                           "Archive files (*.gz *.zip)", )
+        if all(resp):
+            self.load_compressed_data(resp[0])
 
     def on_settings_dialog(self, state):
         SettingsDialog()
@@ -345,6 +346,49 @@ class MainWindow(MainUiWindow):
             log(e)
         else:
             self.append_data(bouquets, services)
+
+    def load_compressed_data(self, data_path):
+        """ Opening archived data.  """
+        arch_path = self.get_archive_path(data_path)
+        if arch_path:
+            if self.current_page is Page.BOUQUETS:
+                self.load_data(arch_path.name + os.sep)
+            elif self.current_page is Page.SAT:
+                s_path = arch_path.name + os.sep + "satellites.xml"
+                if os.path.exists(s_path):
+                    self.load_satellites(s_path)
+                else:
+                    QMessageBox.critical(self, APP_NAME, self.tr("File not found!"))
+            arch_path.cleanup()
+
+    def get_archive_path(self, data_path):
+        """ Returns the temp dir path for the extracted data, or None if the archive format is not supported. """
+        import zipfile
+        import tarfile
+        import tempfile
+
+        tmp_path = tempfile.TemporaryDirectory()
+        tmp_path_name = tmp_path.name
+
+        if zipfile.is_zipfile(data_path):
+            with zipfile.ZipFile(data_path) as zip_file:
+                for zip_info in zip_file.infolist():
+                    if not zip_info.filename.endswith(os.sep):
+                        zip_info.filename = os.path.basename(zip_info.filename)
+                        zip_file.extract(zip_info, path=tmp_path_name)
+        elif tarfile.is_tarfile(data_path):
+            with tarfile.open(data_path) as tar:
+                for mb in tar.getmembers():
+                    if mb.isfile():
+                        mb.name = os.path.basename(mb.name)
+                        tar.extract(mb, path=tmp_path_name)
+        else:
+            tmp_path.cleanup()
+            log("Error getting the path for the archive. Unsupported file format: {}".format(data_path))
+            self.show_error_dialog("Unsupported format!")
+            return
+
+        return tmp_path
 
     def append_data(self, bouquets, services):
         self.append_bouquets(bouquets)
