@@ -114,6 +114,7 @@ class MainWindow(MainUiWindow):
         self.open_action.triggered.connect(self.on_data_open)
         self.extract_action.triggered.connect(self.on_data_extract)
         self.save_action.triggered.connect(self.on_data_save)
+        self.save_as_action.triggered.connect(self.on_data_save_as)
         self.exit_action.triggered.connect(self.on_app_exit)
         # Settings.
         self.settings_action.triggered.connect(self.on_settings_dialog)
@@ -442,6 +443,8 @@ class MainWindow(MainUiWindow):
         for c in (self._bouquets, self._bq_file, self._extra_bouquets, self._services, self._blacklist, self._alt_file):
             c.clear()
 
+    # ********************* Data save. ********************* #
+
     def on_data_save(self):
         if QMessageBox.question(self, APP_NAME, self.tr("Are you sure?")) != QMessageBox.Yes:
             return
@@ -454,12 +457,22 @@ class MainWindow(MainUiWindow):
         else:
             QMessageBox.information(self, APP_NAME, self.tr("Not implemented yet!"))
 
-    def save_data(self, path):
-        if self.settings.backup_before_save:
+    def on_data_save_as(self):
+        resp = QFileDialog.getExistingDirectory(self, self.tr("Select Directory"), str(Path.home()))
+        if not resp:
+            return
+
+        if os.listdir(resp):
+            msg = "{}\n\t{}".format(self.tr("The selected folder already contains files!"), self.tr("Are you sure?"))
+            if QMessageBox.question(self, APP_NAME, msg) != QMessageBox.Yes:
+                return
+        self.save_data(resp + os.sep, False)
+
+    def save_data(self, path, force_backup=True):
+        if self.settings.backup_before_save and force_backup:
             backup_data(path, self.settings.backup_path)
         else:
             clear_data_path(path)
-
         # Processing bouquets.
         model = self.bouquets_view.model()
         bq_tv_index, bq_radio_index = model.index(0, Column.BQ_NAME), model.index(1, Column.BQ_NAME)
@@ -486,9 +499,10 @@ class MainWindow(MainUiWindow):
         c_count = model.columnCount()
         services = (Service(*(model.index(r, c).data() for c in range(c_count))) for r in range(model.rowCount()))
         LameDbWriter(path, services).write()
-
         # Blacklist.
         write_blacklist(path, self._blacklist)
+
+        QMessageBox.information(self, APP_NAME, self.tr("Done!"))
 
     # ********************* Bouquets ********************* #
 
