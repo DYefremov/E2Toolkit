@@ -233,17 +233,8 @@ class MainWindow(MainUiWindow):
     def on_data_download(self, state=False):
         self.download_tool_button.setEnabled(False)
         self.log_text_browser.clear()
-        page = Page(self.stacked_widget.currentIndex())
-        download_type = DownloadType.ALL
-        if page is Page.SAT:
-            download_type = DownloadType.SATELLITES
-        elif page is Page.PICONS:
-            download_type = DownloadType.PICONS
 
-        data_loader = DataLoader(self.settings, download_type, parent=self)
-        data_loader.message.connect(self.log_text_browser.append)
-        data_loader.error_message.connect(self.status_bar.showMessage)
-        data_loader.loaded.connect(self.on_data_load_done)
+        data_loader = self.get_data_loader()
         data_loader.start()
 
     def on_data_load_done(self, download_type):
@@ -256,7 +247,43 @@ class MainWindow(MainUiWindow):
             self.load_data()
 
     def on_data_upload(self):
-        QMessageBox.information(self, APP_NAME, self.tr("Not implemented yet!"))
+        if QMessageBox.question(self, APP_NAME, self.tr("Are you sure?")) != QMessageBox.Yes:
+            return
+
+        self.upload_tool_button.setEnabled(False)
+        self.log_text_browser.clear()
+
+        data_loader = self.get_data_loader(upload=True)
+        data_loader.start()
+
+    def on_data_upload_done(self, download_type):
+        self.upload_tool_button.setEnabled(True)
+
+    def get_data_loader(self, upload=False):
+        """ Creates and returns DataLoader class instance. """
+        download_type = DownloadType.ALL
+        if self.current_page is Page.SAT:
+            download_type = DownloadType.SATELLITES
+        elif self.current_page is Page.PICONS:
+            download_type = DownloadType.PICONS
+
+        data_loader = DataLoader(self.settings, download_type, upload, self._http_api, parent=self)
+        data_loader.message.connect(self.log_text_browser.append)
+        data_loader.http.connect(self.http_send_callback)
+        data_loader.error_message.connect(self.on_data_load_error)
+        data_loader.loaded.connect(self.on_data_upload_done if upload else self.on_data_load_done)
+
+        return data_loader
+
+    def on_data_load_error(self, msg):
+        self.status_bar.showMessage(msg)
+        self.log_text_browser.setVisible(True)
+        self.upload_tool_button.setEnabled(True)
+        self.download_tool_button.setEnabled(True)
+
+    def http_send_callback(self, commands):
+        self._http_api.send(commands[0])
+        self.log_text_browser.append(commands[1])
 
     def on_data_import(self, state):
         resp = QFileDialog.getExistingDirectory(self, self.tr("Select Directory"), str(Path.home()))
@@ -629,7 +656,7 @@ class MainWindow(MainUiWindow):
                 s_list.append(srv._replace(transponder=alts))
             else:
                 # Extra names for service in bouquet.
-                s_list.append(srv._replace(name=ext_services.get(srv.fav_id, None) if ext_services else srv))
+                s_list.append(srv._replace(name=ext_services.get(srv.fav_id, None) if ext_services else None))
         return s_list
 
     # ******************** Satellites ******************** #
@@ -861,7 +888,9 @@ class MainWindow(MainUiWindow):
             self.status_bar.showMessage(info_text.format("OK", "Current Box: {} Image: {}".format(model, image)))
         else:
             self.status_bar.showMessage(info_text.format("Disconnected.", ""))
-            if self.log_action.isChecked():
+            if all((self.log_action.isChecked(),
+                    self.upload_tool_button.isEnabled(),
+                    self.upload_tool_button.isEnabled())):
                 reason = info.get("reason", None)
                 self.log_text_browser.append(reason) if reason else None
 

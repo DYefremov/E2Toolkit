@@ -58,30 +58,40 @@ class DataLoader(QThread):
         Loads data in a separate thread.
     """
     message = pyqtSignal(str)
+    http = pyqtSignal(tuple)  # -> (cmd, msg)
     error_message = pyqtSignal(str)
     loaded = pyqtSignal(DownloadType)
 
-    def __init__(self, settings, download_type=DownloadType.ALL, upload=False, files_filter=None, *args, **kwargs):
+    def __init__(self, settings, download_type=DownloadType.ALL, upload=False,
+                 http=True, files_filter=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.settings = settings
-        self.download_type = download_type
-        self.upload = upload
-        self.file_filter = files_filter
-        self.finished.connect(lambda: self.loaded.emit(self.download_type))
+        self._settings = settings
+        self._download_type = download_type
+        self._upload = upload
+        self._use_http = http
+        self._file_filter = files_filter
+
+        self.finished.connect(lambda: self.loaded.emit(self._download_type))
 
     def run(self):
-        if self.upload:
-            pass
-        else:
-            try:
-                download_data(settings=self.settings,
-                              download_type=self.download_type,
+        try:
+            if self._upload:
+                # By default, all unused bouquets are deleted!  remove_unused -> True
+                upload_data(settings=self._settings,
+                            download_type=self._download_type,
+                            remove_unused=True,
+                            callback=self.message.emit,
+                            http=self.http.emit if self._use_http else None,
+                            file_filter=self._file_filter)
+            else:
+                download_data(settings=self._settings,
+                              download_type=self._download_type,
                               callback=self.message.emit,
-                              files_filter=self.file_filter)
-            except Exception as e:
-                error_msg = "Error: {}".format(str(e))
-                self.error_message.emit(error_msg)
-                self.message.emit(error_msg)
+                              files_filter=self._file_filter)
+        except Exception as e:
+            error_msg = "Error: {}".format(str(e))
+            self.error_message.emit(error_msg)
+            self.message.emit(error_msg)
 
 
 class UtfFTP(FTP):
@@ -224,6 +234,7 @@ class UtfFTP(FTP):
     def remove_unused_bouquets(self, callback):
         bq_files = ("userbouquet.", "bouquets.xml", "ubouquets.xml")
 
+        callback("Removing unused bouquets ...")
         for file in filter(lambda f: f.startswith(bq_files), self.nlst()):
             self.delete_file(file, callback)
 
@@ -236,7 +247,7 @@ class UtfFTP(FTP):
             return resp + " File not found."
 
         with open(file_src, "rb") as f:
-            msg = "Uploading file: {}.   Status: {}\n"
+            msg = "Uploading file: {}.   Status: {}"
             try:
                 resp = str(self.storbinary("STOR " + file_name, f))
             except Error as e:
@@ -304,7 +315,7 @@ class UtfFTP(FTP):
             self.delete_file(file, callback)
 
     def delete_file(self, file, callback=log):
-        msg = "Deleting file: {}.   Status: {}\n"
+        msg = "Deleting file: {}.   Status: {}"
         try:
             resp = self.delete(file)
         except Error as e:
@@ -395,11 +406,11 @@ def download_data(*, settings, download_type=DownloadType.ALL, callback=log, fil
 
 
 def upload_data(*, settings, download_type=DownloadType.ALL, remove_unused=False,
-                callback=log, done_callback=None, http=None, files_filter=None):
-    data_path = settings.data_local_path
-    host = settings.host
-    tn = None  # telnet
+                callback=log, http=None, file_filter=None):
+    profile = settings.current_profile
+    data_path = "{}{}{}".format(settings.data_path, profile["name"], os.sep)
 
+    tn = None  # Telnet
     try:
         if http:
             message = ""
@@ -413,30 +424,31 @@ def upload_data(*, settings, download_type=DownloadType.ALL, remove_unused=False
                 message = "Picons will be updated!"
 
             params = urlencode({"text": message, "type": 2, "timeout": 5})
-            http.send(("message?{}".format(params), "Sending info message..."))
+            http(("message?{}".format(params), "Sending info message..."))
 
             if download_type is DownloadType.ALL:
                 time.sleep(5)
-                http.send(("powerstate?newstate=0", "Toggle Standby"))
+                http(("powerstate?newstate=0", "Toggle Standby"))
                 time.sleep(2)
         else:
             if download_type is not DownloadType.PICONS:
-                # telnet
-                tn = telnet(host=host,
-                            user=settings.user,
-                            password=settings.password,
-                            timeout=settings.telnet_timeout)
+                # Telnet
+                tn = telnet(host=profile["host"],
+                            port=int(profile["telnet_port"]),
+                            user=profile["user"],
+                            password=profile["password"],
+                            timeout=5)
                 next(tn)
-                # terminate Enigma2
+                # Terminating Enigma2
                 callback("Telnet initialization ...\n")
                 tn.send("init 4")
-                callback("Stopping GUI...\n")
+                callback("Stopping GUI...")
 
-        with UtfFTP(host=host, user=settings.user, passwd=settings.password) as ftp:
+        with UtfFTP(host=profile["host"], user=profile["user"], passwd=profile["password"]) as ftp:
             ftp.encoding = "utf-8"
-            callback("FTP OK.\n")
-            sat_xml_path = settings.satellites_xml_path
-            services_path = settings.services_path
+            callback("FTP OK.")
+            sat_xml_path = settings.box_satellite_path
+            services_path = settings.box_services_path
 
             if download_type is DownloadType.SATELLITES:
                 ftp.upload_xml(data_path, sat_xml_path, STC_XML_FILE, callback)
@@ -452,21 +464,19 @@ def upload_data(*, settings, download_type=DownloadType.ALL, remove_unused=False
                 ftp.upload_files(data_path, DATA_FILES_LIST, callback)
 
             if download_type is DownloadType.PICONS:
-                ftp.upload_picons(settings.picons_local_path, settings.picons_path, callback, files_filter)
+                picons_local_path = "{}{}{}".format(settings.picon_path, settings.current_profile["name"], os.sep)
+                ftp.upload_picons(picons_local_path, settings.current_profile["box_picon_path"], callback, file_filter)
 
             if tn and not http:
                 # resume enigma
                 tn.send("init 3")
-                callback("Starting...\n")
+                callback("Starting...")
             elif http:
                 if download_type is DownloadType.BOUQUETS:
-                    http.send(("servicelistreload?mode=2", "Reloading Userbouquets."))
+                    http(("servicelistreload?mode=2", "Reloading Userbouquets."))
                 elif download_type is DownloadType.ALL:
-                    http.send(("servicelistreload?mode=0", "Reloading lamedb and Userbouquets."))
-                    http.send(("powerstate?newstate=4", "Wakeup from Standby."))
-
-            if done_callback is not None:
-                done_callback()
+                    http(("servicelistreload?mode=0", "Reloading lamedb and Userbouquets."))
+                    http(("powerstate?newstate=4", "Wakeup from Standby."))
     finally:
         if tn:
             tn.close()
