@@ -634,18 +634,27 @@ class MainWindow(MainUiWindow):
 
     # ******************** Satellites ******************** #
 
+    def on_satellite_page_show(self):
+        if not self.satellite_view.model().rowCount():
+            self.load_satellites(self.get_data_path() + "satellites.xml")
+
     def load_satellites(self, path):
-        self.satellite_view.clear_data()
-        model = self.satellite_view.model()
+        try:
+            sats = get_satellites(path)
+        except FileNotFoundError as e:
+            log(e)
+        else:
+            self.satellite_view.clear_data()
+            model = self.satellite_view.model()
+            root_node = model.invisibleRootItem()
 
-        root_node = model.invisibleRootItem()
-        for sat in get_satellites(path):
-            parent = QStandardItem(sat.name)
-            for t in sat.transponders:
-                parent.appendRow((QStandardItem(""),) + tuple(QStandardItem(i) for i in t))
-            root_node.appendRow(parent)
+            for sat in sats:
+                parent = QStandardItem(sat.name)
+                for t in sat.transponders:
+                    parent.appendRow((QStandardItem(""),) + tuple(QStandardItem(i) for i in t))
+                root_node.appendRow(parent)
 
-        self.satellite_count_label.setText(str(model.rowCount()))
+            self.satellite_count_label.setText(str(model.rowCount()))
 
     # ********************* Picons ********************* #
 

@@ -1415,7 +1415,9 @@ class MainUiWindow(QtWidgets.QMainWindow):
     def on_current_page_changed(self, index):
         page = Page(index)
         self.current_page = page
-        if page is Page.PICONS:
+        if page is Page.SAT:
+            self.on_satellite_page_show()
+        elif page is Page.PICONS:
             self.on_picon_page_show()
         elif page is Page.TIMER:
             self.on_timer_page_show()
@@ -1424,6 +1426,9 @@ class MainUiWindow(QtWidgets.QMainWindow):
             self.media_stop_tool_button.click()
 
     # Pages
+    def on_satellite_page_show(self):
+        pass
+
     def on_picon_page_show(self):
         pass
 
