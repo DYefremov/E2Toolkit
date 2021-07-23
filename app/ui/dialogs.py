@@ -5,17 +5,36 @@ from app.ui.models import ServiceTypeModel
 
 
 class TimerDialog(QtWidgets.QDialog):
+    class TimerActionModel(QtGui.QStandardItemModel):
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            for t in (self.tr("Record"), "0"), (self.tr("Zap"), "1"):
+                self.appendRow((QtGui.QStandardItem(t[0]), QtGui.QStandardItem(t[1])))
+
+    class TimerAfterEventModel(QtGui.QStandardItemModel):
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            for a in ((self.tr("Do Nothing"), "0"),
+                      (self.tr("Standby"), "1"),
+                      (self.tr("Shut down"), "2"),
+                      (self.tr("Auto"), "3")):
+                self.appendRow((QtGui.QStandardItem(a[0]), QtGui.QStandardItem(a[1])))
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.setObjectName("timer_dialog")
-        self.resize(366, 490)
+        self.resize(365, 490)
         self.setToolTip("")
         self.setModal(True)
+
+        min_edit_width = 180
+
         self.dialog_grid_layout = QtWidgets.QGridLayout(self)
         self.dialog_grid_layout.setSizeConstraint(QtWidgets.QLayout.SetFixedSize)
         self.dialog_grid_layout.setObjectName("dialog_grid_layout")
         self.main_grid_layout = QtWidgets.QGridLayout()
         self.main_grid_layout.setObjectName("main_grid_layout")
+
         self.timer_edit_box = QtWidgets.QGroupBox(self)
         size_policy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Preferred)
         size_policy.setHorizontalStretch(0)
@@ -26,7 +45,9 @@ class TimerDialog(QtWidgets.QDialog):
         self.timer_edit_gruop_box = QtWidgets.QFormLayout(self.timer_edit_box)
         self.timer_edit_gruop_box.setContentsMargins(9, 9, 9, 9)
         self.timer_edit_gruop_box.setObjectName("timer_edit_gruop_box")
+        # Enable
         self.timer_enable_widget = QtWidgets.QWidget(self.timer_edit_box)
+        self.timer_enable_widget.setMinimumWidth(min_edit_width)
         self.timer_enable_widget.setObjectName("timer_enable_widget")
         self.timer_edit_enable_box = QtWidgets.QHBoxLayout(self.timer_enable_widget)
         self.timer_edit_enable_box.setContentsMargins(0, 0, 0, 0)
@@ -39,48 +60,65 @@ class TimerDialog(QtWidgets.QDialog):
         self.timer_enable_button.setObjectName("timer_enable_button")
         self.timer_edit_enable_box.addWidget(self.timer_enable_button)
         self.timer_edit_gruop_box.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.timer_enable_widget)
+        # Name
         self.timer_name_label = QtWidgets.QLabel(self.timer_edit_box)
         self.timer_name_label.setObjectName("timer_name_label")
         self.timer_edit_gruop_box.setWidget(1, QtWidgets.QFormLayout.LabelRole, self.timer_name_label)
         self.timer_name_edit = QtWidgets.QLineEdit(self.timer_edit_box)
+        self.timer_name_edit.setMinimumWidth(min_edit_width)
         self.timer_name_edit.setObjectName("timer_name_edit")
         self.timer_edit_gruop_box.setWidget(1, QtWidgets.QFormLayout.FieldRole, self.timer_name_edit)
+        # Description
         self.timer_description_label = QtWidgets.QLabel(self.timer_edit_box)
         self.timer_description_label.setObjectName("timer_description_label")
         self.timer_edit_gruop_box.setWidget(2, QtWidgets.QFormLayout.LabelRole, self.timer_description_label)
         self.timer_description_edit = QtWidgets.QLineEdit(self.timer_edit_box)
+        self.timer_description_edit.setMinimumWidth(min_edit_width)
         self.timer_description_edit.setObjectName("timer_description_edit")
         self.timer_edit_gruop_box.setWidget(2, QtWidgets.QFormLayout.FieldRole, self.timer_description_edit)
+        # Service
         self.timer_service_label = QtWidgets.QLabel(self.timer_edit_box)
         self.timer_service_label.setObjectName("timer_service_label")
         self.timer_edit_gruop_box.setWidget(3, QtWidgets.QFormLayout.LabelRole, self.timer_service_label)
         self.timer_service_edit = QtWidgets.QLineEdit(self.timer_edit_box)
+        self.timer_service_edit.setMinimumWidth(min_edit_width)
         self.timer_service_edit.setObjectName("timer_service_edit")
         self.timer_edit_gruop_box.setWidget(3, QtWidgets.QFormLayout.FieldRole, self.timer_service_edit)
+        # Reference
         self.timer_service_ref_label = QtWidgets.QLabel(self.timer_edit_box)
         self.timer_service_ref_label.setObjectName("timer_service_ref_label")
         self.timer_edit_gruop_box.setWidget(4, QtWidgets.QFormLayout.LabelRole, self.timer_service_ref_label)
         self.timer_ref_edit = QtWidgets.QLineEdit(self.timer_edit_box)
+        self.timer_ref_edit.setMinimumWidth(min_edit_width)
         self.timer_ref_edit.setObjectName("timer_ref_edit")
         self.timer_edit_gruop_box.setWidget(4, QtWidgets.QFormLayout.FieldRole, self.timer_ref_edit)
+        # Event ID
         self.timer_event_id_label = QtWidgets.QLabel(self.timer_edit_box)
         self.timer_event_id_label.setObjectName("timer_event_id_label")
         self.timer_edit_gruop_box.setWidget(5, QtWidgets.QFormLayout.LabelRole, self.timer_event_id_label)
         self.timer_event_id_edit = QtWidgets.QLineEdit(self.timer_edit_box)
+        self.timer_event_id_edit.setMinimumWidth(min_edit_width)
         self.timer_event_id_edit.setObjectName("timer_event_id_edit")
         self.timer_edit_gruop_box.setWidget(5, QtWidgets.QFormLayout.FieldRole, self.timer_event_id_edit)
+        # Begins
         self.timer_begins_label = QtWidgets.QLabel(self.timer_edit_box)
         self.timer_begins_label.setObjectName("timer_begins_label")
         self.timer_edit_gruop_box.setWidget(6, QtWidgets.QFormLayout.LabelRole, self.timer_begins_label)
         self.timer_begins_edit = QtWidgets.QLineEdit(self.timer_edit_box)
+        self.timer_begins_edit.setMinimumWidth(min_edit_width)
+        self.timer_begins_edit.setReadOnly(True)
         self.timer_begins_edit.setObjectName("timer_begins_edit")
         self.timer_edit_gruop_box.setWidget(6, QtWidgets.QFormLayout.FieldRole, self.timer_begins_edit)
+        # Ends
         self.timer_ends_label = QtWidgets.QLabel(self.timer_edit_box)
         self.timer_ends_label.setObjectName("timer_ends_label")
         self.timer_edit_gruop_box.setWidget(7, QtWidgets.QFormLayout.LabelRole, self.timer_ends_label)
         self.timer_ends_edit = QtWidgets.QLineEdit(self.timer_edit_box)
+        self.timer_ends_edit.setMinimumWidth(min_edit_width)
+        self.timer_ends_edit.setReadOnly(True)
         self.timer_ends_edit.setObjectName("timer_ends_edit")
         self.timer_edit_gruop_box.setWidget(7, QtWidgets.QFormLayout.FieldRole, self.timer_ends_edit)
+        # Repeated
         self.timer_repeated_label = QtWidgets.QLabel(self.timer_edit_box)
         self.timer_repeated_label.setObjectName("timer_repeated_label")
         self.timer_edit_gruop_box.setWidget(8, QtWidgets.QFormLayout.LabelRole, self.timer_repeated_label)
@@ -122,7 +160,6 @@ class TimerDialog(QtWidgets.QDialog):
         size_policy.setVerticalStretch(0)
         size_policy.setHeightForWidth(self.timer_mo_check_box.sizePolicy().hasHeightForWidth())
         self.timer_mo_check_box.setSizePolicy(size_policy)
-        self.timer_mo_check_box.setText("")
         self.timer_mo_check_box.setObjectName("timer_mo_check_box")
         self.timer_repeated_grid.addWidget(self.timer_mo_check_box, 1, 0, 1, 1)
         self.timer_tu_check_box = QtWidgets.QCheckBox(self.timer_edit_box)
@@ -131,7 +168,6 @@ class TimerDialog(QtWidgets.QDialog):
         size_policy.setVerticalStretch(0)
         size_policy.setHeightForWidth(self.timer_tu_check_box.sizePolicy().hasHeightForWidth())
         self.timer_tu_check_box.setSizePolicy(size_policy)
-        self.timer_tu_check_box.setText("")
         self.timer_tu_check_box.setObjectName("timer_tu_check_box")
         self.timer_repeated_grid.addWidget(self.timer_tu_check_box, 1, 1, 1, 1)
         self.timer_we_check_box = QtWidgets.QCheckBox(self.timer_edit_box)
@@ -140,7 +176,6 @@ class TimerDialog(QtWidgets.QDialog):
         size_policy.setVerticalStretch(0)
         size_policy.setHeightForWidth(self.timer_we_check_box.sizePolicy().hasHeightForWidth())
         self.timer_we_check_box.setSizePolicy(size_policy)
-        self.timer_we_check_box.setText("")
         self.timer_we_check_box.setObjectName("timer_we_check_box")
         self.timer_repeated_grid.addWidget(self.timer_we_check_box, 1, 2, 1, 1)
         self.timer_th_check_box = QtWidgets.QCheckBox(self.timer_edit_box)
@@ -149,7 +184,6 @@ class TimerDialog(QtWidgets.QDialog):
         size_policy.setVerticalStretch(0)
         size_policy.setHeightForWidth(self.timer_th_check_box.sizePolicy().hasHeightForWidth())
         self.timer_th_check_box.setSizePolicy(size_policy)
-        self.timer_th_check_box.setText("")
         self.timer_th_check_box.setObjectName("timer_th_check_box")
         self.timer_repeated_grid.addWidget(self.timer_th_check_box, 1, 3, 1, 1)
         self.timer_fr_check_box = QtWidgets.QCheckBox(self.timer_edit_box)
@@ -158,7 +192,6 @@ class TimerDialog(QtWidgets.QDialog):
         size_policy.setVerticalStretch(0)
         size_policy.setHeightForWidth(self.timer_fr_check_box.sizePolicy().hasHeightForWidth())
         self.timer_fr_check_box.setSizePolicy(size_policy)
-        self.timer_fr_check_box.setText("")
         self.timer_fr_check_box.setObjectName("timer_fr_check_box")
         self.timer_repeated_grid.addWidget(self.timer_fr_check_box, 1, 4, 1, 1)
         self.timer_sa_check_box = QtWidgets.QCheckBox(self.timer_edit_box)
@@ -167,7 +200,6 @@ class TimerDialog(QtWidgets.QDialog):
         size_policy.setVerticalStretch(0)
         size_policy.setHeightForWidth(self.timer_sa_check_box.sizePolicy().hasHeightForWidth())
         self.timer_sa_check_box.setSizePolicy(size_policy)
-        self.timer_sa_check_box.setText("")
         self.timer_sa_check_box.setObjectName("timer_sa_check_box")
         self.timer_repeated_grid.addWidget(self.timer_sa_check_box, 1, 5, 1, 1)
         self.timer_su_check_box = QtWidgets.QCheckBox(self.timer_edit_box)
@@ -177,29 +209,37 @@ class TimerDialog(QtWidgets.QDialog):
         size_policy.setHeightForWidth(self.timer_su_check_box.sizePolicy().hasHeightForWidth())
         self.timer_su_check_box.setSizePolicy(size_policy)
         self.timer_su_check_box.setLayoutDirection(QtCore.Qt.LeftToRight)
-        self.timer_su_check_box.setText("")
         self.timer_su_check_box.setObjectName("timer_su_check_box")
         self.timer_repeated_grid.addWidget(self.timer_su_check_box, 1, 6, 1, 1)
         self.timer_edit_gruop_box.setLayout(8, QtWidgets.QFormLayout.FieldRole, self.timer_repeated_grid)
+        # Action
         self.timer_action_label = QtWidgets.QLabel(self.timer_edit_box)
         self.timer_action_label.setObjectName("timer_action_label")
         self.timer_edit_gruop_box.setWidget(9, QtWidgets.QFormLayout.LabelRole, self.timer_action_label)
         self.timer_action_combo_box = QtWidgets.QComboBox(self.timer_edit_box)
+        self.timer_action_combo_box.setMinimumWidth(min_edit_width)
         self.timer_action_combo_box.setObjectName("timer_action_combo_box")
+        self.timer_action_combo_box.setModel(self.TimerActionModel(self.timer_action_combo_box))
         self.timer_edit_gruop_box.setWidget(9, QtWidgets.QFormLayout.FieldRole, self.timer_action_combo_box)
+        # After event
         self.timer_after_event_label = QtWidgets.QLabel(self.timer_edit_box)
         self.timer_after_event_label.setObjectName("timer_after_event_label")
         self.timer_edit_gruop_box.setWidget(10, QtWidgets.QFormLayout.LabelRole, self.timer_after_event_label)
         self.timer_after_event_combo_box = QtWidgets.QComboBox(self.timer_edit_box)
+        self.timer_after_event_combo_box.setMinimumWidth(min_edit_width)
         self.timer_after_event_combo_box.setObjectName("timer_after_event_combo_box")
+        self.timer_after_event_combo_box.setModel(self.TimerAfterEventModel(self.timer_after_event_combo_box))
         self.timer_edit_gruop_box.setWidget(10, QtWidgets.QFormLayout.FieldRole, self.timer_after_event_combo_box)
         self.timer_location_label = QtWidgets.QLabel(self.timer_edit_box)
+        # Location
         self.timer_location_label.setObjectName("timer_location_label")
         self.timer_edit_gruop_box.setWidget(11, QtWidgets.QFormLayout.LabelRole, self.timer_location_label)
         self.timer_location_combo_box = QtWidgets.QComboBox(self.timer_edit_box)
+        self.timer_location_combo_box.setMinimumWidth(min_edit_width)
         self.timer_location_combo_box.setObjectName("timer_location_combo_box")
         self.timer_edit_gruop_box.setWidget(11, QtWidgets.QFormLayout.FieldRole, self.timer_location_combo_box)
         self.main_grid_layout.addWidget(self.timer_edit_box, 0, 0, 1, 1)
+        # Button box
         self.button_box = QtWidgets.QDialogButtonBox(self)
         self.button_box.setOrientation(QtCore.Qt.Horizontal)
         self.button_box.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel | QtWidgets.QDialogButtonBox.Save)
@@ -242,6 +282,9 @@ class ServiceDialog(QtWidgets.QDialog):
         self.setObjectName("service_dialog")
         self.resize(330, 470)
         self.setModal(True)
+
+        min_edit_width = 220
+
         self.dialog_layout = QtWidgets.QGridLayout(self)
         self.dialog_layout.setSizeConstraint(QtWidgets.QLayout.SetFixedSize)
         self.dialog_layout.setObjectName("dialog_layout")
@@ -252,6 +295,7 @@ class ServiceDialog(QtWidgets.QDialog):
         self.service_group_box_layout = QtWidgets.QFormLayout(self.service_group_box)
         self.service_group_box_layout.setContentsMargins(6, 6, 6, 6)
         self.service_group_box_layout.setObjectName("service_group_box_layout")
+        # Labels
         self.name_label = QtWidgets.QLabel(self.service_group_box)
         self.name_label.setObjectName("name_label")
         self.service_group_box_layout.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.name_label)
@@ -264,18 +308,27 @@ class ServiceDialog(QtWidgets.QDialog):
         self.ref_label = QtWidgets.QLabel(self.service_group_box)
         self.ref_label.setObjectName("ref_label")
         self.service_group_box_layout.setWidget(3, QtWidgets.QFormLayout.LabelRole, self.ref_label)
+        # Name
         self.name_edit = QtWidgets.QLineEdit(self.service_group_box)
+        self.name_edit.setMinimumWidth(min_edit_width)
         self.name_edit.setObjectName("name_edit")
         self.service_group_box_layout.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.name_edit)
+        # Package
         self.package_edit = QtWidgets.QLineEdit(self.service_group_box)
+        self.package_edit.setMinimumWidth(min_edit_width)
         self.package_edit.setObjectName("package_edit")
         self.service_group_box_layout.setWidget(1, QtWidgets.QFormLayout.FieldRole, self.package_edit)
+        # CaID
         self.caids_edit = QtWidgets.QLineEdit(self.service_group_box)
+        self.caids_edit.setMinimumWidth(min_edit_width)
         self.caids_edit.setObjectName("caids_edit")
         self.service_group_box_layout.setWidget(2, QtWidgets.QFormLayout.FieldRole, self.caids_edit)
+        # Reference
         self.ref_edit = QtWidgets.QLineEdit(self.service_group_box)
+        self.ref_edit.setMinimumWidth(min_edit_width)
         self.ref_edit.setObjectName("ref_edit")
         self.service_group_box_layout.setWidget(3, QtWidgets.QFormLayout.FieldRole, self.ref_edit)
+        # SSID
         self.sid_type_layout = QtWidgets.QGridLayout()
         self.sid_type_layout.setObjectName("gridLayout_2")
         self.type_label = QtWidgets.QLabel(self.service_group_box)
@@ -295,7 +348,6 @@ class ServiceDialog(QtWidgets.QDialog):
         size_policy.setHeightForWidth(self.ssid_edit.sizePolicy().hasHeightForWidth())
         self.ssid_edit.setSizePolicy(size_policy)
         self.ssid_edit.setMaximumSize(QtCore.QSize(70, 16777215))
-        self.ssid_edit.setText("")
         self.ssid_edit.setObjectName("ssid_edit")
         self.sid_type_layout.addWidget(self.ssid_edit, 0, 1, 1, 1)
         self.type_combo_box = QtWidgets.QComboBox(self.service_group_box)
@@ -311,13 +363,16 @@ class ServiceDialog(QtWidgets.QDialog):
         self.ssid_label = QtWidgets.QLabel(self.service_group_box)
         self.ssid_label.setObjectName("ssid_label")
         self.service_group_box_layout.setWidget(4, QtWidgets.QFormLayout.LabelRole, self.ssid_label)
+        # Extra
         self.extra_label = QtWidgets.QLabel(self.service_group_box)
         self.extra_label.setObjectName("extra_label")
         self.service_group_box_layout.setWidget(5, QtWidgets.QFormLayout.LabelRole, self.extra_label)
         self.extra_edit = QtWidgets.QLineEdit(self.service_group_box)
+        self.extra_edit.setMinimumWidth(min_edit_width)
         self.extra_edit.setObjectName("extra_edit")
         self.service_group_box_layout.setWidget(5, QtWidgets.QFormLayout.FieldRole, self.extra_edit)
         self.main_vertical_layout.addWidget(self.service_group_box)
+        # Pids
         self.pids_group_box = QtWidgets.QGroupBox(self)
         self.pids_group_box.setObjectName("pids_group_box")
         self.pids_group_box_layout = QtWidgets.QGridLayout(self.pids_group_box)
@@ -428,6 +483,7 @@ class ServiceDialog(QtWidgets.QDialog):
         self.he_acc_pid_edit.setObjectName("he_acc_pid_edit")
         self.pids_group_box_layout.addWidget(self.he_acc_pid_edit, 4, 3, 1, 1)
         self.main_vertical_layout.addWidget(self.pids_group_box)
+        # Flags
         self.flags_group_box = QtWidgets.QGroupBox(self)
         self.flags_group_box.setObjectName("flags_group_box")
         self.flags_group_box_layout = QtWidgets.QHBoxLayout(self.flags_group_box)
@@ -447,6 +503,7 @@ class ServiceDialog(QtWidgets.QDialog):
         self.flags_group_box_layout.addWidget(self.new_flag_check_box)
         self.main_vertical_layout.addWidget(self.flags_group_box)
         self.dialog_layout.addLayout(self.main_vertical_layout, 0, 0, 1, 1)
+        # Button box
         self.button_box = QtWidgets.QDialogButtonBox(self)
         self.button_box.setOrientation(QtCore.Qt.Horizontal)
         self.button_box.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel | QtWidgets.QDialogButtonBox.Save)
