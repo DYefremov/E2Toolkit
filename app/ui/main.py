@@ -40,7 +40,7 @@ from app.enigma.bouquets import BouquetsReader, BouquetsWriter
 from app.enigma.ecommons import BqServiceType, Service, Bouquet, Bouquets, BqType
 from app.enigma.lamedb import get_services, LameDbWriter
 from app.satellites.satxml import get_satellites
-from app.ui.dialogs import TimerDialog, ServiceDialog
+from app.ui.dialogs import TimerDialog, ServiceDialog, IptvServiceDialog
 from app.ui.settings import SettingsDialog, Settings
 from app.ui.uicommons import Column, IPTV_ICON, LOCKED_ICON
 from .ui import MainUiWindow, Page
@@ -598,7 +598,9 @@ class MainWindow(MainUiWindow):
             if service.service_type in self._marker_types:
                 return
             elif service.service_type == BqServiceType.IPTV.value:
-                QMessageBox.information(self, APP_NAME, self.tr("Not implemented yet!"))
+                service_dialog = IptvServiceDialog(service)
+                if service_dialog.exec():
+                    QMessageBox.information(self, APP_NAME, self.tr("Not implemented yet!"))
             else:
                 service_dialog = ServiceDialog(service)
                 if service_dialog.exec():
