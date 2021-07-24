@@ -40,6 +40,7 @@ from app.enigma.bouquets import BouquetsReader, BouquetsWriter
 from app.enigma.ecommons import BqServiceType, Service, Bouquet, Bouquets, BqType
 from app.enigma.lamedb import get_services, LameDbWriter
 from app.satellites.satxml import get_satellites
+from app.streams.iptv import import_m3u
 from app.ui.dialogs import TimerDialog, ServiceDialog, IptvServiceDialog
 from app.ui.settings import SettingsDialog, Settings
 from app.ui.uicommons import Column, IPTV_ICON, LOCKED_ICON
@@ -137,6 +138,8 @@ class MainWindow(MainUiWindow):
         self.media_full_tool_button.clicked.connect(self.show_full_screen)
         self.fav_view.double_clicked.connect(self.playback_start)
         self.media_widget.double_clicked.connect(self.show_full_screen)
+        # IPTV
+        self.import_m3u_action.triggered.connect(self.on_import_m3u)
         # Timers.
         self.timer_view.edited.connect(self.on_timer_edit)
         # Remote controller actions.
@@ -228,7 +231,30 @@ class MainWindow(MainUiWindow):
             sel_model.select(index, sel_model.ClearAndSelect | sel_model.Rows)
             sel_model.setCurrentIndex(index, sel_model.NoUpdate)
 
-    # ******************** Actions ******************** #
+    def on_settings_dialog(self, state):
+        SettingsDialog()
+        self.init_profiles()
+
+    def set_locale(self, locale):
+        app = Application.instance()
+        app.set_locale(locale)
+        self.retranslate_ui(self)
+
+    def closeEvent(self, event):
+        """ Main window close event. """
+        self.settings.app_window_size = self.size()
+        if self.settings.load_last_config:
+            config = {"last_profile": self.profile_combo_box.currentText()}
+            indexes = self.bouquets_view.selectionModel().selectedIndexes()
+            if indexes:
+                index = indexes[0]
+                parent = index.parent()
+                config["last_bouquet"] = (parent.row(), parent.column(), index.row(), index.column())
+            else:
+                config["last_bouquet"] = (-1, -1, -1, -1)
+            self.settings.last_config = config
+
+    # ******************** Data loading. ******************** #
 
     def on_data_download(self, state=False):
         self.download_tool_button.setEnabled(False)
@@ -311,46 +337,6 @@ class MainWindow(MainUiWindow):
                                            "Archive files (*.gz *.zip)", )
         if all(resp):
             self.load_compressed_data(resp[0])
-
-    def on_settings_dialog(self, state):
-        SettingsDialog()
-        self.init_profiles()
-
-    def set_locale(self, locale):
-        app = Application.instance()
-        app.set_locale(locale)
-        self.retranslate_ui(self)
-
-    def on_bouquet_selection(self, selected_item, deselected_item):
-        indexes = selected_item.indexes()
-        if len(indexes) > 1:
-            self._bq_selected = "{}:{}".format(indexes[Column.BQ_NAME].data(), indexes[Column.BQ_TYPE].data())
-            self.update_bouquet_services(self._bq_selected)
-
-    def on_fav_selection(self, selected_item, deselected_item):
-        if self.current_page is Page.EPG and self._http_api:
-            ind = selected_item.indexes()
-
-            if len(ind) == self.fav_view.model().columnCount():
-                ref = self.get_service_ref(ind[Column.FAV_ID].data(), ind[Column.TYPE].data())
-                self._http_api.send(self._http_api.Request.EPG, ref)
-                self.fav_view.setEnabled(False)
-
-    def closeEvent(self, event):
-        """ Main window close event. """
-        self.settings.app_window_size = self.size()
-        if self.settings.load_last_config:
-            config = {"last_profile": self.profile_combo_box.currentText()}
-            indexes = self.bouquets_view.selectionModel().selectedIndexes()
-            if indexes:
-                index = indexes[0]
-                parent = index.parent()
-                config["last_bouquet"] = (parent.row(), parent.column(), index.row(), index.column())
-            else:
-                config["last_bouquet"] = (-1, -1, -1, -1)
-            self.settings.last_config = config
-
-    # ******************** Data loading. ******************** #
 
     def get_data_path(self):
         profile = self._profiles.get(self.profile_combo_box.currentText())
@@ -576,7 +562,39 @@ class MainWindow(MainUiWindow):
 
         QMessageBox.information(self, APP_NAME, self.tr("Done!"))
 
+    # ******************* Data import ******************** #
+
+    def on_import_m3u(self):
+        """ Imports iptv from m3u files. """
+        resp = QFileDialog.getOpenFileName(self, self.tr("Select *.m3u file"), str(Path.home()),
+                                           "Playlist files (*.m3u *.m3u8)", )
+        if all(resp):
+            services = import_m3u(resp[0])
+            self.append_imported_services(services)
+
+    def append_imported_services(self, services):
+        bq_services = self._bouquets.get(self._bq_selected)
+        for srv in services:
+            self._services[srv.fav_id] = srv
+            bq_services.append(srv.fav_id)
+        self.update_bouquet_services(self._bq_selected)
+
     # ********************* Bouquets ********************* #
+
+    def on_bouquet_selection(self, selected_item, deselected_item):
+        indexes = selected_item.indexes()
+        if len(indexes) > 1:
+            self._bq_selected = "{}:{}".format(indexes[Column.BQ_NAME].data(), indexes[Column.BQ_TYPE].data())
+            self.update_bouquet_services(self._bq_selected)
+
+    def on_fav_selection(self, selected_item, deselected_item):
+        if self.current_page is Page.EPG and self._http_api:
+            ind = selected_item.indexes()
+
+            if len(ind) == self.fav_view.model().columnCount():
+                ref = self.get_service_ref(ind[Column.FAV_ID].data(), ind[Column.TYPE].data())
+                self._http_api.send(self._http_api.Request.EPG, ref)
+                self.fav_view.setEnabled(False)
 
     def on_fav_data_changed(self):
         """  Refreshes the current bouquet services list.
