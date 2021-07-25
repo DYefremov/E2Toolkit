@@ -118,7 +118,7 @@ def import_m3u(path, stream_type=StreamType.NONE_TS.value, detect_encoding=True,
 
 
 def get_fav_id(url, service_name, stream_type=None, params=None, s_type=1):
-    """ Returns fav id depending on the profile. """
+    """ Returns fav id for IPTV service. """
     stream_type = stream_type or StreamType.NONE_TS.value
     params = params or (0, 0, 0, 0)
     return ENIGMA2_FAV_ID_FORMAT.format(stream_type, s_type, *params, quote(url), service_name, service_name, None)

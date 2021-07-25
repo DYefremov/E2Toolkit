@@ -140,6 +140,7 @@ class MainWindow(MainUiWindow):
         self.media_widget.double_clicked.connect(self.show_full_screen)
         # IPTV
         self.import_m3u_action.triggered.connect(self.on_import_m3u)
+        self.add_stream_action.triggered.connect(self.on_add_iptv_service)
         # Timers.
         self.timer_view.edited.connect(self.on_timer_edit)
         # Remote controller actions.
@@ -573,11 +574,33 @@ class MainWindow(MainUiWindow):
             self.append_imported_services(services)
 
     def append_imported_services(self, services):
+        self.fav_view.scrollToBottom()
         bq_services = self._bouquets.get(self._bq_selected)
         for srv in services:
             self._services[srv.fav_id] = srv
             bq_services.append(srv.fav_id)
         self.update_bouquet_services(self._bq_selected)
+
+    def on_add_iptv_service(self):
+        if not self._bq_selected:
+            QMessageBox.critical(self, APP_NAME, self.tr("No bouquet is selected!"))
+            return
+
+        service_dialog = IptvServiceDialog()
+        if service_dialog.exec():
+            row = self.fav_view.currentIndex().row()
+            service = service_dialog.service
+            model = self.fav_view.model()
+            bq = self._bouquets.get(self._bq_selected, None)
+            if row < 0:
+                model.appendRow(QStandardItem(i) for i in service)
+                self.fav_view.scrollToBottom()
+                self.fav_view.selectRow(model.rowCount() - 1)
+                bq.append(service.fav_id)
+            else:
+                model.insertRow(row + 1, (QStandardItem(i) for i in service))
+                bq.insert(row + 1, service.fav_id)
+            self._services[service.fav_id] = service
 
     # ********************* Bouquets ********************* #
 

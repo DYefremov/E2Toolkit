@@ -26,8 +26,8 @@ from urllib.parse import unquote
 from PyQt5 import QtWidgets, QtCore, QtGui
 
 from app.commons import log
-from app.enigma.ecommons import Pids, Flag
-from app.streams.iptv import StreamType
+from app.enigma.ecommons import Pids, Flag, Service, BqServiceType
+from app.streams.iptv import StreamType, get_fav_id
 from app.ui.models import ServiceTypeModel
 
 
@@ -307,10 +307,10 @@ class ServiceDialog(QtWidgets.QDialog):
     def __init__(self, service, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.setObjectName("service_dialog")
-        self.resize(330, 470)
+        self.resize(300, 470)
         self.setModal(True)
 
-        min_edit_width = 220
+        min_edit_width = 180
 
         self.dialog_layout = QtWidgets.QGridLayout(self)
         self.dialog_layout.setSizeConstraint(QtWidgets.QLayout.SetFixedSize)
@@ -355,7 +355,7 @@ class ServiceDialog(QtWidgets.QDialog):
         self.ref_edit.setMinimumWidth(min_edit_width)
         self.ref_edit.setObjectName("ref_edit")
         self.service_group_box_layout.setWidget(3, QtWidgets.QFormLayout.FieldRole, self.ref_edit)
-        # SSID
+        # SID
         self.sid_type_layout = QtWidgets.QGridLayout()
         self.sid_type_layout.setObjectName("gridLayout_2")
         self.type_label = QtWidgets.QLabel(self.service_group_box)
@@ -368,15 +368,15 @@ class ServiceDialog(QtWidgets.QDialog):
         self.type_label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
         self.type_label.setObjectName("type_label")
         self.sid_type_layout.addWidget(self.type_label, 0, 2, 1, 1)
-        self.ssid_edit = QtWidgets.QLineEdit(self.service_group_box)
+        self.sid_edit = QtWidgets.QLineEdit(self.service_group_box)
         size_policy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         size_policy.setHorizontalStretch(0)
         size_policy.setVerticalStretch(0)
-        size_policy.setHeightForWidth(self.ssid_edit.sizePolicy().hasHeightForWidth())
-        self.ssid_edit.setSizePolicy(size_policy)
-        self.ssid_edit.setMaximumSize(QtCore.QSize(70, 16777215))
-        self.ssid_edit.setObjectName("ssid_edit")
-        self.sid_type_layout.addWidget(self.ssid_edit, 0, 1, 1, 1)
+        size_policy.setHeightForWidth(self.sid_edit.sizePolicy().hasHeightForWidth())
+        self.sid_edit.setSizePolicy(size_policy)
+        self.sid_edit.setMaximumSize(QtCore.QSize(70, 16777215))
+        self.sid_edit.setObjectName("sid_edit")
+        self.sid_type_layout.addWidget(self.sid_edit, 0, 1, 1, 1)
         self.type_combo_box = QtWidgets.QComboBox(self.service_group_box)
         size_policy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Ignored)
         size_policy.setHorizontalStretch(0)
@@ -387,9 +387,9 @@ class ServiceDialog(QtWidgets.QDialog):
         self.type_combo_box.setObjectName("type_combo_box")
         self.sid_type_layout.addWidget(self.type_combo_box, 0, 3, 1, 1)
         self.service_group_box_layout.setLayout(4, QtWidgets.QFormLayout.FieldRole, self.sid_type_layout)
-        self.ssid_label = QtWidgets.QLabel(self.service_group_box)
-        self.ssid_label.setObjectName("ssid_label")
-        self.service_group_box_layout.setWidget(4, QtWidgets.QFormLayout.LabelRole, self.ssid_label)
+        self.sid_label = QtWidgets.QLabel(self.service_group_box)
+        self.sid_label.setObjectName("sid_label")
+        self.service_group_box_layout.setWidget(4, QtWidgets.QFormLayout.LabelRole, self.sid_label)
         # Extra
         self.extra_label = QtWidgets.QLabel(self.service_group_box)
         self.extra_label.setObjectName("extra_label")
@@ -539,9 +539,9 @@ class ServiceDialog(QtWidgets.QDialog):
         # Types.
         self.type_combo_box.setModel(ServiceTypeModel(self.type_combo_box))
         self.type_combo_box.currentTextChanged.connect(self.update_reference_entry)
-        self.ssid_edit.textChanged.connect(self.update_reference_entry)
+        self.sid_edit.textChanged.connect(self.update_reference_entry)
         # Value validation.
-        self.ssid_edit.setValidator(QtGui.QIntValidator(self.ssid_edit))
+        self.sid_edit.setValidator(QtGui.QIntValidator(self.sid_edit))
         self.video_pid_edit.setValidator(QtGui.QIntValidator(self.video_pid_edit))
         self.audio_pid_edit.setValidator(QtGui.QIntValidator(self.audio_pid_edit))
         self.teletext_pid_edit.setValidator(QtGui.QIntValidator(self.teletext_pid_edit))
@@ -550,6 +550,15 @@ class ServiceDialog(QtWidgets.QDialog):
         self.ac3p_pid_edit.setValidator(QtGui.QIntValidator(self.ac3p_pid_edit))
         self.acc_pid_edit.setValidator(QtGui.QIntValidator(self.acc_pid_edit))
         self.he_acc_pid_edit.setValidator(QtGui.QIntValidator(self.he_acc_pid_edit))
+        # Disabled
+        self.ac3_pid_edit.setVisible(False)
+        self.ac3_label.setVisible(False)
+        self.ac3p_pid_edit.setVisible(False)
+        self.ac3p_label.setVisible(False)
+        self.acc_pid_edit.setVisible(False)
+        self.acc_label.setVisible(False)
+        self.he_acc_pid_edit.setVisible(False)
+        self.he_acc_label.setVisible(False)
 
         self.retranslate_ui()
         self.button_box.accepted.connect(self.accept)
@@ -566,7 +575,7 @@ class ServiceDialog(QtWidgets.QDialog):
         """ Service data initialisation. """
         self.name_edit.setText(self._service.name)
         self.package_edit.setText(self._service.package)
-        self.ssid_edit.setText(str(int(self._service.ssid, 16)))
+        self.sid_edit.setText(str(int(self._service.ssid, 16)))
         self.type_combo_box.setCurrentText(self._service.service_type)
 
         flags = self._service.flags_cas
@@ -629,8 +638,8 @@ class ServiceDialog(QtWidgets.QDialog):
 
     def update_reference_entry(self):
         s_type = int(self.type_combo_box.model().index(self.type_combo_box.currentIndex(), 1).data())
-        ssid = int(self.ssid_edit.text() or 0)
-        ref = "1:0:{:X}:{:X}:{:X}:{:X}:{:X}:0:0:0".format(s_type, ssid, self._tid, self._nid, self._namespace)
+        sid = int(self.sid_edit.text() or 0)
+        ref = "1:0:{:X}:{:X}:{:X}:{:X}:{:X}:0:0:0".format(s_type, sid, self._tid, self._nid, self._namespace)
         self.ref_edit.setText(ref)
 
     def retranslate_ui(self):
@@ -642,7 +651,7 @@ class ServiceDialog(QtWidgets.QDialog):
         self.caids_label.setText(_translate("service_dialog", "CAID\'s:"))
         self.ref_label.setText(_translate("service_dialog", "Reference:"))
         self.type_label.setText(_translate("service_dialog", "Type:"))
-        self.ssid_label.setText(_translate("service_dialog", "SSID:"))
+        self.sid_label.setText(_translate("service_dialog", "SID:"))
         self.extra_label.setText(_translate("service_dialog", "Extra:"))
         self.pids_group_box.setTitle(_translate("service_dialog", "PID\'s"))
         self.video_label.setText(_translate("service_dialog", "Video"))
@@ -663,6 +672,13 @@ class ServiceDialog(QtWidgets.QDialog):
 class IptvServiceDialog(QtWidgets.QDialog):
     _ENIGMA2_REFERENCE = "{}:0:{}:{:X}:{:X}:{:X}:{:X}:0:0:0"
 
+    class UrlValidator(QtGui.QRegExpValidator):
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            rx = QtCore.QRegExp()
+            rx.setPattern("https?://[-A-Za-z0-9+&@#/%?=~_|!:,.;]+[-A-Za-z0-9+&@#/%=~_|]")
+            self.setRegExp(rx)
+
     class IptvTypeModel(QtGui.QStandardItemModel):
         def __init__(self, *args, **kwargs):
             super().__init__(*args, **kwargs)
@@ -671,7 +687,7 @@ class IptvServiceDialog(QtWidgets.QDialog):
                       (self.tr("eServiceUri"), "8193"), (self.tr("eServiceUri"), "8739")):
                 self.appendRow((QtGui.QStandardItem(t[0]), QtGui.QStandardItem(t[1])))
 
-    def __init__(self, service, *args, **kwargs):
+    def __init__(self, service=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.setObjectName("iptv_service_dialog")
         self.resize(300, 380)
@@ -735,10 +751,10 @@ class IptvServiceDialog(QtWidgets.QDialog):
         self.nid_label.setAlignment(QtCore.Qt.AlignCenter)
         self.nid_label.setObjectName("nid_label")
         self.dvb_data_layout.addWidget(self.nid_label, 0, 3, 1, 1)
-        self.ssid_label = QtWidgets.QLabel(self.dvb_group_box)
-        self.ssid_label.setAlignment(QtCore.Qt.AlignCenter)
-        self.ssid_label.setObjectName("ssid_label")
-        self.dvb_data_layout.addWidget(self.ssid_label, 0, 1, 1, 1)
+        self.sid_label = QtWidgets.QLabel(self.dvb_group_box)
+        self.sid_label.setAlignment(QtCore.Qt.AlignCenter)
+        self.sid_label.setObjectName("sid_label")
+        self.dvb_data_layout.addWidget(self.sid_label, 0, 1, 1, 1)
         self.tid_label = QtWidgets.QLabel(self.dvb_group_box)
         self.tid_label.setText("TID")
         self.tid_label.setAlignment(QtCore.Qt.AlignCenter)
@@ -752,10 +768,10 @@ class IptvServiceDialog(QtWidgets.QDialog):
         self.dvb_type_edit.setMaximumSize(QtCore.QSize(70, 16777215))
         self.dvb_type_edit.setObjectName("dvb_type_edit")
         self.dvb_data_layout.addWidget(self.dvb_type_edit, 1, 0, 1, 1)
-        self.ssid_edit = QtWidgets.QLineEdit(self.dvb_group_box)
-        self.ssid_edit.setMaximumSize(QtCore.QSize(70, 16777215))
-        self.ssid_edit.setObjectName("ssid_edit")
-        self.dvb_data_layout.addWidget(self.ssid_edit, 1, 1, 1, 1)
+        self.sid_edit = QtWidgets.QLineEdit(self.dvb_group_box)
+        self.sid_edit.setMaximumSize(QtCore.QSize(70, 16777215))
+        self.sid_edit.setObjectName("sid_edit")
+        self.dvb_data_layout.addWidget(self.sid_edit, 1, 1, 1, 1)
         self.tid_edit = QtWidgets.QLineEdit(self.dvb_group_box)
         self.tid_edit.setMaximumSize(QtCore.QSize(70, 16777215))
         self.tid_edit.setObjectName("tid_edit")
@@ -783,18 +799,37 @@ class IptvServiceDialog(QtWidgets.QDialog):
         self.button_box.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel | QtWidgets.QDialogButtonBox.Save)
         self.button_box.setObjectName("button_box")
         self.main_dialog_layout.addWidget(self.button_box, 1, 0, 1, 1)
+        # Value validation.
+        self.url_edit.setValidator(self.UrlValidator(self.url_edit))
+        self.dvb_type_edit.setValidator(QtGui.QIntValidator(self.dvb_type_edit))
+        self.sid_edit.setValidator(QtGui.QIntValidator(self.sid_edit))
+        self.sid_edit.setValidator(QtGui.QIntValidator(self.sid_edit))
+        self.tid_edit.setValidator(QtGui.QIntValidator(self.tid_edit))
+        self.nid_edit.setValidator(QtGui.QIntValidator(self.nid_edit))
+        self.namespace_edit.setValidator(QtGui.QIntValidator(self.namespace_edit))
 
         self.retranslate_ui()
         self.button_box.rejected.connect(self.reject)
-        self.button_box.accepted.connect(self.accept)
+        self.button_box.accepted.connect(self.update_service)
+        self.url_edit.textChanged.connect(self.check_input)
+
         QtCore.QMetaObject.connectSlotsByName(self)
         # Service type box
         self.type_combo_box.setModel(self.IptvTypeModel(self.type_combo_box))
         self.type_combo_box.currentTextChanged.connect(self.update_reference_entry)
         # Data init
         self._service = service
-        self._desc = service.name
-        self.init_service_data()
+        self._desc = None
+        self.init_service_data() if service else self.init_new_service_data()
+        # Update reference
+        self.sid_edit.textChanged.connect(self.update_reference_entry)
+        self.tid_edit.textChanged.connect(self.update_reference_entry)
+        self.nid_edit.textChanged.connect(self.update_reference_entry)
+        self.namespace_edit.textChanged.connect(self.update_reference_entry)
+
+    @property
+    def service(self):
+        return self._service
 
     def init_service_data(self):
         data, sep, desc = self._service.fav_id.partition("#DESCRIPTION")
@@ -805,7 +840,7 @@ class IptvServiceDialog(QtWidgets.QDialog):
             return
 
         self.dvb_type_edit.setText(data[2])
-        self.ssid_edit.setText(str(int(data[3], 16)))
+        self.sid_edit.setText(str(int(data[3], 16)))
         self.tid_edit.setText(str(int(data[4], 16)))
         self.nid_edit.setText(str(int(data[5], 16)))
         self.namespace_edit.setText(str(int(data[6], 16)))
@@ -828,14 +863,63 @@ class IptvServiceDialog(QtWidgets.QDialog):
         else:
             log("Unknown stream type {}".format(s_type))
 
+    def init_new_service_data(self):
+        self.dvb_type_edit.setText("1")
+        self.sid_edit.setText("0")
+        self.tid_edit.setText("0")
+        self.nid_edit.setText("0")
+        self.namespace_edit.setText("0")
+        self.type_combo_box.setCurrentIndex(1)
+
+    def update_service(self):
+        url = self.url_edit.text()
+        name = self.name_edit.text().strip()
+        stream_type = self.type_combo_box.model().index(self.type_combo_box.currentIndex(), 1).data()
+        dvb_type = int(self.dvb_type_edit.text())
+        params = (int(self.sid_edit.text()),
+                  int(self.tid_edit.text()),
+                  int(self.nid_edit.text()),
+                  int(self.namespace_edit.text()))
+
+        fav_id = get_fav_id(url, name, stream_type, params, dvb_type)
+        p_id = "{}_0_{:X}_{}_{}_{}_{}_0_0_0.png".format(stream_type, dvb_type, *params)
+        if not self._service:
+            st = BqServiceType.IPTV.name
+            aggr = [None] * 7
+            self._service = Service(None, None, None, None, p_id, name, None, None, None, st, *aggr, url, fav_id, None)
+        else:
+            self._service = self._service._replace(picon_id=p_id, name=name, data_id=url, fav_id=fav_id)
+
+        if self.is_data_correct():
+            self.accept()
+
     def update_reference_entry(self):
         stream_type = self.type_combo_box.model().index(self.type_combo_box.currentIndex(), 1).data()
         self.ref_edit.setText(self._ENIGMA2_REFERENCE.format(stream_type,
                                                              self.dvb_type_edit.text(),
-                                                             int(self.ssid_edit.text()),
-                                                             int(self.tid_edit.text()),
-                                                             int(self.nid_edit.text()),
-                                                             int(self.namespace_edit.text())))
+                                                             int(self.sid_edit.text() or 0),
+                                                             int(self.tid_edit.text() or 0),
+                                                             int(self.nid_edit.text() or 0),
+                                                             int(self.namespace_edit.text() or 0)))
+
+    def is_data_correct(self):
+        url_validator = self.url_edit.validator()
+        state = url_validator.validate(self.url_edit.text(), 0)[0]
+        accept = state == url_validator.Acceptable
+        if not accept:
+            self.url_edit.setStyleSheet("QLineEdit {background-color: #ff4545;}")
+            return accept
+
+        if not self.name_edit.text():
+            self.name_edit.setText(self.tr("Enter a name!"))
+            return
+
+        return True
+
+    def check_input(self):
+        sender = self.sender()
+        state = sender.validator().validate(sender.text(), 0)[0]
+        sender.setStyleSheet("QLineEdit {background-color: #ff4545;}" if state != QtGui.QValidator.Acceptable else "")
 
     def retranslate_ui(self):
         _translate = QtCore.QCoreApplication.translate
@@ -846,6 +930,6 @@ class IptvServiceDialog(QtWidgets.QDialog):
         self.ref_label.setText(_translate("iptv_service_dialog", "Reference:"))
         self.type_label.setText(_translate("iptv_service_dialog", "Type:"))
         self.dvb_group_box.setTitle(_translate("iptv_service_dialog", "DVB/TS data"))
-        self.ssid_label.setText(_translate("iptv_service_dialog", "SSID"))
+        self.sid_label.setText(_translate("iptv_service_dialog", "SID"))
         self.dvb_type_label.setText(_translate("iptv_service_dialog", "Type"))
         self.namespace_label.setText(_translate("iptv_service_dialog", "Namespace:"))
