@@ -30,7 +30,7 @@ from pathlib import Path
 
 from PyQt5.QtCore import QTranslator, QStringListModel, QTimer, pyqtSlot, Qt
 from PyQt5.QtGui import QIcon, QStandardItem
-from PyQt5.QtWidgets import QApplication, QMessageBox, QFileDialog, QActionGroup, QAction
+from PyQt5.QtWidgets import QApplication, QMessageBox, QFileDialog, QActionGroup, QAction, QInputDialog
 
 from app.commons import APP_VERSION, APP_NAME, LANG_PATH, log, LOCALES
 from app.connections import HttpAPI, DownloadType, DataLoader
@@ -132,6 +132,8 @@ class MainWindow(MainUiWindow):
         self.services_view.removed.connect(self.remove_services)
         self.services_view.delete_release.connect(self.on_service_remove_done)
         self.bouquets_view.removed.connect(self.remove_bouquets)
+        self.bouquets_view.context_menu.new_action.triggered.connect(self.on_new_bouquet_add)
+        self.add_bouquet_button.clicked.connect(self.on_new_bouquet_add)
         # Streams.
         self.media_play_tool_button.clicked.connect(self.playback_start)
         self.media_stop_tool_button.clicked.connect(self.playback_stop)
@@ -567,6 +569,10 @@ class MainWindow(MainUiWindow):
 
     def on_import_m3u(self):
         """ Imports iptv from m3u files. """
+        if not self._bq_selected:
+            QMessageBox.critical(self, APP_NAME, self.tr("No bouquet is selected!"))
+            return
+
         resp = QFileDialog.getOpenFileName(self, self.tr("Select *.m3u file"), str(Path.home()),
                                            "Playlist files (*.m3u *.m3u8)", )
         if all(resp):
@@ -603,6 +609,33 @@ class MainWindow(MainUiWindow):
             self._services[service.fav_id] = service
 
     # ********************* Bouquets ********************* #
+
+    def on_new_bouquet_add(self):
+        model = self.bouquets_view.model()
+        if not model.rowCount():
+            QMessageBox.critical(self, APP_NAME, self.tr("No data loaded!"))
+            return
+
+        name, resp = QInputDialog.getText(self, "E2Toolkit [New bouquet]", self.tr("Enter the name of the bouquet."))
+        if not resp:
+            return
+        # Checking if the given name is already present.
+        if self._bouquets.keys() & {"{}:{}".format(name, BqType.TV.value), "{}:{}".format(name, BqType.RADIO.value)}:
+            QMessageBox.critical(self, APP_NAME, self.tr("A bouquet with that name exists!"))
+            return
+
+        cur_index = self.bouquets_view.currentIndex()
+        parent_row = cur_index.parent().row()
+        root_item = model.item(cur_index.row() if parent_row < 0 else cur_index.parent().row(), 0)
+        if not root_item:
+            log("Error creation of root item [on_new_bouquet_add].")
+            return
+
+        b_type = BqType.RADIO.value if root_item.row() > 0 else BqType.TV.value
+        bq = (QStandardItem(name), None, None, QStandardItem(b_type))
+        row = cur_index.row() + 1 if parent_row > 0 else 0
+        root_item.insertRow(row, bq)
+        self._bouquets["{}:{}".format(name, b_type)] = []
 
     def on_bouquet_selection(self, selected_item, deselected_item):
         indexes = selected_item.indexes()
