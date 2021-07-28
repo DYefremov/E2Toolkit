@@ -180,7 +180,7 @@ class EpgModel(QtGui.QStandardItemModel):
 
 
 class TimerModel(QtGui.QStandardItemModel):
-    HEADER_LABELS = ("Name", "Description", "Service", "Time")
+    HEADER_LABELS = ("Name", "Description", "Service", "Time", "Timer")
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

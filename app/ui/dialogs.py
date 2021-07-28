@@ -19,8 +19,7 @@
 #
 # Author: Dmitriy Yefremov
 #
-
-
+from datetime import datetime
 from urllib.parse import unquote
 
 from PyQt5 import QtWidgets, QtCore, QtGui
@@ -47,7 +46,7 @@ class TimerDialog(QtWidgets.QDialog):
                       (self.tr("Auto"), "3")):
                 self.appendRow((QtGui.QStandardItem(a[0]), QtGui.QStandardItem(a[1])))
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, timer, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.setObjectName("timer_dialog")
         self.resize(365, 490)
@@ -131,18 +130,18 @@ class TimerDialog(QtWidgets.QDialog):
         self.timer_begins_label = QtWidgets.QLabel(self.timer_edit_box)
         self.timer_begins_label.setObjectName("timer_begins_label")
         self.timer_edit_gruop_box.setWidget(6, QtWidgets.QFormLayout.LabelRole, self.timer_begins_label)
-        self.timer_begins_edit = QtWidgets.QLineEdit(self.timer_edit_box)
+        self.timer_begins_edit = QtWidgets.QDateTimeEdit(self.timer_edit_box)
         self.timer_begins_edit.setMinimumWidth(min_edit_width)
-        self.timer_begins_edit.setReadOnly(True)
+        self.timer_begins_edit.setCalendarPopup(True)
         self.timer_begins_edit.setObjectName("timer_begins_edit")
         self.timer_edit_gruop_box.setWidget(6, QtWidgets.QFormLayout.FieldRole, self.timer_begins_edit)
         # Ends
         self.timer_ends_label = QtWidgets.QLabel(self.timer_edit_box)
         self.timer_ends_label.setObjectName("timer_ends_label")
         self.timer_edit_gruop_box.setWidget(7, QtWidgets.QFormLayout.LabelRole, self.timer_ends_label)
-        self.timer_ends_edit = QtWidgets.QLineEdit(self.timer_edit_box)
+        self.timer_ends_edit = QtWidgets.QDateTimeEdit(self.timer_edit_box)
         self.timer_ends_edit.setMinimumWidth(min_edit_width)
-        self.timer_ends_edit.setReadOnly(True)
+        self.timer_ends_edit.setCalendarPopup(True)
         self.timer_ends_edit.setObjectName("timer_ends_edit")
         self.timer_edit_gruop_box.setWidget(7, QtWidgets.QFormLayout.FieldRole, self.timer_ends_edit)
         # Repeated
@@ -278,6 +277,54 @@ class TimerDialog(QtWidgets.QDialog):
         self.button_box.accepted.connect(self.accept)
         self.button_box.rejected.connect(self.reject)
         QtCore.QMetaObject.connectSlotsByName(self)
+
+        self._timer = timer
+        self.init_timer_data()
+
+    @property
+    def timer(self):
+        return self._timer
+
+    def init_timer_data(self):
+        self.timer_enable_button.setChecked(self._timer.get("e2disabled", "0") == "0")
+        self.timer_name_edit.setText(self._timer.get("e2name", "") or "")
+        self.timer_description_edit.setText(self._timer.get("e2description", "") or "")
+        self.timer_service_edit.setText(self._timer.get("e2servicename", "") or "")
+        self.timer_ref_edit.setText(self._timer.get("e2servicereference", ""))
+        self.timer_event_id_edit.setText(self._timer.get("e2eit", ""))
+        self.timer_begins_edit.setDateTime(datetime.fromtimestamp(int(self._timer.get("e2timebegin", "0"))))
+        self.timer_ends_edit.setDateTime(datetime.fromtimestamp(int(self._timer.get("e2timeend", "0"))))
+        self.timer_action_combo_box.setCurrentIndex(int(self._timer.get("e2justplay", "0")))
+        self.timer_after_event_combo_box.setCurrentIndex(int(self._timer.get("e2afterevent", "0")))
+        # Days
+        self.set_repetition_flags(int(self._timer.get("e2repeated", "0")))
+
+    def get_repetition_flags(self):
+        """ Returns flags for repetition. """
+        day_flags = 0
+        for i, box in enumerate((self.timer_mo_check_box,
+                                 self.timer_tu_check_box,
+                                 self.timer_we_check_box,
+                                 self.timer_th_check_box,
+                                 self.timer_fr_check_box,
+                                 self.timer_sa_check_box,
+                                 self.timer_su_check_box)):
+
+            if box.isChecked():
+                day_flags = day_flags | (1 << i)
+
+        return day_flags
+
+    def set_repetition_flags(self, flags):
+        for i, box in enumerate((self.timer_mo_check_box,
+                                 self.timer_tu_check_box,
+                                 self.timer_we_check_box,
+                                 self.timer_th_check_box,
+                                 self.timer_fr_check_box,
+                                 self.timer_sa_check_box,
+                                 self.timer_su_check_box)):
+            box.setChecked(flags & 1 == 1)
+            flags = flags >> 1
 
     def retranslate_ui(self):
         _translate = QtCore.QCoreApplication.translate

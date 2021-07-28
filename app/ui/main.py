@@ -633,7 +633,7 @@ class MainWindow(MainUiWindow):
 
         b_type = BqType.RADIO.value if root_item.row() > 0 else BqType.TV.value
         bq = (QStandardItem(name), None, None, QStandardItem(b_type))
-        row = cur_index.row() + 1 if parent_row > 0 else 0
+        row = 0 if parent_row < 0 else cur_index.row() + 1
         root_item.insertRow(row, bq)
         self._bouquets["{}:{}".format(name, b_type)] = []
 
@@ -925,10 +925,19 @@ class MainWindow(MainUiWindow):
             end_time = datetime.fromtimestamp(int(timer.get("e2timeend", "0")))
             time_str = "{} - {}".format(start_time.strftime("%A, %H:%M"), end_time.strftime("%H:%M"))
 
-            model.appendRow(QStandardItem(i) for i in (name, description, service_name, time_str))
+            data_item = QStandardItem("data")
+            data_item.setData(timer, Qt.UserRole)
+            model.appendRow((QStandardItem(name),
+                             QStandardItem(description),
+                             QStandardItem(service_name),
+                             QStandardItem(time_str),
+                             data_item))
 
     def on_timer_edit(self, row):
-        TimerDialog().exec()
+        index = self.timer_view.model().index(row, 4)
+        timer_dialog = TimerDialog(index.data(Qt.UserRole))
+        if timer_dialog.exec():
+            QMessageBox.information(self, APP_NAME, self.tr("Not implemented yet!"))
 
     # ******************** Control ********************* #
 

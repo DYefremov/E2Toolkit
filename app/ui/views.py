@@ -592,6 +592,7 @@ class TimerView(BaseTableView):
         self.setObjectName("timer_view")
 
         self.setModel(TimerModel(self))
+        self.setColumnHidden(4, True)
         self.context_menu = self.ContextMenu(self)
         self.init_actions()
 
