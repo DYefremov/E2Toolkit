@@ -22,6 +22,7 @@
 
 
 """ Core UI module. """
+import sys
 from enum import IntEnum
 
 from PyQt5 import QtCore, QtGui, QtWidgets
@@ -1240,6 +1241,18 @@ class MainUiWindow(QtWidgets.QMainWindow):
         self.green_button.setStyleSheet("background-color: green; border: 2px solid green")
         self.yellow_button.setStyleSheet("background-color: yellow; border: 2px solid yellow")
         self.blue_button.setStyleSheet("background-color: blue; border: 2px solid blue")
+        # Button icons
+        if sys.platform != "linux":
+            style = self.style()
+            # Player
+            self.media_play_tool_button.setIcon(style.standardIcon(style.SP_MediaPlay))
+            self.media_stop_tool_button.setIcon(style.standardIcon(style.SP_MediaStop))
+            self.media_full_tool_button.setIcon(style.standardIcon(style.SP_TitleBarMaxButton))
+            # Control
+            self.media_prev_button.setIcon(style.standardIcon(style.SP_MediaSeekBackward))
+            self.media_play_button.setIcon(style.standardIcon(style.SP_MediaPlay))
+            self.media_stop_button.setIcon(style.standardIcon(style.SP_MediaStop))
+            self.media_next_button.setIcon(style.standardIcon(style.SP_MediaSeekForward))
 
     def init_playback_elements(self):
         # Aspect ratio.
