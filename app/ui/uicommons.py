@@ -58,6 +58,10 @@ class Column(IntEnum):
     BQ_LOCKED = 1
     BQ_HIDDEN = 2
     BQ_TYPE = 3
+    # Picons
+    PICON_INFO = 0
+    PICON_PATH = 1
+    PICON_IMG = 2
 
     def __index__(self):
         """ Overridden to get the index in slices directly """

@@ -158,8 +158,8 @@ class PiconModel(QtCore.QSortFilterProxyModel):
         self.setSourceModel(self.model)
 
     def data(self, index, role):
-        if index.column() == 2 and role == QtCore.Qt.DecorationRole:
-            return QtGui.QIcon(self.index(index.row(), 1).data())
+        if index.column() == Column.PICON_IMG and role == QtCore.Qt.DecorationRole:
+            return QtGui.QIcon(self.index(index.row(), Column.PICON_PATH).data())
         return super().data(index, role)
 
     def appendRow(self, *__args):
@@ -168,7 +168,7 @@ class PiconModel(QtCore.QSortFilterProxyModel):
     def filter(self, text):
         reg = QtCore.QRegExp(text, QtCore.Qt.CaseInsensitive, QtCore.QRegExp.FixedString)
         self.setFilterRegExp(reg)
-        self.setFilterKeyColumn(0)
+        self.setFilterKeyColumn(Column.PICON_INFO)
 
 
 class EpgModel(QtGui.QStandardItemModel):

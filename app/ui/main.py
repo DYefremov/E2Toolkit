@@ -28,7 +28,7 @@ from collections import OrderedDict, Counter
 from datetime import datetime
 from pathlib import Path
 
-from PyQt5.QtCore import QTranslator, QStringListModel, QTimer, pyqtSlot, Qt
+from PyQt5.QtCore import QTranslator, QStringListModel, QTimer, pyqtSlot, Qt, QFile, QDir
 from PyQt5.QtGui import QIcon, QStandardItem
 from PyQt5.QtWidgets import QApplication, QMessageBox, QFileDialog, QActionGroup, QAction, QInputDialog
 
@@ -134,6 +134,13 @@ class MainWindow(MainUiWindow):
         self.bouquets_view.removed.connect(self.remove_bouquets)
         self.bouquets_view.context_menu.new_action.triggered.connect(self.on_new_bouquet_add)
         self.add_bouquet_button.clicked.connect(self.on_new_bouquet_add)
+        # Picons.
+        self.picon_src_view.id_received.connect(self.on_picon_ids_received)
+        self.picon_src_view.urls_received.connect(self.on_picon_urls_received)
+        self.picon_src_view.replaced.connect(self.on_picon_replace)
+        self.picon_dst_view.id_received.connect(self.on_picon_ids_received)
+        self.picon_dst_view.urls_received.connect(self.on_picon_urls_received)
+        self.picon_dst_view.replaced.connect(self.on_picon_replace)
         # Streams.
         self.media_play_tool_button.clicked.connect(self.playback_start)
         self.media_stop_tool_button.clicked.connect(self.playback_stop)
@@ -764,6 +771,53 @@ class MainWindow(MainUiWindow):
     def on_picon_page_show(self):
         self.picon_src_widget.setVisible(False)
         self.load_picons()
+
+    def on_picon_ids_received(self, ids):
+        view = ids[0]
+        index = view.indexAt(view.mapFromGlobal(view.cursor().pos()))
+        if not index.isValid():
+            return
+
+        src_file = QFile(view.model().index(index.row(), Column.PICON_PATH).data())
+        if not src_file.exists():
+            return
+
+        src = src_file.fileName()
+        p_dir = QDir(self.get_picon_path())
+        if not p_dir.exists(p_dir.path()):
+            p_dir.mkpath(p_dir.path())
+
+        for p_id in ids[1]:
+            file = QFile(p_dir.path() + p_dir.separator() + p_id)
+            if file.exists():
+                file.remove()
+
+            file.copy(src, file.fileName())
+
+    def on_picon_urls_received(self, urls):
+        QMessageBox.information(self, APP_NAME, self.tr("Not implemented yet!"))
+
+    def on_picon_replace(self, picons):
+        view = picons[0]
+        if view is self.picon_src_view:
+            QMessageBox.critical(self, APP_NAME, self.tr("Not allowed in this context!"))
+            return
+
+        paths = picons[1]
+        if len(paths) > 1:
+            QMessageBox.critical(self, APP_NAME, self.tr("Please, select only one item!"))
+            return
+
+        index = view.indexAt(view.mapFromGlobal(view.cursor().pos()))
+        if not index.isValid():
+            return
+
+        dst = view.model().index(index.row(), Column.PICON_PATH).data()
+        file = QFile(dst)
+        if file.exists():
+            file.remove()
+
+        file.copy(paths[0], file.fileName())
 
     def load_picons(self, path=None):
         self.picon_dst_view.clear_data()

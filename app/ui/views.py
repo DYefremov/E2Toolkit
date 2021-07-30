@@ -35,6 +35,7 @@ class BaseTableView(QtWidgets.QTableView):
     inserted = QtCore.pyqtSignal(bool)
     removed = QtCore.pyqtSignal(dict)  # row -> id
     edited = QtCore.pyqtSignal(int)  # row index
+    double_clicked = QtCore.pyqtSignal()
     # Called when the Delete key is released
     # or remove called from the context menu.
     delete_release = QtCore.pyqtSignal()
@@ -53,6 +54,9 @@ class BaseTableView(QtWidgets.QTableView):
             self.delete_release.emit()
         else:
             super().keyReleaseEvent(event)
+
+    def mouseDoubleClickEvent(self, event):
+        self.double_clicked.emit()
 
     def selectedIndexes(self):
         """ Overridden to get hidden column values. """
@@ -288,7 +292,6 @@ class ServicesView(BaseTableView):
 
 class FavView(BaseTableView):
     """ Main class for favorites list. """
-    double_clicked = QtCore.pyqtSignal()
 
     class ContextMenu(QtWidgets.QMenu):
         def __init__(self, *args, **kwargs):
@@ -399,9 +402,6 @@ class FavView(BaseTableView):
             self.on_remove(True)
         else:
             super().keyPressEvent(event)
-
-    def mouseDoubleClickEvent(self, event):
-        self.double_clicked.emit()
 
     def move_up(self):
         pass
@@ -539,6 +539,10 @@ class SatelliteUpdateView(QtWidgets.QListView):
 
 
 class PiconView(BaseTableView):
+    replaced = QtCore.pyqtSignal(tuple)  # tuple -> self, paths
+    id_received = QtCore.pyqtSignal(tuple)  # tuple -> self, picon ids
+    urls_received = QtCore.pyqtSignal(tuple)  # tuple -> self, urls
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.setSelectionMode(self.ExtendedSelection)
@@ -551,10 +555,52 @@ class PiconView(BaseTableView):
         v_header.setSectionResizeMode(v_header.Stretch)
 
         header = self.horizontalHeader()
-        header.setSectionHidden(1, True)
+        header.setSectionHidden(Column.PICON_PATH, True)
         header.setSectionResizeMode(0, header.Stretch)
         header.setMinimumSectionSize(128)
         header.setStretchLastSection(False)
+
+        self.setAcceptDrops(True)
+        self.setDragEnabled(True)
+        self.setDragDropOverwriteMode(False)
+        self.setDefaultDropAction(QtCore.Qt.CopyAction)
+
+    def dragEnterEvent(self, event):
+        mime_data = event.mimeData()
+        if mime_data.hasUrls() or mime_data.hasFormat("application/x-qabstractitemmodeldatalist"):
+            event.setDropAction(QtCore.Qt.CopyAction)
+            event.accept()
+        else:
+            event.ignore()
+
+    def dragMoveEvent(self, event):
+        mime_data = event.mimeData()
+        if mime_data.hasUrls() or mime_data.hasFormat("application/x-qabstractitemmodeldatalist"):
+            event.accept()
+        else:
+            event.ignore()
+
+    def dropEvent(self, event):
+        mime_data = event.mimeData()
+        if mime_data.hasUrls():
+            event.setDropAction(QtCore.Qt.CopyAction)
+            event.accept()
+            self.urls_received.emit((self, mime_data.urls()))
+        elif mime_data.hasFormat("application/x-qabstractitemmodeldatalist"):
+            event.setDropAction(QtCore.Qt.CopyAction)
+            event.accept()
+
+            src_model = QtGui.QStandardItemModel()
+            src_model.dropMimeData(event.mimeData(), QtCore.Qt.CopyAction, 0, 0, QtCore.QModelIndex())
+            row_count = src_model.rowCount()
+
+            source = type(event.source())
+            if source is FavView:
+                self.id_received.emit((self, [src_model.item(r, Column.PICON_ID).text() for r in range(row_count)]))
+            elif source is PiconView:
+                self.replaced.emit((self, [src_model.item(r, Column.PICON_PATH).text() for r in range(row_count)]))
+        else:
+            event.ignore()
 
 
 class EpgView(BaseTableView):
