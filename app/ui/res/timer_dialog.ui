@@ -126,7 +126,7 @@
         <item row="4" column="0">
          <widget class="QLabel" name="timer_service_ref_label">
           <property name="text">
-           <string>Service reference:</string>
+           <string>Reference:</string>
           </property>
          </widget>
         </item>

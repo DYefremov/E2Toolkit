@@ -172,7 +172,7 @@ class PiconModel(QtCore.QSortFilterProxyModel):
 
 
 class EpgModel(QtGui.QStandardItemModel):
-    HEADER_LABELS = ("Title", "Time", "Description")
+    HEADER_LABELS = ("Title", "Time", "Description", "Event")
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

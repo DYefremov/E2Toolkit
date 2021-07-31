@@ -20,6 +20,7 @@
 # Author: Dmitriy Yefremov
 #
 from datetime import datetime
+from enum import IntEnum
 from urllib.parse import unquote
 
 from PyQt5 import QtWidgets, QtCore, QtGui
@@ -31,6 +32,11 @@ from app.ui.models import ServiceTypeModel
 
 
 class TimerDialog(QtWidgets.QDialog):
+    class TimerAction(IntEnum):
+        ADD = 0
+        EVENT = 1
+        EDIT = 2
+
     class TimerActionModel(QtGui.QStandardItemModel):
         def __init__(self, *args, **kwargs):
             super().__init__(*args, **kwargs)
@@ -46,14 +52,14 @@ class TimerDialog(QtWidgets.QDialog):
                       (self.tr("Auto"), "3")):
                 self.appendRow((QtGui.QStandardItem(a[0]), QtGui.QStandardItem(a[1])))
 
-    def __init__(self, timer, *args, **kwargs):
+    def __init__(self, data, action, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.setObjectName("timer_dialog")
         self.resize(365, 490)
         self.setToolTip("")
         self.setModal(True)
 
-        min_edit_width = 180
+        min_edit_width = 200
 
         self.dialog_grid_layout = QtWidgets.QGridLayout(self)
         self.dialog_grid_layout.setSizeConstraint(QtWidgets.QLayout.SetFixedSize)
@@ -274,30 +280,59 @@ class TimerDialog(QtWidgets.QDialog):
         self.dialog_grid_layout.addLayout(self.main_grid_layout, 0, 0, 1, 1)
 
         self.retranslate_ui()
-        self.button_box.accepted.connect(self.accept)
+        self.button_box.accepted.connect(self.save)
         self.button_box.rejected.connect(self.reject)
         QtCore.QMetaObject.connectSlotsByName(self)
 
-        self._timer = timer
+        self._data = data
+        self._timer_action = action
         self.init_timer_data()
 
     @property
     def timer(self):
-        return self._timer
+        return self._data
 
     def init_timer_data(self):
-        self.timer_enable_button.setChecked(self._timer.get("e2disabled", "0") == "0")
-        self.timer_name_edit.setText(self._timer.get("e2name", "") or "")
-        self.timer_description_edit.setText(self._timer.get("e2description", "") or "")
-        self.timer_service_edit.setText(self._timer.get("e2servicename", "") or "")
-        self.timer_ref_edit.setText(self._timer.get("e2servicereference", ""))
-        self.timer_event_id_edit.setText(self._timer.get("e2eit", ""))
-        self.timer_begins_edit.setDateTime(datetime.fromtimestamp(int(self._timer.get("e2timebegin", "0"))))
-        self.timer_ends_edit.setDateTime(datetime.fromtimestamp(int(self._timer.get("e2timeend", "0"))))
-        self.timer_action_combo_box.setCurrentIndex(int(self._timer.get("e2justplay", "0")))
-        self.timer_after_event_combo_box.setCurrentIndex(int(self._timer.get("e2afterevent", "0")))
+        if self._timer_action is self.TimerAction.ADD:
+            self.init_add()
+        elif self._timer_action is self.TimerAction.EDIT:
+            self.init_edit()
+        elif self._timer_action is self.TimerAction.EVENT:
+            self.init_event()
+
+    def init_add(self):
+        pass
+
+    def init_edit(self):
+        self.timer_enable_button.setChecked(self._data.get("e2disabled", "0") == "0")
+        self.timer_name_edit.setText(self._data.get("e2name", "") or "")
+        self.timer_description_edit.setText(self._data.get("e2description", "") or "")
+        self.timer_service_edit.setText(self._data.get("e2servicename", "") or "")
+        self.timer_ref_edit.setText(self._data.get("e2servicereference", ""))
+        self.timer_event_id_edit.setText(self._data.get("e2eit", ""))
+        self.timer_begins_edit.setDateTime(datetime.fromtimestamp(int(self._data.get("e2timebegin", "0"))))
+        self.timer_ends_edit.setDateTime(datetime.fromtimestamp(int(self._data.get("e2timeend", "0"))))
+        self.timer_action_combo_box.setCurrentIndex(int(self._data.get("e2justplay", "0")))
+        self.timer_after_event_combo_box.setCurrentIndex(int(self._data.get("e2afterevent", "0")))
         # Days
-        self.set_repetition_flags(int(self._timer.get("e2repeated", "0")))
+        self.set_repetition_flags(int(self._data.get("e2repeated", "0")))
+
+    def init_event(self):
+        self.timer_name_edit.setText(self._data.get("e2eventtitle", "") or "")
+        self.timer_description_edit.setText(self._data.get("e2eventdescription", "") or "")
+        self.timer_service_edit.setText(self._data.get("e2eventservicename", "") or "")
+        self.timer_ref_edit.setText(self._data.get("e2eventservicereference", ""))
+        self.timer_event_id_edit.setText(self._data.get("e2eventid", ""))
+        self.timer_action_combo_box.setCurrentIndex(1)
+        self.timer_after_event_combo_box.setCurrentIndex(3)
+        # Time
+        start_time = int(self._data.get("e2eventstart", "0"))
+        end_time = start_time + int(self._data.get("e2eventduration", "0"))
+        self.timer_begins_edit.setDateTime(datetime.fromtimestamp(start_time))
+        self.timer_ends_edit.setDateTime(datetime.fromtimestamp(end_time))
+
+    def save(self):
+        self.accept()
 
     def get_repetition_flags(self):
         """ Returns flags for repetition. """
@@ -333,7 +368,7 @@ class TimerDialog(QtWidgets.QDialog):
         self.timer_name_label.setText(_translate("timer_dialog", "Name:"))
         self.timer_description_label.setText(_translate("timer_dialog", "Description:"))
         self.timer_service_label.setText(_translate("timer_dialog", "Service:"))
-        self.timer_service_ref_label.setText(_translate("timer_dialog", "Service reference:"))
+        self.timer_service_ref_label.setText(_translate("timer_dialog", "Reference:"))
         self.timer_event_id_label.setText(_translate("timer_dialog", "Event ID:"))
         self.timer_begins_label.setText(_translate("timer_dialog", "Begins:"))
         self.timer_ends_label.setText(_translate("timer_dialog", "Ends:"))
@@ -857,7 +892,7 @@ class IptvServiceDialog(QtWidgets.QDialog):
 
         self.retranslate_ui()
         self.button_box.rejected.connect(self.reject)
-        self.button_box.accepted.connect(self.update_service)
+        self.button_box.accepted.connect(self.save)
         self.url_edit.textChanged.connect(self.check_input)
 
         QtCore.QMetaObject.connectSlotsByName(self)
@@ -918,7 +953,7 @@ class IptvServiceDialog(QtWidgets.QDialog):
         self.namespace_edit.setText("0")
         self.type_combo_box.setCurrentIndex(1)
 
-    def update_service(self):
+    def save(self):
         url = self.url_edit.text()
         name = self.name_edit.text().strip()
         stream_type = self.type_combo_box.model().index(self.type_combo_box.currentIndex(), 1).data()

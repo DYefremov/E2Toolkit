@@ -604,6 +604,15 @@ class PiconView(BaseTableView):
 
 
 class EpgView(BaseTableView):
+    timer_add = QtCore.pyqtSignal(int)
+
+    class ContextMenu(QtWidgets.QMenu):
+
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            self.add_timer_action = QtWidgets.QAction(QtGui.QIcon.fromTheme("list-add"), self.tr("Add timer"), self)
+            self.addAction(self.add_timer_action)
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.setSelectionMode(self.SingleSelection)
@@ -615,6 +624,28 @@ class EpgView(BaseTableView):
         self.setObjectName("epg_view")
 
         self.setModel(EpgModel(self))
+        self.setColumnHidden(Column.EPG_EVENT, True)
+        self.context_menu = self.ContextMenu(self)
+        self.init_actions()
+
+    def init_actions(self):
+        self.context_menu.add_timer_action.triggered.connect(lambda b: self.on_add_timer())
+
+    def mouseDoubleClickEvent(self, event):
+        self.on_add_timer(self.indexAt(event.pos()))
+
+    def contextMenuEvent(self, event):
+        if self.model().rowCount():
+            self.context_menu.popup(QtGui.QCursor.pos())
+
+    def on_add_timer(self, index=None):
+        if not index:
+            index = self.selectionModel().currentIndex()
+
+        if not index.isValid():
+            return
+
+        self.timer_add.emit(index.row())
 
 
 class TimerView(BaseTableView):
@@ -638,7 +669,7 @@ class TimerView(BaseTableView):
         self.setObjectName("timer_view")
 
         self.setModel(TimerModel(self))
-        self.setColumnHidden(4, True)
+        self.setColumnHidden(Column.TIMER_DATA, True)
         self.context_menu = self.ContextMenu(self)
         self.init_actions()
 

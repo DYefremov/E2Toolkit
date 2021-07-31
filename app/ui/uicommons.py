@@ -62,6 +62,17 @@ class Column(IntEnum):
     PICON_INFO = 0
     PICON_PATH = 1
     PICON_IMG = 2
+    # EPG
+    EPG_TITLE = 0
+    EPG_TIME = 1
+    EPG_DESC = 2
+    EPG_EVENT = 3
+    # Timer
+    TIMER_NAME = 0
+    TIMER_DESC = 1
+    TIMER_SRV = 2
+    TIMER_TIME = 3
+    TIMER_DATA = 4
 
     def __index__(self):
         """ Overridden to get the index in slices directly """

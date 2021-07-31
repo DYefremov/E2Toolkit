@@ -151,7 +151,11 @@ class MainWindow(MainUiWindow):
         self.import_m3u_action.triggered.connect(self.on_import_m3u)
         self.add_stream_action.triggered.connect(self.on_add_iptv_service)
         # Timers.
+        self.timer_add_button.clicked.connect(self.on_timer_add)
+        self.timer_remove_button.clicked.connect(self.on_timer_remove)
         self.timer_view.edited.connect(self.on_timer_edit)
+        self.timer_view.removed.connect(self.on_timer_remove)
+        self.epg_view.timer_add.connect(self.on_timer_add_from_event)
         # Remote controller actions.
         self.control_up_button.clicked.connect(lambda b: self.on_remote_action(HttpAPI.Remote.UP))
         self.control_down_button.clicked.connect(lambda b: self.on_remote_action(HttpAPI.Remote.DOWN))
@@ -944,7 +948,10 @@ class MainWindow(MainUiWindow):
             start_time = datetime.fromtimestamp(start)
             end_time = datetime.fromtimestamp(start + int(event.get("e2eventduration", "0")))
             time_header = "{} - {}".format(start_time.strftime("%A, %H:%M"), end_time.strftime("%H:%M"))
-            model.appendRow(QStandardItem(i) for i in (title, time_header, desc))
+
+            data_item = QStandardItem("Event")
+            data_item.setData(event, Qt.UserRole)
+            model.appendRow((QStandardItem(title), QStandardItem(time_header), QStandardItem(desc), data_item))
 
         self.fav_view.setEnabled(True)
 
@@ -987,9 +994,21 @@ class MainWindow(MainUiWindow):
                              QStandardItem(time_str),
                              data_item))
 
+    def on_timer_add(self, row):
+        QMessageBox.information(self, APP_NAME, self.tr("Not implemented yet!"))
+
+    def on_timer_remove(self):
+        QMessageBox.information(self, APP_NAME, self.tr("Not implemented yet!"))
+
+    def on_timer_add_from_event(self, row):
+        event = self.epg_view.model().index(row, Column.EPG_EVENT).data(Qt.UserRole)
+        timer_dialog = TimerDialog(event, TimerDialog.TimerAction.EVENT)
+        if timer_dialog.exec():
+            QMessageBox.information(self, APP_NAME, self.tr("Not implemented yet!"))
+
     def on_timer_edit(self, row):
-        index = self.timer_view.model().index(row, 4)
-        timer_dialog = TimerDialog(index.data(Qt.UserRole))
+        index = self.timer_view.model().index(row, Column.TIMER_DATA)
+        timer_dialog = TimerDialog(index.data(Qt.UserRole), TimerDialog.TimerAction.EDIT)
         if timer_dialog.exec():
             QMessageBox.information(self, APP_NAME, self.tr("Not implemented yet!"))
 
