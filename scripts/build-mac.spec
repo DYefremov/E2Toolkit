@@ -24,7 +24,7 @@ a = Analysis([EXE_NAME],
              pathex=PATH_EXE,
              binaries=None,
              datas=ui_files,
-             hiddenimports=['fileinput', 'uuid'],
+             hiddenimports=[],
              hookspath=[],
              runtime_hooks=[],
              excludes=excludes,
@@ -65,5 +65,9 @@ app = BUNDLE(coll,
                  'LSMinimumSystemVersion': '10.13',
                  'CFBundleShortVersionString': "1.0.0.{} Pre-Alpha".format(BUILD_DATE),
                  'NSHumanReadableCopyright': u"Copyright © 2021, Dmitriy Yefremov",
-                 'NSRequiresAquaSystemAppearance': 'false'
+                 'NSRequiresAquaSystemAppearance': 'false',
+                 'LSEnvironment': {
+                    'LANG': 'en_US.UTF-8',
+                    'LC_CTYPE': 'en_US.UTF-8'
+                 }
              })
