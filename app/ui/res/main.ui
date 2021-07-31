@@ -2655,12 +2655,19 @@
     </property>
     <addaction name="close_playback_action"/>
    </widget>
+   <widget class="QMenu" name="backup_menu">
+    <property name="title">
+     <string>Backup</string>
+    </property>
+    <addaction name="backup_restore_action"/>
+   </widget>
    <addaction name="file_menu"/>
    <addaction name="view_menu"/>
    <addaction name="playback_menu"/>
    <addaction name="audio_menu"/>
    <addaction name="video_menu"/>
    <addaction name="subtitle_menu"/>
+   <addaction name="backup_menu"/>
    <addaction name="settings_menu"/>
    <addaction name="help_menu"/>
   </widget>
@@ -2908,6 +2915,14 @@
    </property>
    <property name="text">
     <string>Save As...</string>
+   </property>
+  </action>
+  <action name="backup_restore_action">
+   <property name="icon">
+    <iconset theme="document-revert"/>
+   </property>
+   <property name="text">
+    <string>Restore</string>
    </property>
   </action>
  </widget>

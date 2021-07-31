@@ -117,6 +117,8 @@ class MainWindow(MainUiWindow):
         self.save_action.triggered.connect(self.on_data_save)
         self.save_as_action.triggered.connect(self.on_data_save_as)
         self.exit_action.triggered.connect(self.on_app_exit)
+        # Backup
+        self.backup_restore_action.triggered.connect(self.on_data_restore)
         # Settings.
         self.settings_action.triggered.connect(self.on_settings_dialog)
         # Toolbar.
@@ -351,6 +353,9 @@ class MainWindow(MainUiWindow):
                                            "Archive files (*.gz *.zip)", )
         if all(resp):
             self.load_compressed_data(resp[0])
+
+    def on_data_restore(self, state):
+        QMessageBox.information(self, APP_NAME, self.tr("Not implemented yet!"))
 
     def get_data_path(self):
         profile = self._profiles.get(self.profile_combo_box.currentText())
