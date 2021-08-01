@@ -374,7 +374,7 @@ class MainWindow(MainUiWindow):
             services = get_services(path)
         except FileNotFoundError as e:
             msg = self.tr("Please, download files from receiver or setup your path for read data!")
-            QMessageBox.critical(self, APP_NAME, msg)
+            self.show_error_dialog(msg)
             log(e)
         else:
             self.append_data(bouquets, services)
@@ -390,7 +390,7 @@ class MainWindow(MainUiWindow):
                 if os.path.exists(s_path):
                     self.load_satellites(s_path)
                 else:
-                    QMessageBox.critical(self, APP_NAME, self.tr("File not found!"))
+                    self.show_error_dialog(self.tr("File not found!"))
 
             arch_path.cleanup()
 
@@ -418,7 +418,7 @@ class MainWindow(MainUiWindow):
         else:
             tmp_path.cleanup()
             log("Error getting the path for the archive. Unsupported file format: {}".format(data_path))
-            QMessageBox.critical(self, APP_NAME, self.tr("Unsupported format!"))
+            self.show_error_dialog(self.tr("Unsupported format!"))
             return
 
         return tmp_path
@@ -530,7 +530,7 @@ class MainWindow(MainUiWindow):
             if self.bouquets_view.model().rowCount():
                 self.save_data(self.get_data_path())
             else:
-                QMessageBox.critical(self, APP_NAME, self.tr("No data to save!"))
+                self.show_error_dialog(self.tr("No data to save!"))
         else:
             QMessageBox.information(self, APP_NAME, self.tr("Not implemented yet!"))
 
@@ -586,7 +586,7 @@ class MainWindow(MainUiWindow):
     def on_import_m3u(self):
         """ Imports iptv from m3u files. """
         if not self._bq_selected:
-            QMessageBox.critical(self, APP_NAME, self.tr("No bouquet is selected!"))
+            self.show_error_dialog(self.tr("No bouquet is selected!"))
             return
 
         resp = QFileDialog.getOpenFileName(self, self.tr("Select *.m3u file"), str(Path.home()),
@@ -605,7 +605,7 @@ class MainWindow(MainUiWindow):
 
     def on_add_iptv_service(self):
         if not self._bq_selected:
-            QMessageBox.critical(self, APP_NAME, self.tr("No bouquet is selected!"))
+            self.show_error_dialog(self.tr("No bouquet is selected!"))
             return
 
         service_dialog = IptvServiceDialog()
@@ -629,7 +629,7 @@ class MainWindow(MainUiWindow):
     def on_new_bouquet_add(self):
         model = self.bouquets_view.model()
         if not model.rowCount():
-            QMessageBox.critical(self, APP_NAME, self.tr("No data loaded!"))
+            self.show_error_dialog(self.tr("No data loaded!"))
             return
 
         name, resp = QInputDialog.getText(self, "E2Toolkit [New bouquet]", self.tr("Enter the name of the bouquet."))
@@ -637,7 +637,7 @@ class MainWindow(MainUiWindow):
             return
         # Checking if the given name is already present.
         if self._bouquets.keys() & {"{}:{}".format(name, BqType.TV.value), "{}:{}".format(name, BqType.RADIO.value)}:
-            QMessageBox.critical(self, APP_NAME, self.tr("A bouquet with that name exists!"))
+            self.show_error_dialog(self.tr("A bouquet with that name exists!"))
             return
 
         cur_index = self.bouquets_view.currentIndex()
@@ -809,12 +809,12 @@ class MainWindow(MainUiWindow):
     def on_picon_replace(self, picons):
         view = picons[0]
         if view is self.picon_src_view:
-            QMessageBox.critical(self, APP_NAME, self.tr("Not allowed in this context!"))
+            self.show_error_dialog(self.tr("Not allowed in this context!"))
             return
 
         paths = picons[1]
         if len(paths) > 1:
-            QMessageBox.critical(self, APP_NAME, self.tr("Please, select only one item!"))
+            self.show_error_dialog(self.tr("Please, select only one item!"))
             return
 
         index = view.indexAt(view.mapFromGlobal(view.cursor().pos()))
@@ -870,7 +870,9 @@ class MainWindow(MainUiWindow):
                 self._player = Player.make(self.settings.stream_lib, self.media_widget)
                 self._player.audio_track.connect(self.update_audio_tracks)
                 self._player.subtitle_track.connect(self.update_subtitle_tracks)
+                self._player.error.connect(self.show_error_dialog)
             except ImportError as e:
+                self.show_error_dialog(str(e))
                 self.log_text_browser.append(str(e))
                 return
 
@@ -1059,6 +1061,9 @@ class MainWindow(MainUiWindow):
 
     def on_app_exit(self, state):
         self.close()
+
+    def show_error_dialog(self, msg):
+        QMessageBox.critical(self, APP_NAME, msg)
 
     def on_about(self, state):
         lic = self.tr("This program comes with absolutely no warranty.<br/>See the <a href=\"{}\">{}</a> for details.")
