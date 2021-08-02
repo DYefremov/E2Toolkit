@@ -29,6 +29,7 @@ from app.commons import log
 from app.enigma.ecommons import Pids, Flag, Service, BqServiceType
 from app.streams.iptv import StreamType, get_fav_id
 from app.ui.models import ServiceTypeModel
+from app.ui.views import BackupFileView
 
 
 class TimerDialog(QtWidgets.QDialog):
@@ -875,7 +876,7 @@ class IptvServiceDialog(QtWidgets.QDialog):
         self.dvb_data_box_layout.addLayout(self.namespace_layout)
         self.dialog_layout.addWidget(self.dvb_group_box)
         self.main_dialog_layout.addLayout(self.dialog_layout, 0, 0, 1, 1)
-        # Button box
+        # Button box.
         self.button_box = QtWidgets.QDialogButtonBox(self)
         self.button_box.setOrientation(QtCore.Qt.Horizontal)
         self.button_box.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel | QtWidgets.QDialogButtonBox.Save)
@@ -1015,3 +1016,110 @@ class IptvServiceDialog(QtWidgets.QDialog):
         self.sid_label.setText(_translate("iptv_service_dialog", "SID"))
         self.dvb_type_label.setText(_translate("iptv_service_dialog", "Type"))
         self.namespace_label.setText(_translate("iptv_service_dialog", "Namespace:"))
+
+
+class BackupDialog(QtWidgets.QDialog):
+    def __init__(self, backup_path, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.setObjectName("backup_dialog")
+        self.setWindowModality(QtCore.Qt.ApplicationModal)
+        self.resize(640, 480)
+        self.setModal(True)
+
+        self.dialog_layout = QtWidgets.QGridLayout(self)
+        self.dialog_layout.setObjectName("dialog_layout")
+        self.main_layout = QtWidgets.QVBoxLayout()
+        self.main_layout.setObjectName("main_layout")
+        self.header_layout = QtWidgets.QHBoxLayout()
+        self.header_layout.setObjectName("header_layout")
+        # Buttons.
+        self.restore_bouquets_button = QtWidgets.QToolButton(self)
+        self.restore_bouquets_button.setMinimumSize(QtCore.QSize(48, 0))
+        self.restore_bouquets_button.setFocusPolicy(QtCore.Qt.NoFocus)
+        icon = QtGui.QIcon.fromTheme("document-revert")
+        self.restore_bouquets_button.setIcon(icon)
+        self.restore_bouquets_button.setObjectName("restore_bouquets_button")
+        self.header_layout.addWidget(self.restore_bouquets_button)
+        self.restore_all_button = QtWidgets.QToolButton(self)
+        self.restore_all_button.setMinimumSize(QtCore.QSize(48, 0))
+        self.restore_all_button.setFocusPolicy(QtCore.Qt.NoFocus)
+        icon = QtGui.QIcon.fromTheme("edit-select-all")
+        self.restore_all_button.setIcon(icon)
+        self.restore_all_button.setObjectName("restore_all_button")
+        self.header_layout.addWidget(self.restore_all_button)
+        self.remove_button = QtWidgets.QToolButton(self)
+        self.remove_button.setMinimumSize(QtCore.QSize(48, 0))
+        self.remove_button.setFocusPolicy(QtCore.Qt.NoFocus)
+        icon = QtGui.QIcon.fromTheme("user-trash")
+        self.remove_button.setIcon(icon)
+        self.remove_button.setObjectName("remove_button")
+        self.header_layout.addWidget(self.remove_button)
+        spacer_item = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        self.header_layout.addItem(spacer_item)
+        self.details_button = QtWidgets.QToolButton(self)
+        self.details_button.setMinimumSize(QtCore.QSize(48, 0))
+        self.details_button.setFocusPolicy(QtCore.Qt.NoFocus)
+        icon = QtGui.QIcon.fromTheme("dialog-information")
+        self.details_button.setIcon(icon)
+        self.details_button.setCheckable(True)
+        self.details_button.setObjectName("details_button")
+        self.header_layout.addWidget(self.details_button)
+        self.main_layout.addLayout(self.header_layout)
+        # Splitter.
+        self.splitter = QtWidgets.QSplitter(self)
+        size_policy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        size_policy.setHorizontalStretch(0)
+        size_policy.setVerticalStretch(0)
+        size_policy.setHeightForWidth(self.splitter.sizePolicy().hasHeightForWidth())
+        self.splitter.setSizePolicy(size_policy)
+        self.splitter.setOrientation(QtCore.Qt.Horizontal)
+        self.splitter.setObjectName("splitter")
+        # Views.
+        self.file_view = BackupFileView(backup_path, self.splitter)
+        self.file_view.setMinimumSize(QtCore.QSize(48, 0))
+        self.file_view.setObjectName("file_view")
+        self.details_view = QtWidgets.QListView(self.splitter)
+        self.details_view.setVisible(False)
+        self.details_view.setObjectName("details_view")
+        self.main_layout.addWidget(self.splitter)
+        self.dialog_layout.addLayout(self.main_layout, 0, 0, 1, 1)
+        # Button box.
+        self.button_box = QtWidgets.QDialogButtonBox(self)
+        self.button_box.setOrientation(QtCore.Qt.Horizontal)
+        self.button_box.setStandardButtons(QtWidgets.QDialogButtonBox.Close)
+        self.button_box.setObjectName("button_box")
+        self.dialog_layout.addWidget(self.button_box, 1, 0, 1, 1)
+
+        self.retranslate_ui()
+        self.button_box.rejected.connect(self.reject)
+        self.details_button.clicked["bool"].connect(self.details_view.setVisible)
+        self.file_view.selectionModel().selectionChanged.connect(self.on_file_selection)
+        self.restore_bouquets_button.clicked.connect(self.on_restore_bouquets)
+        self.restore_all_button.clicked.connect(self.on_restore_all)
+        self.remove_button.clicked.connect(self.on_remove)
+        QtCore.QMetaObject.connectSlotsByName(self)
+
+    def on_file_selection(self, selected, deselected):
+        if not self.details_button.isChecked():
+            return
+
+    def on_restore_bouquets(self):
+        QtWidgets.QMessageBox.information(self, "", self.tr("Not implemented yet!"))
+
+    def on_restore_all(self):
+        QtWidgets.QMessageBox.information(self, "", self.tr("Not implemented yet!"))
+
+    def on_remove(self):
+        QtWidgets.QMessageBox.information(self, "", self.tr("Not implemented yet!"))
+
+    def retranslate_ui(self):
+        _translate = QtCore.QCoreApplication.translate
+        self.setWindowTitle(_translate("backup_dialog", "E2Toolkit [Backups]"))
+        self.restore_bouquets_button.setToolTip(_translate("backup_dialog", "Restore bouquets"))
+        self.restore_bouquets_button.setText(_translate("backup_dialog", "Restore bouquets"))
+        self.restore_all_button.setToolTip(_translate("backup_dialog", "Restore all"))
+        self.restore_all_button.setText(_translate("backup_dialog", "Restore all"))
+        self.remove_button.setToolTip(_translate("backup_dialog", "Remove"))
+        self.remove_button.setText(_translate("backup_dialog", "Remove"))
+        self.details_button.setToolTip(_translate("backup_dialog", "Details"))
+        self.details_button.setText(_translate("backup_dialog", "Details"))

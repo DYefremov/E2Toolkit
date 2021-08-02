@@ -1165,7 +1165,8 @@ class MainUiWindow(QtWidgets.QMainWindow):
         self.menu_bar.addAction(self.video_menu_action)
         self.subtitle_menu_action = self.subtitle_menu.menuAction()
         self.menu_bar.addAction(self.subtitle_menu_action)
-        self.menu_bar.addAction(self.backup_menu.menuAction())
+        self.backup_menu_action = self.backup_menu.menuAction()
+        self.menu_bar.addAction(self.backup_menu_action)
         self.settings_menu_action = self.settings_menu.menuAction()
         self.menu_bar.addAction(self.settings_menu_action)
         self.menu_bar.addAction(self.help_menu.menuAction())
@@ -1281,6 +1282,7 @@ class MainUiWindow(QtWidgets.QMainWindow):
         self.file_menu_action.setVisible(not visible)
         self.view_menu_action.setVisible(not visible)
         self.file_menu_action.setVisible(not visible)
+        self.backup_menu_action.setVisible(not visible)
 
     # ******************** Handlers ******************** #
 

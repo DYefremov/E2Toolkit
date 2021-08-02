@@ -736,3 +736,23 @@ class MediaView(QtWidgets.QGraphicsView):
     def mouseMoveEvent(self, event):
         self.setCursor(QtCore.Qt.ArrowCursor)
         self.cursor_hide_timer.start(3000)
+
+
+class BackupFileView(QtWidgets.QTableView):
+    def __init__(self, path, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.setObjectName("backup_view")
+        self.setEditTriggers(self.NoEditTriggers)
+        self.setSelectionBehavior(self.SelectRows)
+        self.horizontalHeader().setStretchLastSection(True)
+        self.setSortingEnabled(True)
+
+        model = QtWidgets.QFileSystemModel(self)
+        model.setReadOnly(True)
+        model.setRootPath(path)
+        self.setModel(model)
+        self.setRootIndex(model.index(model.rootPath()))
+
+        self.setColumnWidth(0, 200)
+        self.setColumnWidth(1, 100)
+        self.setColumnHidden(2, True)

@@ -41,7 +41,7 @@ from app.enigma.ecommons import BqServiceType, Service, Bouquet, Bouquets, BqTyp
 from app.enigma.lamedb import get_services, LameDbWriter
 from app.satellites.satxml import get_satellites
 from app.streams.iptv import import_m3u
-from app.ui.dialogs import TimerDialog, ServiceDialog, IptvServiceDialog
+from app.ui.dialogs import TimerDialog, ServiceDialog, IptvServiceDialog, BackupDialog
 from app.ui.settings import SettingsDialog, Settings
 from app.ui.uicommons import Column, IPTV_ICON, LOCKED_ICON
 from .ui import MainUiWindow, Page
@@ -355,7 +355,8 @@ class MainWindow(MainUiWindow):
             self.load_compressed_data(resp[0])
 
     def on_data_restore(self, state):
-        QMessageBox.information(self, APP_NAME, self.tr("Not implemented yet!"))
+        backup_dialog = BackupDialog(self.get_backup_path())
+        backup_dialog.exec()
 
     def get_data_path(self):
         profile = self._profiles.get(self.profile_combo_box.currentText())
@@ -363,6 +364,9 @@ class MainWindow(MainUiWindow):
 
     def get_picon_path(self):
         return "{}{}{}".format(self.settings.picon_path, self.profile_combo_box.currentText(), os.sep)
+
+    def get_backup_path(self):
+        return "{}{}{}".format(self.settings.backup_path, self.profile_combo_box.currentText(), os.sep)
 
     def load_data(self, path=None):
         if not path:
@@ -547,7 +551,7 @@ class MainWindow(MainUiWindow):
 
     def save_data(self, path, force_backup=True):
         if self.settings.backup_before_save and force_backup:
-            backup_data(path, self.settings.backup_path)
+            backup_data(path, self.get_backup_path())
         else:
             clear_data_path(path)
         # Processing bouquets.
