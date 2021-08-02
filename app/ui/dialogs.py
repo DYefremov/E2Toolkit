@@ -19,6 +19,7 @@
 #
 # Author: Dmitriy Yefremov
 #
+import zipfile
 from datetime import datetime
 from enum import IntEnum
 from urllib.parse import unquote
@@ -1025,6 +1026,8 @@ class BackupDialog(QtWidgets.QDialog):
         self.setWindowModality(QtCore.Qt.ApplicationModal)
         self.resize(640, 480)
         self.setModal(True)
+        # Creating path if doesn't exist.
+        QtCore.QDir().mkpath(backup_path)
 
         self.dialog_layout = QtWidgets.QGridLayout(self)
         self.dialog_layout.setObjectName("dialog_layout")
@@ -1080,6 +1083,7 @@ class BackupDialog(QtWidgets.QDialog):
         self.file_view.setObjectName("file_view")
         self.details_view = QtWidgets.QListView(self.splitter)
         self.details_view.setVisible(False)
+        self.details_view.setModel(QtCore.QStringListModel(self.details_view))
         self.details_view.setObjectName("details_view")
         self.main_layout.addWidget(self.splitter)
         self.dialog_layout.addLayout(self.main_layout, 0, 0, 1, 1)
@@ -1098,10 +1102,19 @@ class BackupDialog(QtWidgets.QDialog):
         self.restore_all_button.clicked.connect(self.on_restore_all)
         self.remove_button.clicked.connect(self.on_remove)
         QtCore.QMetaObject.connectSlotsByName(self)
+        # Enabling buttons.
+        self.update_buttons()
 
     def on_file_selection(self, selected, deselected):
         if not self.details_button.isChecked():
             return
+        
+        model = self.details_view.model()
+        model.removeRows(0, model.rowCount())
+        indexes = selected.indexes()
+        if indexes:
+            with zipfile.ZipFile(self.file_view.model().filePath(indexes[0])) as zip_file:
+                model.setStringList(zip_file.namelist())
 
     def on_restore_bouquets(self):
         QtWidgets.QMessageBox.information(self, "", self.tr("Not implemented yet!"))
@@ -1110,7 +1123,21 @@ class BackupDialog(QtWidgets.QDialog):
         QtWidgets.QMessageBox.information(self, "", self.tr("Not implemented yet!"))
 
     def on_remove(self):
-        QtWidgets.QMessageBox.information(self, "", self.tr("Not implemented yet!"))
+        if QtWidgets.QMessageBox.question(self, "", self.tr("Are you sure?")) != QtWidgets.QMessageBox.Yes:
+            return
+
+        for i in self.file_view.selectionModel().selectedRows(0):
+            if QtCore.QFile(i.model().filePath(i)).remove():
+                i.model().removeRow(i.row())
+
+        self.update_buttons()
+
+    def update_buttons(self):
+        """ Updates buttons state. """
+        enable = not QtCore.QDir(self.file_view.model().rootPath()).isEmpty()
+        self.restore_bouquets_button.setEnabled(enable)
+        self.restore_all_button.setEnabled(enable)
+        self.remove_button.setEnabled(enable)
 
     def retranslate_ui(self):
         _translate = QtCore.QCoreApplication.translate
