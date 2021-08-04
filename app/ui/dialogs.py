@@ -19,6 +19,8 @@
 #
 # Author: Dmitriy Yefremov
 #
+
+
 import zipfile
 from datetime import datetime
 from enum import IntEnum
@@ -1020,12 +1022,16 @@ class IptvServiceDialog(QtWidgets.QDialog):
 
 
 class BackupDialog(QtWidgets.QDialog):
-    def __init__(self, backup_path, *args, **kwargs):
+    extracted = QtCore.pyqtSignal(str)
+
+    def __init__(self, backup_path, data_path, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.setObjectName("backup_dialog")
         self.setWindowModality(QtCore.Qt.ApplicationModal)
         self.resize(640, 480)
         self.setModal(True)
+
+        self._data_path = data_path
         # Creating path if doesn't exist.
         QtCore.QDir().mkpath(backup_path)
 
@@ -1098,8 +1104,8 @@ class BackupDialog(QtWidgets.QDialog):
         self.button_box.rejected.connect(self.reject)
         self.details_button.clicked["bool"].connect(self.details_view.setVisible)
         self.file_view.selectionModel().selectionChanged.connect(self.on_file_selection)
-        self.restore_bouquets_button.clicked.connect(self.on_restore_bouquets)
-        self.restore_all_button.clicked.connect(self.on_restore_all)
+        self.restore_bouquets_button.clicked.connect(lambda: self.restore((".tv", ".radio")))
+        self.restore_all_button.clicked.connect(lambda: self.restore(""))
         self.remove_button.clicked.connect(self.on_remove)
         QtCore.QMetaObject.connectSlotsByName(self)
         # Enabling buttons.
@@ -1108,7 +1114,7 @@ class BackupDialog(QtWidgets.QDialog):
     def on_file_selection(self, selected, deselected):
         if not self.details_button.isChecked():
             return
-        
+
         model = self.details_view.model()
         model.removeRows(0, model.rowCount())
         indexes = selected.indexes()
@@ -1116,11 +1122,22 @@ class BackupDialog(QtWidgets.QDialog):
             with zipfile.ZipFile(self.file_view.model().filePath(indexes[0])) as zip_file:
                 model.setStringList(zip_file.namelist())
 
-    def on_restore_bouquets(self):
-        QtWidgets.QMessageBox.information(self, "", self.tr("Not implemented yet!"))
+    def restore(self, extensions):
+        if QtWidgets.QMessageBox.question(self, "", self.tr("Are you sure?")) != QtWidgets.QMessageBox.Yes:
+            return
 
-    def on_restore_all(self):
-        QtWidgets.QMessageBox.information(self, "", self.tr("Not implemented yet!"))
+        rows = self.file_view.selectionModel().selectedRows(0)
+
+        if not rows:
+            QtWidgets.QMessageBox.critical(self, "", self.tr("No selected item!"))
+        elif len(rows) > 1:
+            QtWidgets.QMessageBox.critical(self, "", self.tr("Please, select only one item!"))
+        else:
+            with zipfile.ZipFile(self.file_view.model().filePath(rows[0])) as zf:
+                [zf.extract(file, self._data_path) for file in zf.namelist() if file.endswith(extensions)]
+
+            self.extracted.emit(self._data_path)
+            QtWidgets.QMessageBox.information(self, "", self.tr("Done!"))
 
     def on_remove(self):
         if QtWidgets.QMessageBox.question(self, "", self.tr("Are you sure?")) != QtWidgets.QMessageBox.Yes:

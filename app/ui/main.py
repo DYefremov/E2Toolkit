@@ -355,7 +355,8 @@ class MainWindow(MainUiWindow):
             self.load_compressed_data(resp[0])
 
     def on_data_restore(self, state):
-        backup_dialog = BackupDialog(self.get_backup_path())
+        backup_dialog = BackupDialog(self.get_backup_path(), self.get_data_path())
+        backup_dialog.extracted.connect(self.load_data)
         backup_dialog.exec()
 
     def get_data_path(self):
