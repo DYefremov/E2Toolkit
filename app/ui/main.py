@@ -124,15 +124,17 @@ class MainWindow(MainUiWindow):
         # Toolbar.
         self.download_tool_button.clicked.connect(self.on_data_download)
         self.upload_tool_button.clicked.connect(self.on_data_upload)
-        # Models and Views.
+        # Bouquets.
         self.bouquets_view.selectionModel().selectionChanged.connect(self.on_bouquet_selection)
         self.fav_view.selectionModel().selectionChanged.connect(self.on_fav_selection)
         self.fav_view.edited.connect(lambda r: self.on_service_edit(r, self.fav_view.model()))
         self.fav_view.removed.connect(self.remove_favorites)
         self.fav_view.inserted.connect(self.on_fav_data_changed)
+        self.fav_view.picon_assigned.connect(lambda d: self.copy_picons(*d))
         self.services_view.edited.connect(lambda r: self.on_service_edit(r, self.services_view.model()))
         self.services_view.removed.connect(self.remove_services)
         self.services_view.delete_release.connect(self.on_service_remove_done)
+        self.services_view.picon_assigned.connect(lambda d: self.copy_picons(*d))
         self.bouquets_view.removed.connect(self.remove_bouquets)
         self.bouquets_view.context_menu.new_action.triggered.connect(self.on_new_bouquet_add)
         self.add_bouquet_button.clicked.connect(self.on_new_bouquet_add)
@@ -780,7 +782,7 @@ class MainWindow(MainUiWindow):
 
             self.satellite_count_label.setText(str(model.rowCount()))
 
-    # ********************* Picons ********************* #
+    # ********************** Picons ********************** #
 
     def on_picon_page_show(self):
         self.picon_src_widget.setVisible(False)
@@ -792,7 +794,10 @@ class MainWindow(MainUiWindow):
         if not index.isValid():
             return
 
-        src_file = QFile(view.model().index(index.row(), Column.PICON_PATH).data())
+        self.copy_picons(view.model().index(index.row(), Column.PICON_PATH).data(), ids[1])
+
+    def copy_picons(self, src, ids):
+        src_file = QFile(src)
         if not src_file.exists():
             return
 
@@ -801,7 +806,7 @@ class MainWindow(MainUiWindow):
         if not p_dir.exists(p_dir.path()):
             p_dir.mkpath(p_dir.path())
 
-        for p_id in ids[1]:
+        for p_id in ids:
             file = QFile(p_dir.path() + p_dir.separator() + p_id)
             if file.exists():
                 file.remove()

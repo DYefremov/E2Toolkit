@@ -104,6 +104,28 @@ class BaseTableView(QtWidgets.QTableView):
             self.edited.emit(self.currentIndex().row())
 
 
+class PiconAssignment(QtWidgets.QWidget):
+    """ Additional class [mixin] for assigning picons. """
+
+    def assign_picon(self):
+        rows = self.selectionModel().selectedRows(Column.PICON_ID)
+        if not rows:
+            return
+
+        resp = QtWidgets.QFileDialog.getOpenFileName(self, self.tr("Select *.png file"), "", "PNG files (*.png)")
+        if all(resp):
+            self.picon_assigned.emit((resp[0], [r.data() for r in rows]))
+
+    def copy_reference(self):
+        cur_index = self.selectionModel().currentIndex()
+        if not cur_index.isValid():
+            return
+
+        p_id = self.model().index(cur_index.row(), Column.PICON_ID).data()
+        if p_id:
+            self.clipboard.setText(p_id.rstrip(".png"))
+
+
 class BaseTreeView(QtWidgets.QTreeView):
     copied = QtCore.pyqtSignal(bool)
     inserted = QtCore.pyqtSignal(bool)
@@ -178,8 +200,9 @@ class BaseTreeView(QtWidgets.QTreeView):
             selection_model.select(i, selection_model.Select | selection_model.Rows)
 
 
-class ServicesView(BaseTableView):
+class ServicesView(BaseTableView, PiconAssignment):
     """ Main class for services list. """
+    picon_assigned = QtCore.pyqtSignal(tuple)  # tuple -> src, picon ids
 
     class ContextMenu(QtWidgets.QMenu):
 
@@ -269,6 +292,8 @@ class ServicesView(BaseTableView):
         self.context_menu.remove_action.triggered.connect(self.on_remove)
         self.context_menu.copy_action.triggered.connect(self.on_copy)
         self.context_menu.edit_action.triggered.connect(self.on_edit)
+        self.context_menu.copy_ref_action.triggered.connect(self.copy_reference)
+        self.context_menu.assign_action.triggered.connect(self.assign_picon)
 
     def contextMenuEvent(self, event):
         self.context_menu.popup(QtGui.QCursor.pos())
@@ -290,8 +315,9 @@ class ServicesView(BaseTableView):
             self.edited.emit(index.row())
 
 
-class FavView(BaseTableView):
+class FavView(BaseTableView, PiconAssignment):
     """ Main class for favorites list. """
+    picon_assigned = QtCore.pyqtSignal(tuple)
 
     class ContextMenu(QtWidgets.QMenu):
         def __init__(self, *args, **kwargs):
@@ -371,6 +397,8 @@ class FavView(BaseTableView):
         self.context_menu.paste_action.triggered.connect(self.on_paste)
         self.context_menu.cut_action.triggered.connect(self.on_cut)
         self.context_menu.edit_action.triggered.connect(self.on_edit)
+        self.context_menu.copy_ref_action.triggered.connect(self.copy_reference)
+        self.context_menu.assign_action.triggered.connect(self.assign_picon)
         # Copy - Paste items.
         self.copied.connect(self.context_menu.paste_action.setEnabled)
         self.inserted.connect(lambda b: self.context_menu.paste_action.setEnabled(not b))
