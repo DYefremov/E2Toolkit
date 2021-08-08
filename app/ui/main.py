@@ -142,9 +142,9 @@ class MainWindow(MainUiWindow):
         self.satellite_view.selectionModel().currentRowChanged.connect(self.on_satellite_selection)
         self.satellite_view.add.connect(self.on_satellite_add)
         self.satellite_view.edited.connect(self.on_satellite_edit)
-        # self.satellite_transponder_view.add.connect(self.on_transponder_add)
-        # self.satellite_transponder_view.edited.connect(self.on_transponder_edit)
-        # self.satellite_transponder_view.removed.connect(self.on_transponder_remove)
+        self.satellite_transponder_view.add.connect(self.on_transponder_add)
+        self.satellite_transponder_view.edited.connect(self.on_transponder_edit)
+        self.satellite_transponder_view.removed.connect(self.on_transponder_remove)
         # Picons.
         self.picon_src_view.id_received.connect(self.on_picon_ids_received)
         self.picon_src_view.urls_received.connect(self.on_picon_urls_received)
@@ -816,8 +816,19 @@ class MainWindow(MainUiWindow):
     def on_transponder_edit(self, row):
         QMessageBox.information(self, APP_NAME, self.tr("Not implemented yet!"))
 
-    def on_transponder_remove(self, row):
-        QMessageBox.information(self, APP_NAME, self.tr("Not implemented yet!"))
+    def on_transponder_remove(self, rows):
+        rows = sorted(rows, reverse=True)
+        if not rows:
+            return
+
+        cur_index = self.satellite_view.currentIndex()
+        model = self.satellite_view.model()
+        data_index = model.index(cur_index.row(), 4)
+        transponders = data_index.data(Qt.UserRole)
+        if transponders:
+            list(map(transponders.pop, rows))
+            model.setData(data_index, transponders, Qt.UserRole)
+            self.satellite_transponder_count_label.setText(str(len(transponders)))
 
     # ********************** Picons ********************** #
 
