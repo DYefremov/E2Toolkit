@@ -138,6 +138,13 @@ class MainWindow(MainUiWindow):
         self.bouquets_view.removed.connect(self.remove_bouquets)
         self.bouquets_view.context_menu.new_action.triggered.connect(self.on_new_bouquet_add)
         self.add_bouquet_button.clicked.connect(self.on_new_bouquet_add)
+        # Satellites.
+        self.satellite_view.selectionModel().currentRowChanged.connect(self.on_satellite_selection)
+        self.satellite_view.add.connect(self.on_satellite_add)
+        self.satellite_view.edited.connect(self.on_satellite_edit)
+        # self.satellite_transponder_view.add.connect(self.on_transponder_add)
+        # self.satellite_transponder_view.edited.connect(self.on_transponder_edit)
+        # self.satellite_transponder_view.removed.connect(self.on_transponder_remove)
         # Picons.
         self.picon_src_view.id_received.connect(self.on_picon_ids_received)
         self.picon_src_view.urls_received.connect(self.on_picon_urls_received)
@@ -772,15 +779,45 @@ class MainWindow(MainUiWindow):
         else:
             self.satellite_view.clear_data()
             model = self.satellite_view.model()
-            root_node = model.invisibleRootItem()
 
             for sat in sats:
-                parent = QStandardItem(sat.name)
-                for t in sat.transponders:
-                    parent.appendRow((QStandardItem(""),) + tuple(QStandardItem(i) for i in t))
-                root_node.appendRow(parent)
+                transponders_item = QStandardItem("transponders")
+                transponders_item.setData(sat.transponders, Qt.UserRole)
+                sat_pos = int(sat.position)
+                pos_value = "{:0.1f}{}".format(abs(sat_pos / 10), "W" if sat_pos < 0 else "E")
+                model.appendRow((QStandardItem(sat.name),
+                                 QStandardItem(pos_value),
+                                 QStandardItem(sat.flags),
+                                 QStandardItem(sat.position),
+                                 transponders_item))
 
             self.satellite_count_label.setText(str(model.rowCount()))
+
+    def on_satellite_selection(self, selected, deselected):
+        self.satellite_transponder_view.clear_data()
+
+        t_model = self.satellite_transponder_view.model()
+        trs = self.satellite_view.model().index(selected.row(), 4).data(Qt.UserRole)
+        if trs:
+            for t in trs:
+                t_model.appendRow(QStandardItem(i) for i in t)
+
+        self.satellite_transponder_count_label.setText(str(t_model.rowCount()))
+
+    def on_satellite_add(self):
+        QMessageBox.information(self, APP_NAME, self.tr("Not implemented yet!"))
+
+    def on_transponder_add(self):
+        QMessageBox.information(self, APP_NAME, self.tr("Not implemented yet!"))
+
+    def on_satellite_edit(self, row):
+        QMessageBox.information(self, APP_NAME, self.tr("Not implemented yet!"))
+
+    def on_transponder_edit(self, row):
+        QMessageBox.information(self, APP_NAME, self.tr("Not implemented yet!"))
+
+    def on_transponder_remove(self, row):
+        QMessageBox.information(self, APP_NAME, self.tr("Not implemented yet!"))
 
     # ********************** Picons ********************** #
 

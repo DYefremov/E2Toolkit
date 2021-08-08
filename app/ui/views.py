@@ -20,7 +20,7 @@
 # Author: Dmitriy Yefremov
 #
 
-__all__ = ["ServicesView", "FavView", "BouquetsView", "SatellitesView", "SatelliteUpdateView",
+__all__ = ["ServicesView", "FavView", "BouquetsView", "SatelliteView", "SatelliteTransponderView",
            "PiconView", "EpgView", "TimerView", "FtpView", "FileView", "MediaView"]
 
 from PyQt5 import QtWidgets, QtCore, QtGui
@@ -43,6 +43,7 @@ class BaseTableView(QtWidgets.QTableView):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.setEditTriggers(self.NoEditTriggers)
+        self.setSelectionMode(self.ExtendedSelection)
         self.setSelectionBehavior(self.SelectRows)
         self.horizontalHeader().setStretchLastSection(True)
 
@@ -134,6 +135,7 @@ class BaseTreeView(QtWidgets.QTreeView):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.setEditTriggers(self.NoEditTriggers)
+        self.setSelectionMode(self.ExtendedSelection)
         self.setSelectionBehavior(self.SelectRows)
         # We will use it as a local clipboard.
         self.clipboard = []
@@ -260,7 +262,6 @@ class ServicesView(BaseTableView, PiconAssignment):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.setSelectionMode(self.ExtendedSelection)
         self.setSortingEnabled(True)
         self.setObjectName("services_view")
         # Model
@@ -367,7 +368,6 @@ class FavView(BaseTableView, PiconAssignment):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.setSelectionMode(self.ExtendedSelection)
         self.setObjectName("fav_view")
         self.setModel(FavModel(self))
         # Setting visible columns.
@@ -470,7 +470,6 @@ class BouquetsView(BaseTreeView):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.setEditTriggers(self.NoEditTriggers)
-        self.setSelectionMode(self.ExtendedSelection)
         self.setHeaderHidden(True)
         self.setObjectName("bouquets_view")
 
@@ -504,34 +503,32 @@ class BouquetsView(BaseTreeView):
             super().keyPressEvent(event)
 
 
-class SatellitesView(BaseTreeView):
+class BaseSatelliteView(BaseTableView):
+    add = QtCore.pyqtSignal()
+
     class ContextMenu(QtWidgets.QMenu):
         def __init__(self, *args, **kwargs):
             super().__init__(*args, **kwargs)
 
+            self.new_action = QtWidgets.QAction(QtGui.QIcon.fromTheme("list-add"), self.tr("Add"), self)
+            self.addAction(self.new_action)
+            self.edit_action = QtWidgets.QAction(QtGui.QIcon.fromTheme("document-edit"), self.tr("Edit"), self)
+            self.addAction(self.edit_action)
+            self.addSeparator()
             self.remove_action = QtWidgets.QAction(QtGui.QIcon.fromTheme("list-remove"), self.tr("Remove"), self)
             self.remove_action.setShortcut("Del")
             self.addAction(self.remove_action)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.setEditTriggers(self.NoEditTriggers)
-        self.setSelectionMode(self.ContiguousSelection)
-        self.setHorizontalScrollMode(self.ScrollPerItem)
-        self.setObjectName("satellite_view")
-
-        header = self.header()
-        header.setSectionResizeMode(QtWidgets.QHeaderView.ResizeToContents)
-        header.setCascadingSectionResizes(False)
-        header.setMinimumSectionSize(100)
-        header.setStretchLastSection(True)
-
-        self.setModel(SatellitesModel(self))
+        self.setObjectName("base_satellite_view")
 
         self.context_menu = self.ContextMenu(self)
         self.init_actions()
 
     def init_actions(self):
+        self.context_menu.new_action.triggered.connect(self.add.emit)
+        self.context_menu.edit_action.triggered.connect(self.on_edit)
         self.context_menu.remove_action.triggered.connect(self.on_remove)
 
     def contextMenuEvent(self, event):
@@ -547,23 +544,35 @@ class SatellitesView(BaseTreeView):
             super().keyPressEvent(event)
 
     def remove(self):
-        self.on_remove(True, True)
+        self.on_remove(True)
 
 
-class SatelliteUpdateView(QtWidgets.QListView):
+class SatelliteView(BaseSatelliteView):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.setEditTriggers(self.NoEditTriggers)
-        self.setSelectionMode(self.SingleSelection)
-        self.setSelectionBehavior(self.SelectRows)
-        self.setResizeMode(self.Fixed)
-        self.setObjectName("satellite_update_view")
+        self.setObjectName("satellite_view")
 
-        self.setModel(SatelliteUpdateModel(self))
+        self.setModel(SatelliteModel(self))
+        header = self.horizontalHeader()
+        header.setSectionHidden(2, True)
+        header.setSectionHidden(3, True)
+        header.setSectionHidden(4, True)
+        header.setSectionResizeMode(0, header.Stretch)
+        header.setMinimumSectionSize(128)
+        header.setStretchLastSection(False)
 
-    def clear_data(self):
-        model = self.model()
-        model.removeRows(0, model.rowCount())
+
+class SatelliteTransponderView(BaseSatelliteView):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.setSelectionMode(self.MultiSelection)
+        self.setObjectName("satellite_transponder_view")
+
+        self.setModel(SatelliteTransponderModel(self))
+        header = self.horizontalHeader()
+        header.setSectionHidden(6, True)
+        header.setSectionHidden(7, True)
+        header.setSectionHidden(8, True)
 
 
 class PiconView(BaseTableView):
@@ -573,7 +582,6 @@ class PiconView(BaseTableView):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.setSelectionMode(self.ExtendedSelection)
         self.setObjectName("picon_view")
 
         self.setModel(PiconModel())

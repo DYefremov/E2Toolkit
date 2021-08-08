@@ -20,7 +20,7 @@
 # Author: Dmitriy Yefremov
 #
 
-__all__ = ["ServicesModel", "FavModel", "BouquetsModel", "SatellitesModel", "SatelliteUpdateModel",
+__all__ = ["ServicesModel", "FavModel", "BouquetsModel", "SatelliteModel", "SatelliteTransponderModel",
            "PiconModel", "EpgModel", "TimerModel", "FtpModel", "FileModel", "ServiceTypeModel"]
 
 from PyQt5 import QtGui, QtWidgets, QtCore
@@ -132,20 +132,32 @@ class BouquetsModel(QtGui.QStandardItemModel):
         return super().dropMimeData(data, action, row, 0, parent)
 
 
-class SatellitesModel(QtGui.QStandardItemModel):
-    HEADER_LABELS = ("Satellite", "Frec", "SR", "Pol", "FEC", "System", "Mod")
+class SatelliteModel(QtGui.QStandardItemModel):
+    HEADER_LABELS = ("Satellite", "Pos", "flags", "pos_value", "transponders")
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.setHorizontalHeaderLabels(self.HEADER_LABELS)
 
+    def data(self, index, role):
+        if role == QtCore.Qt.TextAlignmentRole and index.column() == 1:
+            return QtCore.Qt.AlignCenter
 
-class SatelliteUpdateModel(QtGui.QStandardItemModel):
-    HEADER_LABELS = ("Satellite", "Position", "Type")
+        return super().data(index, role)
+
+
+class SatelliteTransponderModel(QtGui.QStandardItemModel):
+    HEADER_LABELS = ("Frec", "SR", "Pol", "FEC", "System", "Mod", "", "", "")
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.setHorizontalHeaderLabels(self.HEADER_LABELS)
+
+    def data(self, index, role):
+        if role == QtCore.Qt.TextAlignmentRole:
+            return QtCore.Qt.AlignCenter
+
+        return super().data(index, role)
 
 
 class PiconModel(QtCore.QSortFilterProxyModel):
