@@ -73,6 +73,10 @@ class Column(IntEnum):
     TIMER_SRV = 2
     TIMER_TIME = 3
     TIMER_DATA = 4
+    # Satellite
+    SAT_NAME = 0
+    SAT_POS = 1
+    SAT_DATA = 2
 
     def __index__(self):
         """ Overridden to get the index in slices directly """

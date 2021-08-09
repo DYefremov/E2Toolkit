@@ -543,6 +543,11 @@ class BaseSatelliteView(BaseTableView):
         else:
             super().keyPressEvent(event)
 
+    def mouseDoubleClickEvent(self, event):
+        index = self.indexAt(event.pos())
+        if index.isValid():
+            self.edited.emit(index.row())
+
     def remove(self):
         self.on_remove(True)
 
@@ -554,9 +559,7 @@ class SatelliteView(BaseSatelliteView):
 
         self.setModel(SatelliteModel(self))
         header = self.horizontalHeader()
-        header.setSectionHidden(2, True)
-        header.setSectionHidden(3, True)
-        header.setSectionHidden(4, True)
+        header.setSectionHidden(Column.SAT_DATA, True)
         header.setSectionResizeMode(0, header.Stretch)
         header.setMinimumSectionSize(128)
         header.setStretchLastSection(False)

@@ -133,7 +133,7 @@ class BouquetsModel(QtGui.QStandardItemModel):
 
 
 class SatelliteModel(QtGui.QStandardItemModel):
-    HEADER_LABELS = ("Satellite", "Pos", "flags", "pos_value", "transponders")
+    HEADER_LABELS = ("Name", "Pos", "satellite")
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

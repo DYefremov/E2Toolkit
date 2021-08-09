@@ -41,7 +41,7 @@ from app.enigma.ecommons import BqServiceType, Service, Bouquet, Bouquets, BqTyp
 from app.enigma.lamedb import get_services, LameDbWriter
 from app.satellites.satxml import get_satellites
 from app.streams.iptv import import_m3u
-from app.ui.dialogs import TimerDialog, ServiceDialog, IptvServiceDialog, BackupDialog
+from app.ui.dialogs import *
 from app.ui.settings import SettingsDialog, Settings
 from app.ui.uicommons import Column, IPTV_ICON, LOCKED_ICON
 from .ui import MainUiWindow, Page
@@ -781,15 +781,11 @@ class MainWindow(MainUiWindow):
             model = self.satellite_view.model()
 
             for sat in sats:
-                transponders_item = QStandardItem("transponders")
-                transponders_item.setData(sat.transponders, Qt.UserRole)
+                sat_item = QStandardItem("satellite")
+                sat_item.setData(sat, Qt.UserRole)
                 sat_pos = int(sat.position)
                 pos_value = "{:0.1f}{}".format(abs(sat_pos / 10), "W" if sat_pos < 0 else "E")
-                model.appendRow((QStandardItem(sat.name),
-                                 QStandardItem(pos_value),
-                                 QStandardItem(sat.flags),
-                                 QStandardItem(sat.position),
-                                 transponders_item))
+                model.appendRow((QStandardItem(sat.name), QStandardItem(pos_value), sat_item))
 
             self.satellite_count_label.setText(str(model.rowCount()))
 
@@ -797,9 +793,9 @@ class MainWindow(MainUiWindow):
         self.satellite_transponder_view.clear_data()
 
         t_model = self.satellite_transponder_view.model()
-        trs = self.satellite_view.model().index(selected.row(), 4).data(Qt.UserRole)
-        if trs:
-            for t in trs:
+        sat = self.satellite_view.model().index(selected.row(), Column.SAT_DATA).data(Qt.UserRole)
+        if sat:
+            for t in sat.transponders:
                 t_model.appendRow(QStandardItem(i) for i in t)
 
         self.satellite_transponder_count_label.setText(str(t_model.rowCount()))
@@ -811,10 +807,16 @@ class MainWindow(MainUiWindow):
         QMessageBox.information(self, APP_NAME, self.tr("Not implemented yet!"))
 
     def on_satellite_edit(self, row):
-        QMessageBox.information(self, APP_NAME, self.tr("Not implemented yet!"))
+        index = self.satellite_view.model().index(row, Column.SAT_DATA)
+        sat_dialog = SatelliteDialog(index.data(Qt.UserRole))
+        if sat_dialog.exec():
+            QMessageBox.information(self, APP_NAME, self.tr("Not implemented yet!"))
 
     def on_transponder_edit(self, row):
-        QMessageBox.information(self, APP_NAME, self.tr("Not implemented yet!"))
+        index = self.satellite_transponder_view.model().index(row, 0)
+        tr_dialog = TransponderDialog((index.data(),))
+        if tr_dialog.exec():
+            QMessageBox.information(self, APP_NAME, self.tr("Not implemented yet!"))
 
     def on_transponder_remove(self, rows):
         rows = sorted(rows, reverse=True)
@@ -823,12 +825,12 @@ class MainWindow(MainUiWindow):
 
         cur_index = self.satellite_view.currentIndex()
         model = self.satellite_view.model()
-        data_index = model.index(cur_index.row(), 4)
-        transponders = data_index.data(Qt.UserRole)
-        if transponders:
-            list(map(transponders.pop, rows))
-            model.setData(data_index, transponders, Qt.UserRole)
-            self.satellite_transponder_count_label.setText(str(len(transponders)))
+        data_index = model.index(cur_index.row(), Column.SAT_DATA)
+        sat = data_index.data(Qt.UserRole)
+        if sat:
+            list(map(sat.transponders.pop, rows))
+            model.setData(data_index, sat, Qt.UserRole)
+            self.satellite_transponder_count_label.setText(str(len(sat.transponders)))
 
     # ********************** Picons ********************** #
 

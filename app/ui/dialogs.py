@@ -21,6 +21,8 @@
 #
 
 
+__all__ = ["TimerDialog", "ServiceDialog", "IptvServiceDialog", "BackupDialog", "SatelliteDialog", "TransponderDialog"]
+
 import zipfile
 from datetime import datetime
 from enum import IntEnum
@@ -29,7 +31,7 @@ from urllib.parse import unquote
 from PyQt5 import QtWidgets, QtCore, QtGui
 
 from app.commons import log
-from app.enigma.ecommons import Pids, Flag, Service, BqServiceType
+from app.enigma.ecommons import Pids, Flag, Service, BqServiceType, FEC, SYSTEM, POLARIZATION, MODULATION, PLS_MODE
 from app.streams.iptv import StreamType, get_fav_id
 from app.ui.models import ServiceTypeModel
 from app.ui.views import BackupFileView
@@ -1167,3 +1169,213 @@ class BackupDialog(QtWidgets.QDialog):
         self.remove_button.setText(_translate("backup_dialog", "Remove"))
         self.details_button.setToolTip(_translate("backup_dialog", "Details"))
         self.details_button.setText(_translate("backup_dialog", "Details"))
+
+
+class SatelliteDialog(QtWidgets.QDialog):
+
+    def __init__(self, satellite, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.setObjectName("satellite_dialog")
+        self.resize(320, 155)
+        self.setMinimumSize(QtCore.QSize(320, 0))
+        self.setModal(True)
+
+        self.dialog_grid_layout = QtWidgets.QGridLayout(self)
+        self.dialog_grid_layout.setSizeConstraint(QtWidgets.QLayout.SetFixedSize)
+        self.dialog_grid_layout.setObjectName("dialog_grid_layout")
+        self.main_grid_layout = QtWidgets.QGridLayout()
+        self.main_grid_layout.setObjectName("main_grid_layout")
+        self.edit_box = QtWidgets.QGroupBox(self)
+        size_policy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
+        size_policy.setHorizontalStretch(0)
+        size_policy.setVerticalStretch(0)
+        size_policy.setHeightForWidth(self.edit_box.sizePolicy().hasHeightForWidth())
+        self.edit_box.setSizePolicy(size_policy)
+        self.edit_box.setObjectName("edit_box")
+        self.edit_group_box = QtWidgets.QFormLayout(self.edit_box)
+        self.edit_group_box.setContentsMargins(9, 9, 9, 9)
+        self.edit_group_box.setObjectName("edit_group_box")
+        self.name_label = QtWidgets.QLabel(self.edit_box)
+        self.name_label.setObjectName("name_label")
+        self.edit_group_box.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.name_label)
+        self.name_edit = QtWidgets.QLineEdit(self.edit_box)
+        self.name_edit.setMinimumWidth(180)
+        self.name_edit.setObjectName("name_edit")
+        self.edit_group_box.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.name_edit)
+        self.position_label = QtWidgets.QLabel(self.edit_box)
+        self.position_label.setObjectName("position_label")
+        self.edit_group_box.setWidget(1, QtWidgets.QFormLayout.LabelRole, self.position_label)
+        self.horizontalLayout = QtWidgets.QHBoxLayout()
+        self.horizontalLayout.setSpacing(1)
+        self.horizontalLayout.setObjectName("horizontalLayout")
+        self.position_box = QtWidgets.QDoubleSpinBox(self.edit_box)
+        self.position_box.setLayoutDirection(QtCore.Qt.LeftToRight)
+        self.position_box.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
+        self.position_box.setCorrectionMode(QtWidgets.QAbstractSpinBox.CorrectToPreviousValue)
+        self.position_box.setDecimals(1)
+        self.position_box.setMaximum(180.0)
+        self.position_box.setSingleStep(0.1)
+        self.position_box.setMinimumWidth(75)
+        self.position_box.setObjectName("position_box")
+        self.horizontalLayout.addWidget(self.position_box)
+        self.side_box = QtWidgets.QComboBox(self.edit_box)
+        size_policy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
+        size_policy.setHorizontalStretch(0)
+        size_policy.setVerticalStretch(0)
+        size_policy.setHeightForWidth(self.side_box.sizePolicy().hasHeightForWidth())
+        self.side_box.setSizePolicy(size_policy)
+        self.side_box.setMinimumSize(QtCore.QSize(0, 0))
+        self.side_box.setMaximumSize(QtCore.QSize(48, 16777215))
+        self.side_box.setModel(QtCore.QStringListModel(("E", "W")))
+        self.side_box.setObjectName("side_box")
+        self.horizontalLayout.addWidget(self.side_box)
+        self.edit_group_box.setLayout(1, QtWidgets.QFormLayout.FieldRole, self.horizontalLayout)
+        self.main_grid_layout.addWidget(self.edit_box, 0, 0, 1, 1)
+        self.button_box = QtWidgets.QDialogButtonBox(self)
+        self.button_box.setOrientation(QtCore.Qt.Horizontal)
+        self.button_box.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel | QtWidgets.QDialogButtonBox.Save)
+        self.button_box.setObjectName("button_box")
+        self.main_grid_layout.addWidget(self.button_box, 1, 0, 1, 1)
+        self.dialog_grid_layout.addLayout(self.main_grid_layout, 0, 0, 1, 1)
+
+        self.retranslate_ui()
+        self.button_box.accepted.connect(self.accept)
+        self.button_box.rejected.connect(self.reject)
+        QtCore.QMetaObject.connectSlotsByName(self)
+
+        self._satellite = satellite
+        self.init_data()
+
+    def init_data(self):
+        self.name_edit.setText(self._satellite.name)
+
+    def retranslate_ui(self):
+        _translate = QtCore.QCoreApplication.translate
+        self.setWindowTitle(_translate("satellite_dialog", "E2Toolkit [Satellite]"))
+        self.edit_box.setTitle(_translate("satellite_dialog", "Satellite"))
+        self.name_label.setText(_translate("satellite_dialog", "Name:"))
+        self.position_label.setText(_translate("satellite_dialog", "Position:"))
+
+
+class TransponderDialog(QtWidgets.QDialog):
+
+    def __init__(self, transponder, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.setObjectName("transponder_dialog")
+        self.resize(320, 370)
+        self.setMinimumSize(QtCore.QSize(320, 0))
+        self.setModal(True)
+
+        min_box_width = 100
+
+        self.dialog_grid_layout = QtWidgets.QGridLayout(self)
+        self.dialog_grid_layout.setSizeConstraint(QtWidgets.QLayout.SetFixedSize)
+        self.dialog_grid_layout.setObjectName("dialog_grid_layout")
+        self.main_grid_layout = QtWidgets.QGridLayout()
+        self.main_grid_layout.setObjectName("main_grid_layout")
+        self.edit_box = QtWidgets.QGroupBox(self)
+        size_policy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
+        size_policy.setHorizontalStretch(0)
+        size_policy.setVerticalStretch(0)
+        size_policy.setHeightForWidth(self.edit_box.sizePolicy().hasHeightForWidth())
+        self.edit_box.setSizePolicy(size_policy)
+        self.edit_box.setObjectName("edit_box")
+        self.edit_group_box = QtWidgets.QFormLayout(self.edit_box)
+        self.edit_group_box.setContentsMargins(9, 9, 9, 9)
+        self.edit_group_box.setObjectName("edit_group_box")
+        self.freq_label = QtWidgets.QLabel(self.edit_box)
+        self.freq_label.setObjectName("freq_label")
+        self.edit_group_box.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.freq_label)
+        self.freq_edit = QtWidgets.QLineEdit(self.edit_box)
+        self.freq_edit.setObjectName("freq_edit")
+        self.edit_group_box.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.freq_edit)
+        self.sr_label = QtWidgets.QLabel(self.edit_box)
+        self.sr_label.setObjectName("sr_label")
+        self.edit_group_box.setWidget(1, QtWidgets.QFormLayout.LabelRole, self.sr_label)
+        self.sr_edit = QtWidgets.QLineEdit(self.edit_box)
+        self.sr_edit.setObjectName("sr_edit")
+        self.edit_group_box.setWidget(1, QtWidgets.QFormLayout.FieldRole, self.sr_edit)
+        self.pol_label = QtWidgets.QLabel(self.edit_box)
+        self.pol_label.setObjectName("pol_label")
+        self.edit_group_box.setWidget(2, QtWidgets.QFormLayout.LabelRole, self.pol_label)
+        self.pol_combo_box = QtWidgets.QComboBox(self.edit_box)
+        self.pol_combo_box.setMinimumWidth(min_box_width)
+        self.pol_combo_box.setObjectName("pol_combo_box")
+        self.edit_group_box.setWidget(2, QtWidgets.QFormLayout.FieldRole, self.pol_combo_box)
+        self.fec_label = QtWidgets.QLabel(self.edit_box)
+        self.fec_label.setObjectName("fec_label")
+        self.edit_group_box.setWidget(3, QtWidgets.QFormLayout.LabelRole, self.fec_label)
+        self.fec_combo_box = QtWidgets.QComboBox(self.edit_box)
+        self.fec_combo_box.setMinimumWidth(min_box_width)
+        self.fec_combo_box.setObjectName("fec_combo_box")
+        self.edit_group_box.setWidget(3, QtWidgets.QFormLayout.FieldRole, self.fec_combo_box)
+        self.system_label = QtWidgets.QLabel(self.edit_box)
+        self.system_label.setObjectName("system_label")
+        self.edit_group_box.setWidget(4, QtWidgets.QFormLayout.LabelRole, self.system_label)
+        self.system_combo_box = QtWidgets.QComboBox(self.edit_box)
+        self.system_combo_box.setMinimumWidth(min_box_width)
+        self.system_combo_box.setObjectName("system_combo_box")
+        self.edit_group_box.setWidget(4, QtWidgets.QFormLayout.FieldRole, self.system_combo_box)
+        self.mod_label = QtWidgets.QLabel(self.edit_box)
+        self.mod_label.setObjectName("mod_label")
+        self.edit_group_box.setWidget(5, QtWidgets.QFormLayout.LabelRole, self.mod_label)
+        self.mod_combo_box = QtWidgets.QComboBox(self.edit_box)
+        self.mod_combo_box.setMinimumWidth(min_box_width)
+        self.mod_combo_box.setObjectName("mod_combo_box")
+        self.edit_group_box.setWidget(5, QtWidgets.QFormLayout.FieldRole, self.mod_combo_box)
+        self.pls_mode_label = QtWidgets.QLabel(self.edit_box)
+        self.pls_mode_label.setObjectName("pls_mode_label")
+        self.edit_group_box.setWidget(6, QtWidgets.QFormLayout.LabelRole, self.pls_mode_label)
+        self.pls_combo_box = QtWidgets.QComboBox(self.edit_box)
+        self.pls_combo_box.setMinimumWidth(min_box_width)
+        self.pls_combo_box.setObjectName("pls_combo_box")
+        self.edit_group_box.setWidget(6, QtWidgets.QFormLayout.FieldRole, self.pls_combo_box)
+        self.pls_code_label = QtWidgets.QLabel(self.edit_box)
+        self.pls_code_label.setObjectName("pls_code_label")
+        self.edit_group_box.setWidget(7, QtWidgets.QFormLayout.LabelRole, self.pls_code_label)
+        self.pls_code_edit = QtWidgets.QLineEdit(self.edit_box)
+        self.pls_code_edit.setObjectName("pls_code_edit")
+        self.edit_group_box.setWidget(7, QtWidgets.QFormLayout.FieldRole, self.pls_code_edit)
+        self.is_id_label = QtWidgets.QLabel(self.edit_box)
+        self.is_id_label.setObjectName("is_id_label")
+        self.edit_group_box.setWidget(8, QtWidgets.QFormLayout.LabelRole, self.is_id_label)
+        self.is_id_edit = QtWidgets.QLineEdit(self.edit_box)
+        self.is_id_edit.setObjectName("is_id_edit")
+        self.edit_group_box.setWidget(8, QtWidgets.QFormLayout.FieldRole, self.is_id_edit)
+        self.main_grid_layout.addWidget(self.edit_box, 0, 0, 1, 1)
+        self.button_box = QtWidgets.QDialogButtonBox(self)
+        self.button_box.setOrientation(QtCore.Qt.Horizontal)
+        self.button_box.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel | QtWidgets.QDialogButtonBox.Save)
+        self.button_box.setObjectName("button_box")
+        self.main_grid_layout.addWidget(self.button_box, 1, 0, 1, 1)
+        self.dialog_grid_layout.addLayout(self.main_grid_layout, 0, 0, 1, 1)
+        # Boxes data.
+        self.pol_combo_box.setModel(QtCore.QStringListModel(POLARIZATION.values()))
+        self.fec_combo_box.setModel(QtCore.QStringListModel(sorted(set(FEC.values()))))
+        self.system_combo_box.setModel(QtCore.QStringListModel(SYSTEM.values()))
+        self.mod_combo_box.setModel(QtCore.QStringListModel(MODULATION.values()))
+        self.pls_combo_box.setModel(QtCore.QStringListModel(PLS_MODE.values()))
+        # Value validation.
+        self.freq_edit.setValidator(QtGui.QIntValidator(self.freq_edit))
+        self.sr_edit.setValidator(QtGui.QIntValidator(self.sr_edit))
+        self.pls_code_edit.setValidator(QtGui.QIntValidator(self.pls_code_edit))
+        self.is_id_edit.setValidator(QtGui.QIntValidator(self.is_id_edit))
+
+        self.retranslate_ui()
+        self.button_box.accepted.connect(self.accept)
+        self.button_box.rejected.connect(self.reject)
+        QtCore.QMetaObject.connectSlotsByName(self)
+
+    def retranslate_ui(self):
+        _translate = QtCore.QCoreApplication.translate
+        self.setWindowTitle(_translate("transponder_dialog", "E2Toolkit [Transponder]"))
+        self.edit_box.setTitle(_translate("transponder_dialog", "Transponder"))
+        self.freq_label.setText(_translate("transponder_dialog", "Freq:"))
+        self.sr_label.setText(_translate("transponder_dialog", "SR:"))
+        self.pol_label.setText(_translate("transponder_dialog", "Pol:"))
+        self.fec_label.setText(_translate("transponder_dialog", "FEC:"))
+        self.system_label.setText(_translate("transponder_dialog", "System:"))
+        self.mod_label.setText(_translate("transponder_dialog", "Mod:"))
+        self.pls_mode_label.setText(_translate("transponder_dialog", "PLS mode:"))
+        self.pls_code_label.setText(_translate("transponder_dialog", "PLS code:"))
+        self.is_id_label.setText(_translate("transponder_dialog", "Is ID:"))
