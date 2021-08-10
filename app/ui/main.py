@@ -236,6 +236,7 @@ class MainWindow(MainUiWindow):
             self._update_state_timer.stop()
 
         callbacks = {HttpAPI.Request.INFO: self.update_state_info,
+                     HttpAPI.Request.SIGNAL: self.update_signal,
                      HttpAPI.Request.STREAM: self.update_playback,
                      HttpAPI.Request.TIMER_LIST: self.update_timer_list,
                      HttpAPI.Request.EPG: self.update_single_epg}
@@ -1111,6 +1112,9 @@ class MainWindow(MainUiWindow):
             image = info.get("e2distroversion", "")
             model = info.get("e2model", "")
             self.status_bar.showMessage(info_text.format("OK", "Current Box: {} Image: {}".format(model, image)))
+            self.model_label.setText(model)
+            self.e2_version_label.setText(info.get("e2enigmaversion", "N/A"))
+            self.image_version_label.setText(info.get("e2imageversion", "N/A"))
         else:
             self.status_bar.showMessage(info_text.format("Disconnected.", ""))
             if all((self.log_action.isChecked(),
@@ -1118,6 +1122,14 @@ class MainWindow(MainUiWindow):
                     self.upload_tool_button.isEnabled())):
                 reason = info.get("reason", None)
                 self.log_text_browser.append(reason) if reason else None
+
+        if self.current_page is Page.CONTROL:
+            self._http_api.send(HttpAPI.Request.SIGNAL)
+
+    def update_signal(self, sig):
+        self.snr_progress_bar.setValue(int(sig.get("e2snr", "0 %").strip().rstrip("%N/A") or 0))
+        self.ber_progress_bar.setValue(int((sig.get("e2ber", None) or "").strip().rstrip("N/A") or 0))
+        self.agc_progress_bar.setValue(int(sig.get("e2acg", "0 %").strip().rstrip("%N/A") or 0))
 
     def on_app_exit(self, state):
         self.close()

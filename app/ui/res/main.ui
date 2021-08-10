@@ -1769,9 +1769,170 @@
               <item>
                <layout class="QHBoxLayout" name="control_horizontal_layout">
                 <item>
-                 <widget class="QStackedWidget" name="control_stacked_widget">
-                  <widget class="QWidget" name="control_info_page"/>
-                  <widget class="QWidget" name="control_screenshot_page"/>
+                 <widget class="QGroupBox" name="control_info_group_box">
+                  <property name="title">
+                   <string>Box Info</string>
+                  </property>
+                  <property name="currentIndex" stdset="0">
+                   <number>0</number>
+                  </property>
+                  <layout class="QVBoxLayout" name="control_info_layout">
+                   <property name="leftMargin">
+                    <number>9</number>
+                   </property>
+                   <property name="topMargin">
+                    <number>9</number>
+                   </property>
+                   <property name="rightMargin">
+                    <number>9</number>
+                   </property>
+                   <property name="bottomMargin">
+                    <number>9</number>
+                   </property>
+                   <item>
+                    <layout class="QFormLayout" name="box_info_layout">
+                     <item row="0" column="0">
+                      <widget class="QLabel" name="model_info_label">
+                       <property name="text">
+                        <string>Model:</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="1" column="0">
+                      <widget class="QLabel" name="e2_version_info_label">
+                       <property name="text">
+                        <string>Enigma2 version:</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="2" column="0">
+                      <widget class="QLabel" name="image_version_info_label">
+                       <property name="text">
+                        <string>Image version:</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="0" column="1">
+                      <widget class="QLabel" name="model_label">
+                       <property name="text">
+                        <string notr="true">N/A</string>
+                       </property>
+                       <property name="alignment">
+                        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="1" column="1">
+                      <widget class="QLabel" name="e2_version_label">
+                       <property name="text">
+                        <string notr="true">N/A</string>
+                       </property>
+                       <property name="alignment">
+                        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="2" column="1">
+                      <widget class="QLabel" name="image_version_label">
+                       <property name="text">
+                        <string notr="true">N/A</string>
+                       </property>
+                       <property name="alignment">
+                        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                       </property>
+                      </widget>
+                     </item>
+                    </layout>
+                   </item>
+                   <item>
+                    <widget class="QLabel" name="screenshot_label">
+                     <property name="sizePolicy">
+                      <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                       <horstretch>0</horstretch>
+                       <verstretch>0</verstretch>
+                      </sizepolicy>
+                     </property>
+                     <property name="frameShape">
+                      <enum>QFrame::StyledPanel</enum>
+                     </property>
+                     <property name="frameShadow">
+                      <enum>QFrame::Sunken</enum>
+                     </property>
+                     <property name="text">
+                      <string notr="true"/>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QGroupBox" name="signal_box">
+                     <property name="title">
+                      <string>Signal level</string>
+                     </property>
+                     <layout class="QFormLayout" name="formLayout">
+                      <property name="leftMargin">
+                       <number>0</number>
+                      </property>
+                      <property name="topMargin">
+                       <number>9</number>
+                      </property>
+                      <property name="rightMargin">
+                       <number>9</number>
+                      </property>
+                      <property name="bottomMargin">
+                       <number>9</number>
+                      </property>
+                      <item row="0" column="0">
+                       <widget class="QLabel" name="snr_label">
+                        <property name="text">
+                         <string>SNR:</string>
+                        </property>
+                       </widget>
+                      </item>
+                      <item row="1" column="0">
+                       <widget class="QLabel" name="ber_label">
+                        <property name="text">
+                         <string>BER:</string>
+                        </property>
+                       </widget>
+                      </item>
+                      <item row="2" column="0">
+                       <widget class="QLabel" name="agc_label">
+                        <property name="text">
+                         <string>AGC:</string>
+                        </property>
+                       </widget>
+                      </item>
+                      <item row="0" column="1">
+                       <widget class="QProgressBar" name="snr_progress_bar">
+                        <property name="value">
+                         <number>0</number>
+                        </property>
+                        <property name="format">
+                         <string>dB</string>
+                        </property>
+                       </widget>
+                      </item>
+                      <item row="1" column="1">
+                       <widget class="QProgressBar" name="ber_progress_bar">
+                        <property name="value">
+                         <number>0</number>
+                        </property>
+                        <property name="format">
+                         <string/>
+                        </property>
+                       </widget>
+                      </item>
+                      <item row="2" column="1">
+                       <widget class="QProgressBar" name="agc_progress_bar">
+                        <property name="value">
+                         <number>0</number>
+                        </property>
+                       </widget>
+                      </item>
+                     </layout>
+                    </widget>
+                   </item>
+                  </layout>
                  </widget>
                 </item>
                 <item>
@@ -2146,6 +2307,25 @@
                     </layout>
                    </item>
                    <item>
+                    <widget class="QCheckBox" name="grub_screenshot_box">
+                     <property name="sizePolicy">
+                      <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                       <horstretch>0</horstretch>
+                       <verstretch>0</verstretch>
+                      </sizepolicy>
+                     </property>
+                     <property name="toolTip">
+                      <string notr="true"/>
+                     </property>
+                     <property name="layoutDirection">
+                      <enum>Qt::LeftToRight</enum>
+                     </property>
+                     <property name="text">
+                      <string>Grab screenshot</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
                     <spacer name="control_bottom_spacer">
                      <property name="orientation">
                       <enum>Qt::Vertical</enum>
@@ -2497,7 +2677,7 @@
      <x>0</x>
      <y>0</y>
      <width>1000</width>
-     <height>24</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="file_menu">
