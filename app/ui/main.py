@@ -29,7 +29,7 @@ from datetime import datetime
 from pathlib import Path
 
 from PyQt5.QtCore import QTranslator, QStringListModel, QTimer, pyqtSlot, Qt, QFile, QDir
-from PyQt5.QtGui import QIcon, QStandardItem
+from PyQt5.QtGui import QIcon, QStandardItem, QPixmap
 from PyQt5.QtWidgets import QApplication, QMessageBox, QFileDialog, QActionGroup, QAction, QInputDialog
 
 from app.commons import APP_VERSION, APP_NAME, LANG_PATH, log, LOCALES
@@ -239,7 +239,9 @@ class MainWindow(MainUiWindow):
                      HttpAPI.Request.SIGNAL: self.update_signal,
                      HttpAPI.Request.STREAM: self.update_playback,
                      HttpAPI.Request.TIMER_LIST: self.update_timer_list,
-                     HttpAPI.Request.EPG: self.update_single_epg}
+                     HttpAPI.Request.EPG: self.update_single_epg,
+                     HttpAPI.Request.GRUB: self.update_screenshot,
+                     HttpAPI.Request.REMOTE: self.on_action_done}
         self._http_api = HttpAPI(self._profiles.get(self.profile_combo_box.currentText()), callbacks)
         self._update_state_timer.start(3000)
 
@@ -1097,8 +1099,22 @@ class MainWindow(MainUiWindow):
     def on_screenshot_osd(self, state):
         QMessageBox.information(self, APP_NAME, self.tr("Not implemented yet!"))
 
+    def on_action_done(self, req):
+        if self.grub_screenshot_box.isChecked():
+            self._http_api.send(HttpAPI.Request.GRUB)
+
     def on_volume_changed(self, value):
         self._http_api.send(HttpAPI.Request.VOL, value)
+
+    def update_screenshot(self, data):
+        if "error_code" in data:
+            return
+
+        data = data.get("img_data", None)
+        if data:
+            pix = QPixmap()
+            pix.loadFromData(data)
+            self.screenshot_label.setPixmap(pix)
 
     # ******************** HTTP API ******************** #
 

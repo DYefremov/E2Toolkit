@@ -531,7 +531,7 @@ class HttpAPI:
         TIMER = ""
         TIMER_LIST = "timerlist"
         # Screenshot
-        GRUB = "grab?format=jpg&"
+        GRUB = "grab?format=jpg"
 
     class Remote(str, Enum):
         """ Args for HttpRequestType [REMOTE] class. """
@@ -564,6 +564,7 @@ class HttpAPI:
 
     def __init__(self, settings, callbacks={}):
         host, use_ssl, port = settings["host"], settings["http_use_ssl"], settings["http_port"]
+        self._base_url = "http{}://{}:{}/".format("s" if use_ssl else "", host, port)
         self._main_url = "http{}://{}:{}/web/".format("s" if use_ssl else "", host, port)
         self._settings = settings
         self._use_ssl = use_ssl
@@ -590,7 +591,8 @@ class HttpAPI:
         self.send(self.Request.TOKEN)
 
     def send(self, req, params=None):
-        request = QNetworkRequest(QUrl("{}{}{}".format(self._main_url, req, params if params else "")))
+        url = self._main_url if req is not HttpAPI.Request.GRUB else self._base_url
+        request = QNetworkRequest(QUrl("{}{}{}".format(url, req, params if params else "")))
         request.setSslConfiguration(self._ssl_config)
         request.setAttribute(request.CustomVerbAttribute, req)
         request.setHeader(QNetworkRequest.ContentTypeHeader, "application/x-www-form-urlencoded")

@@ -1868,9 +1868,9 @@
                      <property name="title">
                       <string>Signal level</string>
                      </property>
-                     <layout class="QFormLayout" name="formLayout">
+                     <layout class="QFormLayout" name="signal_box_layout">
                       <property name="leftMargin">
-                       <number>0</number>
+                       <number>9</number>
                       </property>
                       <property name="topMargin">
                        <number>9</number>
