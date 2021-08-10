@@ -1123,6 +1123,16 @@
                            </property>
                           </spacer>
                          </item>
+                         <item>
+                          <widget class="QCheckBox" name="picon_load_only_selected_box">
+                           <property name="layoutDirection">
+                            <enum>Qt::RightToLeft</enum>
+                           </property>
+                           <property name="text">
+                            <string>Load only selected items</string>
+                           </property>
+                          </widget>
+                         </item>
                         </layout>
                        </item>
                        <item>
@@ -2666,6 +2676,9 @@
         <width>16777215</width>
         <height>250</height>
        </size>
+      </property>
+      <property name="toolTip">
+       <string notr="true"/>
       </property>
      </widget>
     </item>

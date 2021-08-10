@@ -241,7 +241,9 @@ class MainWindow(MainUiWindow):
                      HttpAPI.Request.TIMER_LIST: self.update_timer_list,
                      HttpAPI.Request.EPG: self.update_single_epg,
                      HttpAPI.Request.GRUB: self.update_screenshot,
-                     HttpAPI.Request.REMOTE: self.on_action_done}
+                     HttpAPI.Request.REMOTE: self.on_action_done,
+                     HttpAPI.Request.VOL: self.on_action_done}
+
         self._http_api = HttpAPI(self._profiles.get(self.profile_combo_box.currentText()), callbacks)
         self._update_state_timer.start(3000)
 
@@ -286,6 +288,7 @@ class MainWindow(MainUiWindow):
 
     def on_data_download(self, state=False):
         self.download_tool_button.setEnabled(False)
+        self.upload_tool_button.setEnabled(False)
         self.log_text_browser.clear()
 
         data_loader = self.get_data_loader()
@@ -293,6 +296,7 @@ class MainWindow(MainUiWindow):
 
     def on_data_load_done(self, download_type):
         self.download_tool_button.setEnabled(True)
+        self.upload_tool_button.setEnabled(True)
         if download_type is DownloadType.SATELLITES:
             self.load_satellites(self.get_data_path() + "satellites.xml")
         if download_type is DownloadType.PICONS:
@@ -305,6 +309,7 @@ class MainWindow(MainUiWindow):
             return
 
         self.upload_tool_button.setEnabled(False)
+        self.download_tool_button.setEnabled(False)
         self.log_text_browser.clear()
 
         data_loader = self.get_data_loader(upload=True)
@@ -312,16 +317,20 @@ class MainWindow(MainUiWindow):
 
     def on_data_upload_done(self, download_type):
         self.upload_tool_button.setEnabled(True)
+        self.download_tool_button.setEnabled(True)
 
     def get_data_loader(self, upload=False):
         """ Creates and returns DataLoader class instance. """
         download_type = DownloadType.ALL
+        f_filter = None
         if self.current_page is Page.SAT:
             download_type = DownloadType.SATELLITES
         elif self.current_page is Page.PICONS:
             download_type = DownloadType.PICONS
+            if self.picon_load_only_selected_box.isChecked():
+                f_filter = self.selected_dst_picons()
 
-        data_loader = DataLoader(self.settings, download_type, upload, self._http_api, parent=self)
+        data_loader = DataLoader(self.settings, download_type, upload, self._http_api, f_filter, parent=self)
         data_loader.message.connect(self.log_text_browser.append)
         data_loader.http.connect(self.http_send_callback)
         data_loader.error_message.connect(self.on_data_load_error)
@@ -921,6 +930,10 @@ class MainWindow(MainUiWindow):
                                                    self.tr("Package"), srv.package)
         ref = "{}: {}".format(self.tr("Service reference"), srv.picon_id.rstrip(".png"))
         return "{}\n{}".format(header, ref)
+
+    def selected_dst_picons(self):
+        """ Returns a set of selected picon files from the dst view. """
+        return {Path(r.data()).name for r in self.picon_dst_view.selectionModel().selectedRows(Column.PICON_PATH)}
 
     # ******************** Streams ********************* #
 
