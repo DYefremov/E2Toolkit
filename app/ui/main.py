@@ -204,6 +204,11 @@ class MainWindow(MainUiWindow):
         self.about_action.triggered.connect(self.on_about)
         # Context menu items.
         self.services_view.copied.connect(self.fav_view.context_menu.paste_action.setEnabled)
+        # Search.
+        self.service_search_edit.textChanged.connect(self.services_view.search)
+        self.bq_service_search_edit.textChanged.connect(self.fav_view.search)
+        self.epg_search_edit.textChanged.connect(self.epg_view.search)
+        self.timer_search_edit.textChanged.connect(self.timer_view.search)
 
     def init_language(self):
         app_locale = self.settings.app_locale

@@ -105,6 +105,31 @@ class BaseTableView(QtWidgets.QTableView):
             self.edited.emit(self.currentIndex().row())
 
 
+class Searcher(QtWidgets.QWidget):
+    """ Provides search possibilities. """
+
+    def search(self, text):
+        sel_model = self.selectionModel()
+        sel_model.clearSelection()
+        if not text:
+            return
+
+        model = self.model()
+        matches = []
+        for c in self.search_columns():
+            start = model.index(0, c)
+            matches.extend(model.match(start, QtCore.Qt.DisplayRole, text, -1, QtCore.Qt.MatchContains))
+        if matches:
+            mode = sel_model.Select | sel_model.Rows
+            for m in matches:
+                sel_model.select(m, mode)
+            # Scrolling to first founded index.
+            self.scrollTo(matches[0])
+
+    def search_columns(self):
+        return [Column.NAME]
+
+
 class PiconAssignment(QtWidgets.QWidget):
     """ Additional class [mixin] for assigning picons. """
 
@@ -202,7 +227,7 @@ class BaseTreeView(QtWidgets.QTreeView):
             selection_model.select(i, selection_model.Select | selection_model.Rows)
 
 
-class ServicesView(BaseTableView, PiconAssignment):
+class ServicesView(BaseTableView, PiconAssignment, Searcher):
     """ Main class for services list. """
     picon_assigned = QtCore.pyqtSignal(tuple)  # tuple -> src, picon ids
 
@@ -315,8 +340,11 @@ class ServicesView(BaseTableView, PiconAssignment):
         if index.isValid():
             self.edited.emit(index.row())
 
+    def search_columns(self):
+        return Column.NAME, Column.PACKAGE
 
-class FavView(BaseTableView, PiconAssignment):
+
+class FavView(BaseTableView, PiconAssignment, Searcher):
     """ Main class for favorites list. """
     picon_assigned = QtCore.pyqtSignal(tuple)
 
@@ -642,7 +670,7 @@ class PiconView(BaseTableView):
             event.ignore()
 
 
-class EpgView(BaseTableView):
+class EpgView(BaseTableView, Searcher):
     timer_add = QtCore.pyqtSignal(int)
 
     class ContextMenu(QtWidgets.QMenu):
@@ -686,8 +714,11 @@ class EpgView(BaseTableView):
 
         self.timer_add.emit(index.row())
 
+    def search_columns(self):
+        return Column.EPG_TITLE, Column.EPG_DESC, Column.EPG_TIME
 
-class TimerView(BaseTableView):
+
+class TimerView(BaseTableView, Searcher):
     class ContextMenu(QtWidgets.QMenu):
 
         def __init__(self, *args, **kwargs):
@@ -724,6 +755,9 @@ class TimerView(BaseTableView):
         index = self.indexAt(event.pos())
         if index.isValid():
             self.edited.emit(index.row())
+
+    def search_columns(self):
+        return Column.TIMER_NAME, Column.TIMER_DESC, Column.TIMER_SRV, Column.TIMER_TIME
 
 
 class FtpView(QtWidgets.QListView):
