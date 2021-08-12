@@ -24,7 +24,7 @@
 """ Main UI module. """
 import os
 import sys
-from collections import OrderedDict, Counter
+from collections import OrderedDict, Counter, defaultdict
 from datetime import datetime
 from pathlib import Path
 
@@ -37,13 +37,13 @@ from app.connections import HttpAPI, DownloadType, DataLoader
 from app.enigma.backup import backup_data, clear_data_path
 from app.enigma.blacklist import write_blacklist
 from app.enigma.bouquets import BouquetsReader, BouquetsWriter
-from app.enigma.ecommons import BqServiceType, Service, Bouquet, Bouquets, BqType
+from app.enigma.ecommons import BqServiceType, Service, Bouquet, Bouquets, BqType, BouquetService
 from app.enigma.lamedb import get_services, LameDbWriter
 from app.satellites.satxml import get_satellites
 from app.streams.iptv import import_m3u
 from app.ui.dialogs import *
 from app.ui.settings import SettingsDialog, Settings
-from app.ui.uicommons import Column, IPTV_ICON, LOCKED_ICON
+from app.ui.uicommons import Column, IPTV_ICON, LOCKED_ICON, BqGenType
 from .ui import MainUiWindow, Page
 
 
@@ -134,6 +134,9 @@ class MainWindow(MainUiWindow):
         self.services_view.edited.connect(lambda r: self.on_service_edit(r, self.services_view.model()))
         self.services_view.removed.connect(self.remove_services)
         self.services_view.delete_release.connect(self.on_service_remove_done)
+        self.services_view.context_menu.copy_to_top_action.triggered.connect(self.on_to_fav_top_copy)
+        self.services_view.context_menu.copy_to_end_action.triggered.connect(self.on_to_fav_end_copy)
+        self.services_view.gen_bouquets.connect(self.gen_bouquets)
         self.services_view.picon_assigned.connect(lambda d: self.copy_picons(*d))
         self.bouquets_view.removed.connect(self.remove_bouquets)
         self.bouquets_view.context_menu.new_action.triggered.connect(self.on_new_bouquet_add)
@@ -781,6 +784,52 @@ class MainWindow(MainUiWindow):
                 # Extra names for service in bouquet.
                 s_list.append(srv._replace(name=ext_services.get(srv.fav_id, None) if ext_services else None))
         return s_list
+
+    def on_to_fav_top_copy(self):
+        pass
+
+    def on_to_fav_end_copy(self):
+        pass
+
+    def gen_bouquets(self, gen_type):
+        """ Creates and adds bouquets of the given type. """
+        column = Column.POS
+        if gen_type in (BqGenType.PACKAGE, BqGenType.EACH_PACKAGE):
+            column = Column.PACKAGE
+        elif gen_type in (BqGenType.TYPE, BqGenType.EACH_TYPE):
+            column = Column.TYPE
+
+        rows = self.services_view.selectionModel().selectedRows(column)
+        if not rows:
+            return
+
+        if len(rows) > 1:
+            self.show_error_dialog(self.tr("Please, select only one item!"))
+            return
+
+        cond = rows[0].data()
+        bouquets = []
+
+        model = self.services_view.model()
+        values = {model.index(i, column).data() for i in range(model.rowCount())}
+        exist = {k.rstrip(":tv").rstrip(":radio") for k in self._bouquets.keys()} & values
+        # Splitting services by column value.
+        d = defaultdict(list)
+        [d[model.index(r, column).data()].append(
+            BouquetService(model.index(r, Column.NAME).data(),
+                           BqServiceType.DEFAULT,
+                           model.index(r, Column.FAV_ID).data(),
+                           0)) for r in range(model.rowCount())]
+
+        if gen_type in (BqGenType.SAT, BqGenType.PACKAGE, BqGenType.TYPE):
+            bouquets.append(Bouquet(cond, BqType.TV.value, d.get(cond)))
+        else:
+            for name in filter(lambda v: v not in exist, values):
+                bouquets.append(Bouquet(name, BqType.TV.value, d.get(name)))
+
+        tv_root_item = self.bouquets_view.model().item(0, Column.BQ_NAME)
+        for bq in bouquets:
+            self.append_bouquet(bq, tv_root_item)
 
     # ******************** Satellites ******************** #
 

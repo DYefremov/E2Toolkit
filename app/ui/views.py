@@ -26,7 +26,7 @@ __all__ = ["ServicesView", "FavView", "BouquetsView", "SatelliteView", "Satellit
 from PyQt5 import QtWidgets, QtCore, QtGui
 
 from app.ui.models import *
-from app.ui.uicommons import Column
+from app.ui.uicommons import Column, BqGenType
 
 
 class BaseTableView(QtWidgets.QTableView):
@@ -230,6 +230,7 @@ class BaseTreeView(QtWidgets.QTreeView):
 class ServicesView(BaseTableView, PiconAssignment, Searcher):
     """ Main class for services list. """
     picon_assigned = QtCore.pyqtSignal(tuple)  # tuple -> src, picon ids
+    gen_bouquets = QtCore.pyqtSignal(BqGenType)
 
     class ContextMenu(QtWidgets.QMenu):
 
@@ -320,6 +321,18 @@ class ServicesView(BaseTableView, PiconAssignment, Searcher):
         self.context_menu.edit_action.triggered.connect(self.on_edit)
         self.context_menu.copy_ref_action.triggered.connect(self.copy_reference)
         self.context_menu.assign_action.triggered.connect(self.assign_picon)
+        self.context_menu.create_bq_for_current_sat_action.triggered.connect(
+            lambda b: self.gen_bouquets.emit(BqGenType.SAT))
+        self.context_menu.create_bq_for_current_package_action.triggered.connect(
+            lambda b: self.gen_bouquets.emit(BqGenType.PACKAGE))
+        self.context_menu.create_bq_for_current_type_action.triggered.connect(
+            lambda b: self.gen_bouquets.emit(BqGenType.TYPE))
+        self.context_menu.create_bq_for_each_sat_action.triggered.connect(
+            lambda b: self.gen_bouquets.emit(BqGenType.EACH_SAT))
+        self.context_menu.create_bq_for_each_package_action.triggered.connect(
+            lambda b: self.gen_bouquets.emit(BqGenType.EACH_PACKAGE))
+        self.context_menu.create_bq_for_each_type_action.triggered.connect(
+            lambda b: self.gen_bouquets.emit(BqGenType.EACH_TYPE))
 
     def contextMenuEvent(self, event):
         self.context_menu.popup(QtGui.QCursor.pos())

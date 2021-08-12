@@ -30,6 +30,16 @@ HIDE_ICON = None
 IPTV_ICON = None
 
 
+class BqGenType(IntEnum):
+    """  Bouquet generation type. """
+    SAT = 0
+    EACH_SAT = 1
+    PACKAGE = 2
+    EACH_PACKAGE = 3
+    TYPE = 4
+    EACH_TYPE = 5
+
+
 class Column(IntEnum):
     """ Column nums in the views. """
     # Services
