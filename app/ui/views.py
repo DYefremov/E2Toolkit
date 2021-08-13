@@ -80,7 +80,7 @@ class BaseTableView(QtWidgets.QTableView):
         mime = self.clipboard.mimeData()
         if mime.hasFormat("application/x-qabstractitemmodeldatalist"):
             if self.model().dropMimeData(mime, QtCore.Qt.CopyAction, target.row() + 1, 0, QtCore.QModelIndex()):
-                self.clipboard.clear()
+                mime.clear()
                 self.inserted.emit(True)
 
     def on_cut(self):

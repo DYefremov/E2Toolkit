@@ -786,10 +786,18 @@ class MainWindow(MainUiWindow):
         return s_list
 
     def on_to_fav_top_copy(self):
-        pass
+        self.fav_view.scrollToTop()
+        self.copy_to(self.services_view, self.fav_view, self.fav_view.model().index(-1, 0))
 
     def on_to_fav_end_copy(self):
-        pass
+        self.fav_view.scrollToBottom()
+        model = self.fav_view.model()
+        self.copy_to(self.services_view, self.fav_view, model.index(model.rowCount() - 1, 0))
+
+    def copy_to(self, src_view, dst_view, index):
+        dst_view.setCurrentIndex(index)
+        src_view.on_copy()
+        dst_view.on_paste()
 
     def gen_bouquets(self, gen_type):
         """ Creates and adds bouquets of the given type. """
