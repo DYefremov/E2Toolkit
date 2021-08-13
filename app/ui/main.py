@@ -39,7 +39,7 @@ from app.enigma.blacklist import write_blacklist
 from app.enigma.bouquets import BouquetsReader, BouquetsWriter
 from app.enigma.ecommons import BqServiceType, Service, Bouquet, Bouquets, BqType, BouquetService
 from app.enigma.lamedb import get_services, LameDbWriter
-from app.satellites.satxml import get_satellites
+from app.satellites.satxml import get_satellites, write_satellites
 from app.streams.iptv import import_m3u
 from app.ui.dialogs import *
 from app.ui.settings import SettingsDialog, Settings
@@ -567,6 +567,8 @@ class MainWindow(MainUiWindow):
                 self.save_data(self.get_data_path())
             else:
                 self.show_error_dialog(self.tr("No data to save!"))
+        elif self.current_page is Page.SAT:
+            self.save_satellites()
         else:
             QMessageBox.information(self, APP_NAME, self.tr("Not implemented yet!"))
 
@@ -616,6 +618,16 @@ class MainWindow(MainUiWindow):
         write_blacklist(path, self._blacklist)
 
         QMessageBox.information(self, APP_NAME, self.tr("Done!"))
+
+    def save_satellites(self):
+        r_count = self.satellite_view.model().rowCount()
+        if not r_count:
+            self.show_error_dialog(self.tr("No data to save!"))
+            return
+
+        model = self.satellite_view.model()
+        write_satellites((model.index(r, Column.SAT_DATA).data(Qt.UserRole) for r in range(r_count)),
+                         self.get_data_path() + "satellites.xml")
 
     # ******************* Data import ******************** #
 
@@ -1005,7 +1017,7 @@ class MainWindow(MainUiWindow):
 
     def on_picon_remove_from_receiver(self, rows):
         paths = {Path(self.picon_dst_view.model().index(r, Column.PICON_PATH).data()).name for r in rows}
-        deleter = PiconDeleter(self.settings,  paths, parent=self)
+        deleter = PiconDeleter(self.settings, paths, parent=self)
         deleter.message.connect(self.log_text_browser.append)
         deleter.error_message.connect(self.on_data_load_error)
         deleter.loaded.connect(lambda: QMessageBox.information(self, APP_NAME, self.tr("Done!")))
