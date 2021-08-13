@@ -33,7 +33,7 @@ from PyQt5.QtGui import QIcon, QStandardItem, QPixmap
 from PyQt5.QtWidgets import QApplication, QMessageBox, QFileDialog, QActionGroup, QAction, QInputDialog
 
 from app.commons import APP_VERSION, APP_NAME, LANG_PATH, log, LOCALES
-from app.connections import HttpAPI, DownloadType, DataLoader
+from app.connections import HttpAPI, DownloadType, DataLoader, PiconDeleter
 from app.enigma.backup import backup_data, clear_data_path
 from app.enigma.blacklist import write_blacklist
 from app.enigma.bouquets import BouquetsReader, BouquetsWriter
@@ -155,6 +155,8 @@ class MainWindow(MainUiWindow):
         self.picon_dst_view.id_received.connect(self.on_picon_ids_received)
         self.picon_dst_view.urls_received.connect(self.on_picon_urls_received)
         self.picon_dst_view.replaced.connect(self.on_picon_replace)
+        self.picon_dst_view.removed.connect(self.on_picon_remove)
+        self.picon_dst_view.remove_from_receiver.connect(self.on_picon_remove_from_receiver)
         # Streams.
         self.media_play_tool_button.clicked.connect(self.playback_start)
         self.media_stop_tool_button.clicked.connect(self.playback_stop)
@@ -996,6 +998,18 @@ class MainWindow(MainUiWindow):
     def selected_dst_picons(self):
         """ Returns a set of selected picon files from the dst view. """
         return {Path(r.data()).name for r in self.picon_dst_view.selectionModel().selectedRows(Column.PICON_PATH)}
+
+    def on_picon_remove(self, rows):
+        paths = (self.picon_dst_view.model().index(r, Column.PICON_PATH).data() for r in rows)
+        list(map(lambda p: QFile(p).remove(), paths))
+
+    def on_picon_remove_from_receiver(self, rows):
+        paths = {Path(self.picon_dst_view.model().index(r, Column.PICON_PATH).data()).name for r in rows}
+        deleter = PiconDeleter(self.settings,  paths, parent=self)
+        deleter.message.connect(self.log_text_browser.append)
+        deleter.error_message.connect(self.on_data_load_error)
+        deleter.loaded.connect(lambda: QMessageBox.information(self, APP_NAME, self.tr("Done!")))
+        deleter.start()
 
     # ******************** Streams ********************* #
 

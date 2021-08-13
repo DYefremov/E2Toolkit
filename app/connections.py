@@ -303,10 +303,10 @@ class UtfFTP(FTP):
 
     # ****************** Deletion ******************** #
 
-    def delete_picons(self, callback, dest=None, files_filter=None):
-        if dest:
+    def delete_picons(self, callback, dst=None, files_filter=None):
+        if dst:
             try:
-                self.cwd(dest)
+                self.cwd(dst)
             except Error as e:
                 callback(str(e))
                 return
@@ -484,14 +484,32 @@ def upload_data(*, settings, download_type=DownloadType.ALL, remove_unused=False
 
 # ***************** Picons ******************* #
 
-def remove_picons(*, settings, callback, done_callback=None, files_filter=None):
-    """ Removes picons from the Box via FTP. """
-    with UtfFTP(host=settings.host, user=settings.user, passwd=settings.password) as ftp:
-        ftp.encoding = "utf-8"
-        callback("FTP OK.\n")
-        ftp.delete_picons(callback, settings.picons_path, files_filter)
-        if done_callback:
-            done_callback()
+class PiconDeleter(QThread):
+    """ Class to picons deletion from the receiver in a separate thread. """
+    message = pyqtSignal(str)
+    error_message = pyqtSignal(str)
+    loaded = pyqtSignal()
+
+    def __init__(self, settings, file_filter=None, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self._settings = settings
+        self._file_filter = file_filter
+        self.finished.connect(lambda: self.loaded.emit())
+
+    def run(self):
+        try:
+            profile = self._settings.current_profile
+            picon_path = profile["box_picon_path"]
+            self.message.emit(picon_path)
+            with UtfFTP(host=profile["host"], user=profile["user"], passwd=profile["password"]) as ftp:
+                ftp.encoding = "utf-8"
+                self.message.emit("FTP OK.")
+                ftp.delete_picons(self.message.emit, picon_path, self._file_filter)
+        except Exception as e:
+            error_msg = "Error: {}".format(str(e))
+            self.error_message.emit(error_msg)
+            self.message.emit(error_msg)
 
 
 def picons_filter_function(files_filter=None):

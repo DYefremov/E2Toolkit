@@ -502,7 +502,7 @@ class MainUiWindow(QtWidgets.QMainWindow):
         self.picon_load_only_selected_box.setObjectName("picon_load_only_selected_box")
         self.picon_dst_top_layout.addWidget(self.picon_load_only_selected_box)
         self.picon_dst_layout.addLayout(self.picon_dst_top_layout)
-        self.picon_dst_view = PiconView(self.picon_dst_box)
+        self.picon_dst_view = PiconDstView(self.picon_dst_box)
         self.picon_dst_view.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
         self.picon_dst_view.setObjectName("picon_dst_view")
         self.picon_dst_layout.addWidget(self.picon_dst_view)
@@ -1237,6 +1237,8 @@ class MainUiWindow(QtWidgets.QMainWindow):
         self.import_m3u_action.setIcon(QtGui.QIcon.fromTheme("insert-link"))
         self.fav_tools_menu.addAction(self.import_m3u_action)
         self.fav_menu_button.setMenu(self.fav_tools_menu)
+        # Picons.
+        self.picon_dst_remove_button.setMenu(self.picon_dst_view.context_menu)
         # Translation
         self.retranslate_ui(self)
         # Startup

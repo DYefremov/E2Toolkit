@@ -21,7 +21,7 @@
 #
 
 __all__ = ["ServicesView", "FavView", "BouquetsView", "SatelliteView", "SatelliteTransponderView",
-           "PiconView", "EpgView", "TimerView", "FtpView", "FileView", "MediaView"]
+           "PiconView", "PiconDstView", "EpgView", "TimerView", "FtpView", "FileView", "MediaView"]
 
 from PyQt5 import QtWidgets, QtCore, QtGui
 
@@ -623,6 +623,7 @@ class PiconView(BaseTableView):
     replaced = QtCore.pyqtSignal(tuple)  # tuple -> self, paths
     id_received = QtCore.pyqtSignal(tuple)  # tuple -> self, picon ids
     urls_received = QtCore.pyqtSignal(tuple)  # tuple -> self, urls
+    remove_from_receiver = QtCore.pyqtSignal(list)  # -> row nums
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -681,6 +682,54 @@ class PiconView(BaseTableView):
                 self.replaced.emit((self, [src_model.item(r, Column.PICON_PATH).text() for r in range(row_count)]))
         else:
             event.ignore()
+
+
+class PiconDstView(PiconView):
+    class ContextMenu(QtWidgets.QMenu):
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            self.remove_action = QtWidgets.QAction(QtGui.QIcon.fromTheme("list-remove"), self.tr("Remove files"), self)
+            self.remove_action.setShortcut("Del")
+            self.addAction(self.remove_action)
+            self.addSeparator()
+            self.remove_from_receiver_action = QtWidgets.QAction(QtGui.QIcon.fromTheme("user-trash"),
+                                                                 self.tr("Remove from the receiver"), self)
+            self.addAction(self.remove_from_receiver_action)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.setObjectName("picon_dst_view")
+
+        self.context_menu = self.ContextMenu(self)
+        self.init_actions()
+
+    def init_actions(self):
+        self.context_menu.remove_action.triggered.connect(self.on_remove_files)
+        self.context_menu.remove_from_receiver_action.triggered.connect(self.on_remove_from_receiver)
+
+    def contextMenuEvent(self, event):
+        if self.model().rowCount():
+            self.context_menu.popup(QtGui.QCursor.pos())
+
+    def keyPressEvent(self, event):
+        key = event.key()
+
+        if key == QtCore.Qt.Key_Delete:
+            self.on_remove_files()
+        else:
+            super().keyPressEvent(event)
+
+    def on_remove_files(self):
+        if QtWidgets.QMessageBox.question(self, "", self.tr("Are you sure?")) != QtWidgets.QMessageBox.Yes:
+            return
+
+        self.on_remove()
+
+    def on_remove_from_receiver(self):
+        if QtWidgets.QMessageBox.question(self, "", self.tr("Are you sure?")) != QtWidgets.QMessageBox.Yes:
+            return
+
+        self.remove_from_receiver.emit([r.row() for r in self.selectionModel().selectedRows()])
 
 
 class EpgView(BaseTableView, Searcher):
