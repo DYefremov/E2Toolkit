@@ -409,8 +409,8 @@ class MainUiWindow(QtWidgets.QMainWindow):
         sat_spacer_item3 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         self.satellite_transponder_top_layout.addItem(sat_spacer_item3)
         self.satellite_transponder_box_layout.addLayout(self.satellite_transponder_top_layout)
-        self.satellite_transponder_view = SatelliteTransponderView(self.satellite_transponders_box)
-        self.satellite_transponder_box_layout.addWidget(self.satellite_transponder_view)
+        self.transponder_view = TransponderView(self.satellite_transponders_box)
+        self.satellite_transponder_box_layout.addWidget(self.transponder_view)
         self.satellite_transponder_bottom_layout = QtWidgets.QHBoxLayout()
         self.satellite_transponder_bottom_layout.setContentsMargins(6, -1, 6, -1)
         self.satellite_transponder_bottom_layout.setObjectName("satellite_transponder_bottom_layout")
@@ -1272,6 +1272,8 @@ class MainUiWindow(QtWidgets.QMainWindow):
         self.control_tool_button.toggled.connect(lambda s: self.on_stack_page_changed(s, Page.CONTROL))
         # Filtering.
         self.service_filter_edit.textChanged.connect(self.services_view.model().set_filter_text)
+        self.satellite_filter_edit.textChanged.connect(self.satellite_view.model().set_filter_text)
+        self.satellite_transponders_filter_edit.textChanged.connect(self.transponder_view.model().set_filter_text)
         self.picon_src_filter_edit.textChanged.connect(self.picon_src_view.model().filter)
         self.picon_dest_filter_edit.textChanged.connect(self.picon_dst_view.model().filter)
         # Stack pages.

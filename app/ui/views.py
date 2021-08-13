@@ -20,7 +20,7 @@
 # Author: Dmitriy Yefremov
 #
 
-__all__ = ["ServicesView", "FavView", "BouquetsView", "SatelliteView", "SatelliteTransponderView",
+__all__ = ["ServicesView", "FavView", "BouquetsView", "SatelliteView", "TransponderView",
            "PiconView", "PiconDstView", "EpgView", "TimerView", "FtpView", "FileView", "MediaView"]
 
 from PyQt5 import QtWidgets, QtCore, QtGui
@@ -606,11 +606,11 @@ class SatelliteView(BaseSatelliteView):
         header.setStretchLastSection(False)
 
 
-class SatelliteTransponderView(BaseSatelliteView):
+class TransponderView(BaseSatelliteView):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.setSelectionMode(self.MultiSelection)
-        self.setObjectName("satellite_transponder_view")
+        self.setObjectName("transponder_view")
 
         self.setModel(SatelliteTransponderModel(self))
         header = self.horizontalHeader()

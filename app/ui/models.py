@@ -28,45 +28,18 @@ from PyQt5 import QtGui, QtWidgets, QtCore
 from app.ui.uicommons import Column
 
 
-class ServicesModel(QtCore.QSortFilterProxyModel):
-    HEADER_LABELS = ("", "", "", "Picon", "", "Name", "", "", "Package", "Type",
-                     "SID", "Frec", "SR", "Pol", "FEC", "System", "Pos", "", "", "")
-
-    CENTERED_COLUMNS = {Column.TYPE, Column.SSID, Column.RATE, Column.FREQ,
-                        Column.POL, Column.FEC, Column.SYSTEM, Column.POS}
-
-    FILTER_COLUMNS = (Column.NAME, Column.PACKAGE, Column.TYPE, Column.POS)
+class FilerModel(QtCore.QSortFilterProxyModel):
+    FILTER_COLUMNS = ()
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.model = QtGui.QStandardItemModel(self)
-        self.model.setHorizontalHeaderLabels(self.HEADER_LABELS)
         self.setSourceModel(self.model)
-        self._picon_path = ""
         self._filter_text = ""
         # Filter delay timer
         self.filter_timer = QtCore.QTimer(self)
         self.filter_timer.setSingleShot(True)
         self.filter_timer.timeout.connect(self.filter)
-
-    def data(self, index, role):
-        column = index.column()
-        if role == QtCore.Qt.DecorationRole and column == Column.PICON:
-            return QtGui.QIcon(self._picon_path + self.index(index.row(), Column.PICON_ID).data())
-        elif role == QtCore.Qt.TextAlignmentRole and column in self.CENTERED_COLUMNS:
-            return QtCore.Qt.AlignCenter
-        return super().data(index, role)
-
-    def appendRow(self, *__args):
-        self.model.appendRow(*__args)
-
-    @property
-    def picon_path(self):
-        return self._picon_path
-
-    @picon_path.setter
-    def picon_path(self, value):
-        self._picon_path = value
 
     def set_filter_text(self, text):
         """ Sets text for filter and starts delay timer. """
@@ -79,13 +52,47 @@ class ServicesModel(QtCore.QSortFilterProxyModel):
         self.setFilterRegExp(reg)
         self.invalidateFilter()
 
-    def filterAcceptsRow(self, source_row: int, source_parent) -> bool:
+    def filterAcceptsRow(self, source_row, source_parent):
         regex = self.filterRegExp()
         if regex.isEmpty():
             return True
 
         ans = (regex.indexIn(self.model.index(source_row, c, source_parent).data()) != -1 for c in self.FILTER_COLUMNS)
         return any(ans)
+
+    def appendRow(self, *__args):
+        self.model.appendRow(*__args)
+
+
+class ServicesModel(FilerModel):
+    HEADER_LABELS = ("", "", "", "Picon", "", "Name", "", "", "Package", "Type",
+                     "SID", "Frec", "SR", "Pol", "FEC", "System", "Pos", "", "", "")
+
+    CENTERED_COLUMNS = {Column.TYPE, Column.SSID, Column.RATE, Column.FREQ,
+                        Column.POL, Column.FEC, Column.SYSTEM, Column.POS}
+
+    FILTER_COLUMNS = (Column.NAME, Column.PACKAGE, Column.TYPE, Column.POS)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.model.setHorizontalHeaderLabels(self.HEADER_LABELS)
+        self._picon_path = ""
+
+    def data(self, index, role):
+        column = index.column()
+        if role == QtCore.Qt.DecorationRole and column == Column.PICON:
+            return QtGui.QIcon(self._picon_path + self.index(index.row(), Column.PICON_ID).data())
+        elif role == QtCore.Qt.TextAlignmentRole and column in self.CENTERED_COLUMNS:
+            return QtCore.Qt.AlignCenter
+        return super().data(index, role)
+
+    @property
+    def picon_path(self):
+        return self._picon_path
+
+    @picon_path.setter
+    def picon_path(self, value):
+        self._picon_path = value
 
 
 class FavModel(QtGui.QStandardItemModel):
@@ -132,12 +139,15 @@ class BouquetsModel(QtGui.QStandardItemModel):
         return super().dropMimeData(data, action, row, 0, parent)
 
 
-class SatelliteModel(QtGui.QStandardItemModel):
+class SatelliteModel(FilerModel):
     HEADER_LABELS = ("Name", "Pos", "satellite")
+    FILTER_COLUMNS = (Column.SAT_NAME, Column.SAT_POS)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.setHorizontalHeaderLabels(self.HEADER_LABELS)
+        self.model = QtGui.QStandardItemModel(self)
+        self.model.setHorizontalHeaderLabels(self.HEADER_LABELS)
+        self.setSourceModel(self.model)
 
     def data(self, index, role):
         if role == QtCore.Qt.TextAlignmentRole and index.column() == 1:
@@ -146,12 +156,13 @@ class SatelliteModel(QtGui.QStandardItemModel):
         return super().data(index, role)
 
 
-class SatelliteTransponderModel(QtGui.QStandardItemModel):
+class SatelliteTransponderModel(FilerModel):
     HEADER_LABELS = ("Frec", "SR", "Pol", "FEC", "System", "Mod", "", "", "")
+    FILTER_COLUMNS = (0, 1, 2, 3, 4, 5)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.setHorizontalHeaderLabels(self.HEADER_LABELS)
+        self.model.setHorizontalHeaderLabels(self.HEADER_LABELS)
 
     def data(self, index, role):
         if role == QtCore.Qt.TextAlignmentRole:

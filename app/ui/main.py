@@ -145,9 +145,9 @@ class MainWindow(MainUiWindow):
         self.satellite_view.selectionModel().currentRowChanged.connect(self.on_satellite_selection)
         self.satellite_view.add.connect(self.on_satellite_add)
         self.satellite_view.edited.connect(self.on_satellite_edit)
-        self.satellite_transponder_view.add.connect(self.on_transponder_add)
-        self.satellite_transponder_view.edited.connect(self.on_transponder_edit)
-        self.satellite_transponder_view.removed.connect(self.on_transponder_remove)
+        self.transponder_view.add.connect(self.on_transponder_add)
+        self.transponder_view.edited.connect(self.on_transponder_edit)
+        self.transponder_view.removed.connect(self.on_transponder_remove)
         # Picons.
         self.picon_src_view.id_received.connect(self.on_picon_ids_received)
         self.picon_src_view.urls_received.connect(self.on_picon_urls_received)
@@ -878,9 +878,9 @@ class MainWindow(MainUiWindow):
             self.satellite_count_label.setText(str(model.rowCount()))
 
     def on_satellite_selection(self, selected, deselected):
-        self.satellite_transponder_view.clear_data()
+        self.transponder_view.clear_data()
 
-        t_model = self.satellite_transponder_view.model()
+        t_model = self.transponder_view.model()
         sat = self.satellite_view.model().index(selected.row(), Column.SAT_DATA).data(Qt.UserRole)
         if sat:
             for t in sat.transponders:
@@ -901,7 +901,7 @@ class MainWindow(MainUiWindow):
             QMessageBox.information(self, APP_NAME, self.tr("Not implemented yet!"))
 
     def on_transponder_edit(self, row):
-        index = self.satellite_transponder_view.model().index(row, 0)
+        index = self.transponder_view.model().index(row, 0)
         tr_dialog = TransponderDialog((index.data(),))
         if tr_dialog.exec():
             QMessageBox.information(self, APP_NAME, self.tr("Not implemented yet!"))
