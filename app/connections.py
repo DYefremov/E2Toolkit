@@ -524,9 +524,12 @@ class HttpAPI:
         This is a holder (wrapper) for aiohttp.ClientSession class.
      """
 
+    _CONTENT_HEADER = "application/x-www-form-urlencoded"
+
     class Request(str, Enum):
         ZAP = "zap?sRef="
         INFO = "about"
+        DEVICE = "deviceinfo"
         SIGNAL = "signal"
         STREAM = "stream.m3u?ref="
         STREAM_CURRENT = "streamcurrent.m3u"
@@ -581,6 +584,7 @@ class HttpAPI:
         STANDBY = "5"
 
     def __init__(self, settings, callbacks={}):
+        self._is_owif = True
         host, use_ssl, port = settings["host"], settings["http_use_ssl"], settings["http_port"]
         self._base_url = "http{}://{}:{}/".format("s" if use_ssl else "", host, port)
         self._main_url = "http{}://{}:{}/web/".format("s" if use_ssl else "", host, port)
@@ -607,13 +611,19 @@ class HttpAPI:
         # Token
         self._callbacks[self.Request.TOKEN] = self.set_token
         self.send(self.Request.TOKEN)
+        # API info.
+        self._callbacks[self.Request.DEVICE] = self.api_callback
+        self.send(self.Request.DEVICE)
 
     def send(self, req, params=None):
         url = self._main_url if req is not HttpAPI.Request.GRUB else self._base_url
         request = QNetworkRequest(QUrl("{}{}{}".format(url, req, params if params else "")))
         request.setSslConfiguration(self._ssl_config)
         request.setAttribute(request.CustomVerbAttribute, req)
-        request.setHeader(QNetworkRequest.ContentTypeHeader, "application/x-www-form-urlencoded")
+        if req is HttpAPI.Request.GRUB:
+            request.setHeader(QNetworkRequest.ContentTypeHeader, "image/jpeg")
+        else:
+            request.setHeader(QNetworkRequest.ContentTypeHeader, self._CONTENT_HEADER)
         self.network_manager.post(request, self._token)
 
     def handle_response(self, reply):
@@ -650,6 +660,18 @@ class HttpAPI:
 
     def set_token(self, data):
         self._token = "sessionid={}".format(data.get("e2sessionid", "0")).encode()
+
+    def api_callback(self, info):
+        if info:
+            version = info.get("e2webifversion", "").upper()
+            self._is_owif = "OWIF" in version
+            version_info = "Web Interface version: {}".format(version) if version else ""
+            log("HTTP API initialized... {}".format(version_info))
+
+    @property
+    def is_owif(self):
+        """ Returns true if the web interface is OpenWebif. """
+        return self._is_owif
 
 
 # ******************* Telnet ********************* #

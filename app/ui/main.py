@@ -1192,13 +1192,13 @@ class MainWindow(MainUiWindow):
         self._http_api.send(HttpAPI.Request.POWER, action)
 
     def on_screenshot_all(self, state):
-        QMessageBox.information(self, APP_NAME, self.tr("Not implemented yet!"))
+        self._http_api.send(HttpAPI.Request.GRUB, "&mode=all" if self._http_api.is_owif else "&d=")
 
     def on_screenshot_video(self, state):
-        QMessageBox.information(self, APP_NAME, self.tr("Not implemented yet!"))
+        self._http_api.send(HttpAPI.Request.GRUB, "&mode=video" if self._http_api.is_owif else "&v=")
 
     def on_screenshot_osd(self, state):
-        QMessageBox.information(self, APP_NAME, self.tr("Not implemented yet!"))
+        self._http_api.send(HttpAPI.Request.GRUB, "&mode=osd" if self._http_api.is_owif else "&o=")
 
     def on_action_done(self, req):
         if self.grub_screenshot_box.isChecked():
