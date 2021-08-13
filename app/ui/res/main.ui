@@ -960,7 +960,7 @@
           <widget class="QWidget" name="picon_page">
            <layout class="QGridLayout" name="picons_page_layout">
             <property name="leftMargin">
-             <number>0</number>
+             <number>2</number>
             </property>
             <property name="topMargin">
              <number>0</number>
@@ -972,187 +972,211 @@
              <number>0</number>
             </property>
             <item row="0" column="0">
-             <widget class="QGroupBox" name="picon_group_box">
-              <property name="title">
-               <string>Picons</string>
+             <layout class="QGridLayout" name="picon_explorer_layout">
+              <property name="leftMargin">
+               <number>0</number>
               </property>
-              <layout class="QGridLayout" name="picon_group_box_layout">
-               <property name="leftMargin">
-                <number>0</number>
-               </property>
-               <property name="topMargin">
-                <number>6</number>
-               </property>
-               <property name="rightMargin">
-                <number>6</number>
-               </property>
-               <property name="bottomMargin">
-                <number>2</number>
-               </property>
-               <property name="spacing">
-                <number>6</number>
-               </property>
-               <item row="0" column="0">
-                <widget class="QStackedWidget" name="picons_stacked_widget">
-                 <property name="currentIndex">
-                  <number>0</number>
+              <property name="topMargin">
+               <number>0</number>
+              </property>
+              <property name="rightMargin">
+               <number>0</number>
+              </property>
+              <property name="bottomMargin">
+               <number>0</number>
+              </property>
+              <property name="horizontalSpacing">
+               <number>6</number>
+              </property>
+              <item row="0" column="0">
+               <widget class="QSplitter" name="picon_splitter">
+                <property name="orientation">
+                 <enum>Qt::Vertical</enum>
+                </property>
+                <widget class="QGroupBox" name="picon_src_box">
+                 <property name="title">
+                  <string>Picon source</string>
                  </property>
-                 <widget class="QWidget" name="picon_explorer_page">
-                  <layout class="QGridLayout" name="picon_explorer_layout">
-                   <property name="leftMargin">
-                    <number>0</number>
-                   </property>
-                   <property name="topMargin">
-                    <number>0</number>
-                   </property>
-                   <property name="rightMargin">
-                    <number>0</number>
-                   </property>
-                   <property name="bottomMargin">
-                    <number>0</number>
-                   </property>
-                   <property name="horizontalSpacing">
-                    <number>6</number>
-                   </property>
-                   <item row="0" column="0">
-                    <widget class="QSplitter" name="picon_splitter">
-                     <property name="orientation">
-                      <enum>Qt::Vertical</enum>
-                     </property>
-                     <widget class="QWidget" name="layoutWidget">
-                      <layout class="QVBoxLayout" name="picon_src_layout">
-                       <item>
-                        <layout class="QHBoxLayout" name="picon_src_top_layout">
-                         <property name="leftMargin">
-                          <number>6</number>
-                         </property>
-                         <property name="rightMargin">
-                          <number>6</number>
-                         </property>
-                         <item>
-                          <widget class="QLineEdit" name="picon_src_filter_edit">
-                           <property name="sizePolicy">
-                            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                             <horstretch>0</horstretch>
-                             <verstretch>0</verstretch>
-                            </sizepolicy>
-                           </property>
-                           <property name="inputMask">
-                            <string notr="true"/>
-                           </property>
-                           <property name="text">
-                            <string notr="true"/>
-                           </property>
-                           <property name="placeholderText">
-                            <string>Filter...</string>
-                           </property>
-                           <property name="clearButtonEnabled">
-                            <bool>true</bool>
-                           </property>
-                          </widget>
-                         </item>
-                         <item>
-                          <spacer name="picon_src_top_spacer">
-                           <property name="orientation">
-                            <enum>Qt::Horizontal</enum>
-                           </property>
-                           <property name="sizeHint" stdset="0">
-                            <size>
-                             <width>40</width>
-                             <height>20</height>
-                            </size>
-                           </property>
-                          </spacer>
-                         </item>
-                        </layout>
-                       </item>
-                       <item>
-                        <widget class="QTableView" name="picon_src_view">
-                         <property name="editTriggers">
-                          <set>QAbstractItemView::NoEditTriggers</set>
-                         </property>
-                         <property name="selectionMode">
-                          <enum>QAbstractItemView::ExtendedSelection</enum>
-                         </property>
-                         <property name="selectionBehavior">
-                          <enum>QAbstractItemView::SelectRows</enum>
-                         </property>
-                        </widget>
-                       </item>
-                      </layout>
+                 <layout class="QVBoxLayout" name="picon_src_layout">
+                  <property name="leftMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="topMargin">
+                   <number>6</number>
+                  </property>
+                  <property name="rightMargin">
+                   <number>6</number>
+                  </property>
+                  <property name="bottomMargin">
+                   <number>2</number>
+                  </property>
+                  <item>
+                   <layout class="QHBoxLayout" name="picon_src_top_layout">
+                    <property name="leftMargin">
+                     <number>6</number>
+                    </property>
+                    <property name="rightMargin">
+                     <number>6</number>
+                    </property>
+                    <item>
+                     <widget class="QLineEdit" name="picon_src_filter_edit">
+                      <property name="sizePolicy">
+                       <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                        <horstretch>0</horstretch>
+                        <verstretch>0</verstretch>
+                       </sizepolicy>
+                      </property>
+                      <property name="inputMask">
+                       <string notr="true"/>
+                      </property>
+                      <property name="text">
+                       <string notr="true"/>
+                      </property>
+                      <property name="placeholderText">
+                       <string>Filter...</string>
+                      </property>
+                      <property name="clearButtonEnabled">
+                       <bool>true</bool>
+                      </property>
                      </widget>
-                     <widget class="QWidget" name="layoutWidget_2">
-                      <layout class="QVBoxLayout" name="picon_dst_layout">
-                       <item>
-                        <layout class="QHBoxLayout" name="picon_dst_top_layout">
-                         <property name="leftMargin">
-                          <number>6</number>
-                         </property>
-                         <property name="rightMargin">
-                          <number>6</number>
-                         </property>
-                         <item>
-                          <widget class="QLineEdit" name="picon_dest_filter_edit">
-                           <property name="sizePolicy">
-                            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                             <horstretch>0</horstretch>
-                             <verstretch>0</verstretch>
-                            </sizepolicy>
-                           </property>
-                           <property name="text">
-                            <string notr="true"/>
-                           </property>
-                           <property name="placeholderText">
-                            <string>Filter...</string>
-                           </property>
-                           <property name="clearButtonEnabled">
-                            <bool>true</bool>
-                           </property>
-                          </widget>
-                         </item>
-                         <item>
-                          <spacer name="picon_top_spacer">
-                           <property name="orientation">
-                            <enum>Qt::Horizontal</enum>
-                           </property>
-                           <property name="sizeHint" stdset="0">
-                            <size>
-                             <width>40</width>
-                             <height>20</height>
-                            </size>
-                           </property>
-                          </spacer>
-                         </item>
-                         <item>
-                          <widget class="QCheckBox" name="picon_load_only_selected_box">
-                           <property name="layoutDirection">
-                            <enum>Qt::RightToLeft</enum>
-                           </property>
-                           <property name="text">
-                            <string>Load only selected items</string>
-                           </property>
-                          </widget>
-                         </item>
-                        </layout>
-                       </item>
-                       <item>
-                        <widget class="QTreeView" name="picon_dst_view">
-                         <property name="editTriggers">
-                          <set>QAbstractItemView::NoEditTriggers</set>
-                         </property>
-                        </widget>
-                       </item>
-                      </layout>
-                     </widget>
-                    </widget>
-                   </item>
-                  </layout>
-                 </widget>
-                 <widget class="QWidget" name="picon_downloader_page"/>
+                    </item>
+                    <item>
+                     <spacer name="picon_src_top_spacer">
+                      <property name="orientation">
+                       <enum>Qt::Horizontal</enum>
+                      </property>
+                      <property name="sizeHint" stdset="0">
+                       <size>
+                        <width>40</width>
+                        <height>20</height>
+                       </size>
+                      </property>
+                     </spacer>
+                    </item>
+                   </layout>
+                  </item>
+                  <item>
+                   <widget class="QTableView" name="picon_src_view">
+                    <property name="editTriggers">
+                     <set>QAbstractItemView::NoEditTriggers</set>
+                    </property>
+                    <property name="selectionMode">
+                     <enum>QAbstractItemView::ExtendedSelection</enum>
+                    </property>
+                    <property name="selectionBehavior">
+                     <enum>QAbstractItemView::SelectRows</enum>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
                 </widget>
-               </item>
-              </layout>
-             </widget>
+                <widget class="QGroupBox" name="picon_dst_box">
+                 <property name="title">
+                  <string>Picon destination</string>
+                 </property>
+                 <layout class="QVBoxLayout" name="picon_dst_layout">
+                  <property name="leftMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="topMargin">
+                   <number>6</number>
+                  </property>
+                  <property name="rightMargin">
+                   <number>6</number>
+                  </property>
+                  <property name="bottomMargin">
+                   <number>2</number>
+                  </property>
+                  <item>
+                   <layout class="QHBoxLayout" name="picon_dst_top_layout">
+                    <property name="leftMargin">
+                     <number>6</number>
+                    </property>
+                    <property name="rightMargin">
+                     <number>6</number>
+                    </property>
+                    <item>
+                     <widget class="QLineEdit" name="picon_dest_filter_edit">
+                      <property name="sizePolicy">
+                       <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                        <horstretch>0</horstretch>
+                        <verstretch>0</verstretch>
+                       </sizepolicy>
+                      </property>
+                      <property name="text">
+                       <string notr="true"/>
+                      </property>
+                      <property name="placeholderText">
+                       <string>Filter...</string>
+                      </property>
+                      <property name="clearButtonEnabled">
+                       <bool>true</bool>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QToolButton" name="picon_dst_remove_button">
+                      <property name="sizePolicy">
+                       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                        <horstretch>0</horstretch>
+                        <verstretch>0</verstretch>
+                       </sizepolicy>
+                      </property>
+                      <property name="minimumSize">
+                       <size>
+                        <width>0</width>
+                        <height>0</height>
+                       </size>
+                      </property>
+                      <property name="text">
+                       <string>Remove</string>
+                      </property>
+                      <property name="icon">
+                       <iconset theme="user-trash">
+                        <normaloff>.</normaloff>.</iconset>
+                      </property>
+                      <property name="popupMode">
+                       <enum>QToolButton::MenuButtonPopup</enum>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <spacer name="picon_top_spacer">
+                      <property name="orientation">
+                       <enum>Qt::Horizontal</enum>
+                      </property>
+                      <property name="sizeHint" stdset="0">
+                       <size>
+                        <width>40</width>
+                        <height>20</height>
+                       </size>
+                      </property>
+                     </spacer>
+                    </item>
+                    <item>
+                     <widget class="QCheckBox" name="picon_load_only_selected_box">
+                      <property name="layoutDirection">
+                       <enum>Qt::RightToLeft</enum>
+                      </property>
+                      <property name="text">
+                       <string>Load only selected items</string>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
+                  </item>
+                  <item>
+                   <widget class="QTreeView" name="picon_dst_view">
+                    <property name="editTriggers">
+                     <set>QAbstractItemView::NoEditTriggers</set>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </widget>
+               </widget>
+              </item>
+             </layout>
             </item>
            </layout>
           </widget>

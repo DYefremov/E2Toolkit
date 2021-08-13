@@ -909,7 +909,7 @@ class MainWindow(MainUiWindow):
     # ********************** Picons ********************** #
 
     def on_picon_page_show(self):
-        self.picon_src_widget.setVisible(False)
+        self.picon_src_box.setVisible(False)
         self.load_picons()
 
     def on_picon_ids_received(self, ids):
@@ -968,7 +968,7 @@ class MainWindow(MainUiWindow):
         self.append_picons(Path(self.get_picon_path()), self.picon_dst_view.model(), ids)
 
         if path:
-            self.picon_src_widget.setVisible(True)
+            self.picon_src_box.setVisible(True)
             self.append_picons(Path(path), self.picon_src_view.model(), ids)
 
     def append_picons(self, path, model, ids):
