@@ -76,9 +76,6 @@ def import_m3u(path, stream_type=StreamType.NONE_TS.value, detect_encoding=True,
 
         for line in str(data, encoding=encoding, errors="ignore").splitlines():
             if line.startswith("#EXTINF"):
-                inf, sep, line = line.partition(" ")
-                if not line:
-                    line = inf
                 line, sep, name = line.rpartition(",")
 
                 data = re.split('"', line)

@@ -21,7 +21,7 @@
 #
 
 
-"""  This module used for parsing and write lamedb file.  """
+"""  This module used for parsing and write lamedb file. """
 import re
 
 from app.commons import log
@@ -37,10 +37,6 @@ _END_LINE = "# File was created in E2Toolkit.\n#\t....Enjoy watching!....\n"
 
 def get_services(path, format_version=4):
     return LameDbReader(path, format_version).parse()
-
-
-def write_services(path, services, format_version=4):
-    LameDbWriter(path, services, format_version).write()
 
 
 class LameDbReader:
@@ -146,18 +142,18 @@ class LameDbReader:
             is_v3 = False
             if len(tid) < 4:
                 is_v3 = True
-                tid = "{:0>4}".format(tid)
+                tid = f"{tid:0>4}"
                 data[2] = tid
             if len(nid) < 4:
                 is_v3 = True
-                nid = "{:0>4}".format(nid)
+                nid = f"{nid:0>4}"
                 data[3] = nid
             if is_v3:
-                data[0] = "{:0>4}".format(data[0])
+                data[0] = f"{data[0]:0>4}"
                 data_id = _SEP.join(data)
 
-            srv_type = int(data[4])
-            transponder_id = "{}:{}:{}".format(data[1], tid, nid)
+            service_type = int(data[4])
+            transponder_id = f"{data[1]}:{tid}:{nid}"
             transponder = transponders.get(transponder_id, None)
 
             tid = tid.lstrip(sp).upper()
@@ -165,14 +161,14 @@ class LameDbReader:
             ssid = str(data[0]).lstrip(sp).upper()
             onid = str(data[1]).lstrip(sp).upper()
             # For comparison in bouquets. Needed in upper case!!!
-            fav_id = "{}:{}:{}:{}".format(ssid, tid, nid, onid)
-            picon_id = "1_0_{:X}_{}_{}_{}_{}_0_0_0.png".format(srv_type, ssid, tid, nid, onid)
-            s_id = "1:0:{:X}:{}:{}:{}:{}:0:0:0:".format(srv_type, ssid, tid, nid, onid)
+            fav_id = f"{ssid}:{tid}:{nid}:{onid}"
+            picon_id = f"1_0_{service_type:X}_{ssid}_{tid}_{nid}_{onid}_0_0_0.png"
+            s_id = f"1:0:{service_type:X}:{ssid}:{tid}:{nid}:{onid}:0:0:0:"
 
             all_flags = srv[2].split(",")
             coded = CODED_ICON if list(filter(lambda x: x.startswith("C:"), all_flags)) else None
             flags = list(filter(lambda x: x.startswith("f:"), all_flags))
-            hide = HIDE_ICON if flags and Flag.is_hide(int(flags[0][2:])) else None
+            hide = HIDE_ICON if flags and Flag.is_hide(Flag.parse(flags[0])) else None
             locked = LOCKED_ICON if s_id in blacklist else None
 
             package = list(filter(lambda x: x.startswith("p:"), all_flags))
@@ -182,7 +178,7 @@ class LameDbReader:
                 tr_type, sp, tr = str(transponder).partition(" ")
                 tr_type = TrType(tr_type)
                 tr = tr.split(_SEP)
-                srv_type = SERVICE_TYPE.get(data[4], SERVICE_TYPE["-2"])
+                service_type = SERVICE_TYPE.get(data[4], SERVICE_TYPE["-2"])
                 # Removing all non printable symbols!
                 srv_name = "".join(c for c in srv[1] if c.isprintable())
                 freq = tr[0]
@@ -198,7 +194,7 @@ class LameDbReader:
                     system = "DVB-S2" if len(tr) > 7 else "DVB-S"
                     pos = tr[4]
                 if tr_type is TrType.Terrestrial:
-                    system = T_SYSTEM.get(tr[9], None)
+                    system = T_SYSTEM.get(tr[10] if len(tr) > 10 else "0", None)
                     pos = "T"
                     fec = T_FEC.get(tr[3], None)
                 elif tr_type is TrType.Cable:
@@ -212,15 +208,15 @@ class LameDbReader:
 
                 # Formatting displayed values.
                 try:
-                    freq = "{}".format(int(freq) // 1000)
-                    rate = "{}".format(int(rate) // 1000)
+                    freq = f"{int(freq) // 1000}"
+                    rate = f"{int(rate) // 1000}"
                     if tr_type is TrType.Satellite:
                         pos = int(pos)
-                        pos = "{:0.1f}{}".format(abs(pos / 10), "W" if pos < 0 else "E")
+                        pos = f"{abs(pos / 10):0.1f}{'W' if pos < 0 else 'E'}"
                 except ValueError as e:
-                    log("Parse error [parse_services]: {}".format(e))
+                    log(f"Parse error [parse_services]: {e}")
 
-                s = Service(srv[2], tr_type.value, coded, None, picon_id, srv_name, locked, hide, package, srv_type,
+                s = Service(srv[2], tr_type.value, coded, None, picon_id, srv_name, locked, hide, package, service_type,
                             data[0], freq, rate, pol, fec, system, pos, data_id, fav_id, transponder)
 
                 services_list.append(s)
@@ -253,13 +249,13 @@ class LameDbReader:
         tr_set = set()
         for srv in services:
             data_id = str(srv.data_id).split(_SEP)
-            tr_id = "{}:{}:{}".format(data_id[1], data_id[2], data_id[3])
+            tr_id = f"{data_id[1]}:{data_id[2]}:{data_id[3]}"
             if tr_id not in tr_set:
-                transponder = "{}\n\t{}\n/\n".format(tr_id, srv.transponder)
+                transponder = f"{tr_id}\n\t{srv.transponder}\n/\n"
                 tr_lines.append(transponder)
                 tr_set.add(tr_id)
-            # Services
-            services_lines.append("{}\n{}\n{}\n".format(srv.data_id, srv.name, srv.flags_cas))
+            # Services.
+            services_lines.append(f"{srv.data_id}\n{srv.name}\n{srv.flags_cas}\n")
 
         tr_lines.sort()
         lines.extend(tr_lines)
@@ -305,8 +301,8 @@ class LameDbWriter:
 
     def write(self):
         if self._fmt == 4:
-            # Writing lamedb file ver.4
-            with open(self._path + _FILE_NAME, "w") as file:
+            # Writing lamedb file ver.4.
+            with open(self._path + _FILE_NAME, "w", encoding="utf-8") as file:
                 file.writelines(LameDbReader.get_services_lines(self._services))
         elif self._fmt == 5:
             self.write_to_lamedb5()
@@ -319,19 +315,19 @@ class LameDbWriter:
 
         for srv in self._services:
             data_id = str(srv.data_id).split(_SEP)
-            tr_id = "{}:{}:{}".format(data_id[1], data_id[2], data_id[3])
-            tr_set.add("t:{},{}\n".format(tr_id, srv.transponder.replace(" ", ":", 1)))
-            # Removing empty packages
+            tr_id = f"{data_id[1]}:{data_id[2]}:{data_id[3]}"
+            tr_set.add(f"t:{tr_id},{srv.transponder.replace(' ', ':', 1)}\n")
+            # Removing empty packages.
             flags = list(filter(lambda x: x != "p:", srv.flags_cas.split(",")))
             flags = ",".join(flags)
             flags = "," + flags if flags else ""
-            services_lines.append("s:{},\"{}\"{}\n".format(srv.data_id, srv.name, flags))
+            services_lines.append(f"s:{srv.data_id},\"{srv.name}\"{flags}\n")
 
         lines.extend(sorted(tr_set))
         lines.extend(services_lines)
         lines.append(_END_LINE)
 
-        with open(self._path + "lamedb5", "w") as file:
+        with open(self._path + "lamedb5", "w", encoding="utf-8") as file:
             file.writelines(lines)
 
 

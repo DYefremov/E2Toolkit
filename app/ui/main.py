@@ -38,7 +38,7 @@ from app.enigma.backup import backup_data, clear_data_path
 from app.enigma.blacklist import write_blacklist
 from app.enigma.bouquets import BouquetsReader, BouquetsWriter
 from app.enigma.ecommons import BqServiceType, Service, Bouquet, Bouquets, BqType, BouquetService
-from app.enigma.lamedb import get_services, LameDbWriter
+from app.enigma.lamedb import get_services, LameDbWriter, LameDbReader
 from app.satellites.satxml import get_satellites, write_satellites
 from app.streams.iptv import import_m3u
 from app.ui.dialogs import *
@@ -407,7 +407,7 @@ class MainWindow(MainUiWindow):
         try:
             self.clean_data()
             bouquets = BouquetsReader(path).get()
-            services = get_services(path)
+            services = LameDbReader(path).parse()
         except FileNotFoundError as e:
             msg = self.tr("Please, download files from receiver or setup your path for read data!")
             self.show_error_dialog(msg)
@@ -510,10 +510,14 @@ class MainWindow(MainUiWindow):
                               None, s_type.name, *agr, data_id, fav_id, None)
                 self._services[fav_id] = srv
             elif s_type is BqServiceType.ALT:
-                self._alt_file.add("{}:{}".format(srv.data, bq_type))
+                self._alt_file.add(f"{srv.data}:{bq_type}")
                 srv = Service(None, None, None, None, None, srv.name, locked, None, None, s_type.name,
                               *agr, srv.data, fav_id, srv.num)
                 self._services[fav_id] = srv
+            elif s_type is BqServiceType.BOUQUET:
+                # Sub bouquets!
+                msg = "Detected sub-bouquets! This feature is not fully supported yet!"
+                QMessageBox.information(self, APP_NAME, self.tr(msg))
             elif srv.name:
                 extra_services[fav_id] = srv.name
             services.append(fav_id)
