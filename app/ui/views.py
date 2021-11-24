@@ -285,6 +285,8 @@ class ServicesView(BaseTableView, PiconAssignment, Searcher):
             self.remove_action = QtWidgets.QAction(QtGui.QIcon.fromTheme("list-remove"), self.tr("Remove"), self)
             self.remove_action.setShortcut("Del")
             self.addAction(self.remove_action)
+            # Disabled actions.
+            self.create_bouquet_menu.setEnabled(False)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -406,6 +408,13 @@ class FavView(BaseTableView, PiconAssignment, Searcher):
             self.remove_action = QtWidgets.QAction(QtGui.QIcon.fromTheme("list-remove"), self.tr("Remove"), self)
             self.remove_action.setShortcut("Del")
             self.addAction(self.remove_action)
+            # Disabled [hidden] actions.
+            self.set_extra_name_action.setVisible(False)
+            self.set_default_name_action.setVisible(False)
+            self.locate_action.setVisible(False)
+            self.mark_duplicates_action.setVisible(False)
+            self.insert_marker_action.setVisible(False)
+            self.insert_space_action.setVisible(False)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -507,6 +516,9 @@ class BouquetsView(BaseTreeView):
             self.remove_action = QtWidgets.QAction(QtGui.QIcon.fromTheme("list-remove"), self.tr("Remove"), self)
             self.remove_action.setShortcut("Del")
             self.addAction(self.remove_action)
+            # Disabled [hidden] actions.
+            self.import_action.setVisible(False)
+            self.export_action.setVisible(False)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

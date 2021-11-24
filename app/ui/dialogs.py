@@ -649,7 +649,7 @@ class ServiceDialog(QtWidgets.QDialog):
         self.he_acc_label.setVisible(False)
 
         self.retranslate_ui()
-        self.button_box.accepted.connect(self.accept)
+        self.button_box.accepted.connect(self.save)
         self.button_box.rejected.connect(self.reject)
         QtCore.QMetaObject.connectSlotsByName(self)
         # Data init
@@ -658,6 +658,10 @@ class ServiceDialog(QtWidgets.QDialog):
         self._nid = 0
         self._namespace = 0
         self.init_service_data()
+
+    @property
+    def service(self):
+        return self._service
 
     def init_service_data(self):
         """ Service data initialisation. """
@@ -677,11 +681,12 @@ class ServiceDialog(QtWidgets.QDialog):
         self._tid = int(data[2], 16)
         self._nid = int(data[3], 16)
         self._namespace = int(data[1], 16)
+        self.update_reference_entry()
 
     def init_flags(self, flags):
         f_flags = list(filter(lambda x: x.startswith("f:"), flags))
         if f_flags:
-            value = int(f_flags[0][2:])
+            value = Flag.parse(f_flags[0])
             self.keep_flag_check_box.setChecked(Flag.is_keep(value))
             self.hide_flag_check_box.setChecked(Flag.is_hide(value))
             self.use_pids_flag_check_box.setChecked(Flag.is_pids(value))
@@ -724,10 +729,72 @@ class ServiceDialog(QtWidgets.QDialog):
 
             self.extra_edit.setText(",".join(extra_pids))
 
+    def save(self):
+        if not self.is_data_correct():
+            return
+
+        data = self.ref_edit.text().split(":")
+        flags = self.get_service_flags()
+        name = self.name_edit.text()
+        package = self.package_edit.text()
+        ssid = f"{int(self.sid_edit.text()):04x}"
+        fav_id = f"{data[3]}:{data[4]}:{data[5]}:{data[6]}"
+        picon_id = f"1_0_{data[2]}_{data[3]}_{data[4]}_{data[5]}_{data[6]}_0_0_0.png"
+        namespace, tid, nid = int(data[6], 16), int(data[4], 16), int(data[5], 16)
+        s_type = int(data[2], 16)
+        data_id = f"{ssid}:{namespace:08x}:{tid:04x}:{nid:04x}:{s_type}:0"
+        s_type = self.type_combo_box.currentText()
+        self._service = self._service._replace(flags_cas=flags, picon_id=picon_id, name=name, package=package,
+                                               service_type=s_type, ssid=ssid, data_id=data_id, fav_id=fav_id)
+
+        self.accept()
+
+    def get_service_flags(self):
+        """ Returns service flags. """
+        flags = [f"p:{self.package_edit.text()}"]
+        # CAS.
+        cas = self.caids_edit.text()
+        if cas:
+            flags.append(cas)
+        # Pids.
+        video_pid = self.video_pid_edit.text()
+        if video_pid:
+            flags.append(f"{Pids.VIDEO.value}{int(video_pid):04x}")
+        audio_pid = self.audio_pid_edit.text()
+        if audio_pid:
+            flags.append(f"{Pids.AUDIO.value}{int(audio_pid):04x}")
+        teletext_pid = self.teletext_pid_edit.text()
+        if teletext_pid:
+            flags.append(f"{Pids.TELETEXT.value}{int(teletext_pid):04x}")
+        pcr_pid = self.pcr_pid_edit.text()
+        if pcr_pid:
+            flags.append(f"{Pids.PCR.value}{int(pcr_pid):04x}")
+        ac3_pid = self.ac3_pid_edit.text()
+        if ac3_pid:
+            flags.append(f"{Pids.AC3.value}{int(ac3_pid):04x}")
+        pcm_pid = self.pcr_pid_edit.text()
+        if pcm_pid:
+            flags.append(f"{Pids.PCM_DELAY.value}{int(pcm_pid):04x}")
+        extra_pids = self.extra_edit.text()
+        if extra_pids:
+            flags.append(extra_pids)
+        # Flags.
+        f_flags = Flag.KEEP.value if self.keep_flag_check_box.isChecked() else 0
+        f_flags = f_flags + Flag.HIDE.value if self.hide_flag_check_box.isChecked() else f_flags
+        f_flags = f_flags + Flag.PIDS.value if self.use_pids_flag_check_box.isChecked() else f_flags
+        f_flags = f_flags + Flag.NEW.value if self.new_flag_check_box.isChecked() else f_flags
+        if f_flags:
+            flags.append(f"f:{f_flags:02d}")
+
+        return ",".join(flags)
+
+    def is_data_correct(self):
+        return True
+
     def update_reference_entry(self):
         s_type = int(self.type_combo_box.model().index(self.type_combo_box.currentIndex(), 1).data())
         sid = int(self.sid_edit.text() or 0)
-        ref = "1:0:{:X}:{:X}:{:X}:{:X}:{:X}:0:0:0".format(s_type, sid, self._tid, self._nid, self._namespace)
+        ref = f"1:0:{s_type:X}:{sid:X}:{self._tid:X}:{self._nid:X}:{self._namespace:X}:0:0:0"
         self.ref_edit.setText(ref)
 
     def retranslate_ui(self):
@@ -927,6 +994,7 @@ class IptvServiceDialog(QtWidgets.QDialog):
         if len(data) < 11:
             return
 
+        self.name_edit.setText(self._service.name)
         self.dvb_type_edit.setText(data[2])
         self.sid_edit.setText(str(int(data[3], 16)))
         self.tid_edit.setText(str(int(data[4], 16)))
@@ -949,7 +1017,7 @@ class IptvServiceDialog(QtWidgets.QDialog):
         elif stream_type is StreamType.E_SERVICE_HLS:
             self.type_combo_box.setCurrentIndex(5)
         else:
-            log("Unknown stream type {}".format(s_type))
+            log(f"Unknown stream type {s_type}")
 
     def init_new_service_data(self):
         self.dvb_type_edit.setText("1")
@@ -960,6 +1028,9 @@ class IptvServiceDialog(QtWidgets.QDialog):
         self.type_combo_box.setCurrentIndex(1)
 
     def save(self):
+        if not self.is_data_correct():
+            return
+
         url = self.url_edit.text()
         name = self.name_edit.text().strip()
         stream_type = self.type_combo_box.model().index(self.type_combo_box.currentIndex(), 1).data()
@@ -978,8 +1049,7 @@ class IptvServiceDialog(QtWidgets.QDialog):
         else:
             self._service = self._service._replace(picon_id=p_id, name=name, data_id=url, fav_id=fav_id)
 
-        if self.is_data_correct():
-            self.accept()
+        self.accept()
 
     def update_reference_entry(self):
         stream_type = self.type_combo_box.model().index(self.type_combo_box.currentIndex(), 1).data()

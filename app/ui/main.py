@@ -485,7 +485,7 @@ class MainWindow(MainUiWindow):
         name, bq_type, locked, hidden = bq.name, bq.type, bq.locked, bq.hidden
         row = (QStandardItem(bq.name), QStandardItem(locked), QStandardItem(hidden), QStandardItem(bq_type))
         parent.appendRow(row)
-        bq_id = "{}:{}".format(name, bq_type)
+        bq_id = f"{name}:{bq_type}"
         services = []
         extra_services = {}  # for services with different names in bouquet and main list
         agr = [None] * 7
@@ -737,16 +737,16 @@ class MainWindow(MainUiWindow):
     def on_service_edit(self, row, model):
         service = self._services.get(model.index(row, Column.FAV_ID).data(), None)
         if service:
-            if service.service_type in self._marker_types:
+            s_type = service.service_type
+            if s_type in self._marker_types:
                 return
-            elif service.service_type == BqServiceType.IPTV.value:
-                service_dialog = IptvServiceDialog(service)
-                if service_dialog.exec():
-                    QMessageBox.information(self, APP_NAME, self.tr("Not implemented yet!"))
-            else:
-                service_dialog = ServiceDialog(service)
-                if service_dialog.exec():
-                    QMessageBox.information(self, APP_NAME, self.tr("Not implemented yet!"))
+
+            dialog = IptvServiceDialog(service) if s_type == BqServiceType.IPTV.value else ServiceDialog(service)
+            if dialog.exec():
+                self._services.pop(service.fav_id, None)
+                service = dialog.service
+                self._services[service.fav_id] = service
+                [model.setData(model.index(row, c), d) for c, d in enumerate(service)]
 
     def remove_services(self, rows):
         list(map(lambda s: self._services.pop(s, None), rows.values()))
