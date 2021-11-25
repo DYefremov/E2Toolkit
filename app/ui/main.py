@@ -38,7 +38,7 @@ from app.enigma.backup import backup_data, clear_data_path
 from app.enigma.blacklist import write_blacklist
 from app.enigma.bouquets import BouquetsReader, BouquetsWriter
 from app.enigma.ecommons import BqServiceType, Service, Bouquet, Bouquets, BqType, BouquetService
-from app.enigma.lamedb import get_services, LameDbWriter, LameDbReader
+from app.enigma.lamedb import LameDbWriter, LameDbReader
 from app.satellites.satxml import get_satellites, write_satellites
 from app.streams.iptv import import_m3u
 from app.ui.dialogs import *
@@ -865,20 +865,13 @@ class MainWindow(MainUiWindow):
 
     def load_satellites(self, path):
         try:
-            sats = get_satellites(path)
+            satellites = get_satellites(path)
         except FileNotFoundError as e:
             log(e)
         else:
             self.satellite_view.clear_data()
             model = self.satellite_view.model()
-
-            for sat in sats:
-                sat_item = QStandardItem("satellite")
-                sat_item.setData(sat, Qt.UserRole)
-                sat_pos = int(sat.position)
-                pos_value = "{:0.1f}{}".format(abs(sat_pos / 10), "W" if sat_pos < 0 else "E")
-                model.appendRow((QStandardItem(sat.name), QStandardItem(pos_value), sat_item))
-
+            [model.appendRow((self.get_satellite_row(sat))) for sat in satellites]
             self.satellite_count_label.setText(str(model.rowCount()))
 
     def on_satellite_selection(self, selected, deselected):
@@ -899,10 +892,25 @@ class MainWindow(MainUiWindow):
         QMessageBox.information(self, APP_NAME, self.tr("Not implemented yet!"))
 
     def on_satellite_edit(self, row):
-        index = self.satellite_view.model().index(row, Column.SAT_DATA)
+        model = self.satellite_view.model()
+        index = model.index(row, Column.SAT_DATA)
         sat_dialog = SatelliteDialog(index.data(Qt.UserRole))
+
         if sat_dialog.exec():
-            QMessageBox.information(self, APP_NAME, self.tr("Not implemented yet!"))
+            satellite = sat_dialog.satellite
+            model.setData(index, satellite, Qt.UserRole)
+            model.setData(model.index(row, Column.SAT_NAME), satellite.name)
+            model.setData(model.index(row, Column.SAT_POS), self.get_sat_position(int(satellite.position)))
+
+    def get_satellite_row(self, satellite):
+        """ Returns the satellite row representation as a QStandardItem tuple. """
+        sat_item = QStandardItem("satellite")
+        sat_item.setData(satellite, Qt.UserRole)
+
+        return QStandardItem(satellite.name), QStandardItem(self.get_sat_position(int(satellite.position))), sat_item
+
+    def get_sat_position(self, sat_pos):
+        return f"{abs(sat_pos / 10):0.1f}{'W' if sat_pos < 0 else 'E'}"
 
     def on_transponder_edit(self, row):
         index = self.transponder_view.model().index(row, 0)

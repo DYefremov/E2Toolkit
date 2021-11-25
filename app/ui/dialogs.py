@@ -1309,15 +1309,28 @@ class SatelliteDialog(QtWidgets.QDialog):
         self.dialog_grid_layout.addLayout(self.main_grid_layout, 0, 0, 1, 1)
 
         self.retranslate_ui()
-        self.button_box.accepted.connect(self.accept)
+        self.button_box.accepted.connect(self.save)
         self.button_box.rejected.connect(self.reject)
         QtCore.QMetaObject.connectSlotsByName(self)
 
         self._satellite = satellite
         self.init_data()
 
+    @property
+    def satellite(self):
+        return self._satellite
+
     def init_data(self):
         self.name_edit.setText(self._satellite.name)
+        pos = int(self._satellite.position) / 10
+        self.position_box.setValue(abs(pos))
+        self.side_box.setCurrentText("W" if pos < 0 else "E")
+
+    def save(self):
+        pos = f"{self.position_box.value() * (-10 if self.side_box.currentText() == 'W' else 10):0.1f}"
+        self._satellite = self._satellite._replace(name=self.name_edit.text(), position=f"{int(float(pos)):d}")
+
+        self.accept()
 
     def retranslate_ui(self):
         _translate = QtCore.QCoreApplication.translate
