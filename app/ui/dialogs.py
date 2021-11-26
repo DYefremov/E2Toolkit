@@ -26,11 +26,11 @@ __all__ = ["TimerDialog", "ServiceDialog", "IptvServiceDialog", "BackupDialog", 
 import zipfile
 from datetime import datetime
 from enum import IntEnum
-from urllib.parse import unquote
+from urllib.parse import unquote, quote
 
 from PyQt5 import QtWidgets, QtCore, QtGui
 
-from app.commons import log
+from app.commons import log, APP_NAME
 from app.enigma.ecommons import Pids, Flag, Service, BqServiceType, FEC, SYSTEM, POLARIZATION, MODULATION, PLS_MODE
 from app.satellites.satxml import get_key_by_value
 from app.streams.iptv import StreamType, get_fav_id
@@ -291,24 +291,34 @@ class TimerDialog(QtWidgets.QDialog):
         self.button_box.rejected.connect(self.reject)
         QtCore.QMetaObject.connectSlotsByName(self)
 
-        self._data = data
-        self._timer_action = action
+        self._data = data or {}
+        self._action = action
+        self._request = ""
         self.init_timer_data()
 
     @property
-    def timer(self):
+    def timer_data(self):
         return self._data
 
+    @property
+    def request(self):
+        return self._request
+
     def init_timer_data(self):
-        if self._timer_action is self.TimerAction.ADD:
+        if self._action is self.TimerAction.ADD:
             self.init_add()
-        elif self._timer_action is self.TimerAction.EDIT:
+        elif self._action is self.TimerAction.EDIT:
             self.init_edit()
-        elif self._timer_action is self.TimerAction.EVENT:
+        elif self._action is self.TimerAction.EVENT:
             self.init_event()
 
     def init_add(self):
-        pass
+        self.timer_service_edit.setText(self._data.get("e2servicename", ""))
+        self.timer_ref_edit.setText(self._data.get("e2servicereference", ""))
+        date = datetime.now()
+        self.timer_begins_edit.setDateTime(date)
+        self.timer_ends_edit.setDateTime(date)
+        self.timer_event_id_edit.setText("")
 
     def init_edit(self):
         self.timer_enable_button.setChecked(self._data.get("e2disabled", "0") == "0")
@@ -339,17 +349,17 @@ class TimerDialog(QtWidgets.QDialog):
         self.timer_ends_edit.setDateTime(datetime.fromtimestamp(end_time))
 
     def save(self):
+        if QtWidgets.QMessageBox.question(self, APP_NAME, self.tr("Are you sure?")) != QtWidgets.QMessageBox.Yes:
+            return
+
+        self._request = self.get_request()
         self.accept()
 
     def get_repetition_flags(self):
         """ Returns flags for repetition. """
         day_flags = 0
-        for i, box in enumerate((self.timer_mo_check_box,
-                                 self.timer_tu_check_box,
-                                 self.timer_we_check_box,
-                                 self.timer_th_check_box,
-                                 self.timer_fr_check_box,
-                                 self.timer_sa_check_box,
+        for i, box in enumerate((self.timer_mo_check_box, self.timer_tu_check_box, self.timer_we_check_box,
+                                 self.timer_th_check_box, self.timer_fr_check_box, self.timer_sa_check_box,
                                  self.timer_su_check_box)):
 
             if box.isChecked():
@@ -358,15 +368,60 @@ class TimerDialog(QtWidgets.QDialog):
         return day_flags
 
     def set_repetition_flags(self, flags):
-        for i, box in enumerate((self.timer_mo_check_box,
-                                 self.timer_tu_check_box,
-                                 self.timer_we_check_box,
-                                 self.timer_th_check_box,
-                                 self.timer_fr_check_box,
-                                 self.timer_sa_check_box,
+        for i, box in enumerate((self.timer_mo_check_box, self.timer_tu_check_box, self.timer_we_check_box,
+                                 self.timer_th_check_box, self.timer_fr_check_box, self.timer_sa_check_box,
                                  self.timer_su_check_box)):
             box.setChecked(flags & 1 == 1)
             flags = flags >> 1
+
+    def get_request(self):
+        """ Constructs str representation of add/update request. """
+        args = []
+        t_data = self.get_timer_data()
+        s_ref = quote(t_data.get("sRef", ""))
+
+        if self._action is self.TimerAction.EVENT:
+            args.append(f"timeraddbyeventid?sRef={s_ref}")
+            args.append(f"eventid={t_data.get('eit', '0')}")
+            args.append(f"justplay={t_data.get('justplay', '')}")
+            args.append(f"tags={''}")
+        else:
+            if self._action is self.TimerAction.ADD:
+                args.append(f"timeradd?sRef={s_ref}")
+                args.append(f"deleteOldOnSave={0}")
+            elif self._action is self.TimerAction.EDIT:
+                args.append(f"timerchange?sRef={s_ref}")
+                args.append(f"channelOld={s_ref}")
+                args.append(f"beginOld={self._data.get('e2timebegin', '0')}")
+                args.append(f"endOld={self._data.get('e2timeend', '0')}")
+                args.append(f"deleteOldOnSave={1}")
+
+            args.append(f"begin={t_data.get('begin', '')}")
+            args.append(f"end={t_data.get('end', '')}")
+            args.append(f"name={quote(t_data.get('name', ''))}")
+            args.append(f"description={quote(t_data.get('description', ''))}")
+            args.append(f"tags={''}")
+            args.append(f"eit={'0'}")
+            args.append(f"disabled={t_data.get('disabled', '1')}")
+            args.append(f"justplay={t_data.get('justplay', '1')}")
+            args.append(f"afterevent={t_data.get('afterevent', '0')}")
+            args.append(f"repeated={self.get_repetition_flags()}")
+
+        return "&".join(args)
+
+    def get_timer_data(self):
+        """ Returns timer data as a dict. """
+        return {"sRef": self.timer_ref_edit.text(),
+                "begin": int(self.timer_begins_edit.dateTime().toPyDateTime().timestamp()),
+                "end": int(self.timer_ends_edit.dateTime().toPyDateTime().timestamp()),
+                "name": self.timer_name_edit.text(),
+                "description": self.timer_description_edit.text(),
+                "dirname": self.timer_location_combo_box.currentText(),
+                "eit": self.timer_event_id_edit.text(),
+                "disabled": int(not self.timer_enable_button.isChecked()),
+                "justplay": self.timer_action_combo_box.currentIndex(),
+                "afterevent": self.timer_after_event_combo_box.currentIndex(),
+                "repeated": self.get_repetition_flags()}
 
     def retranslate_ui(self):
         _translate = QtCore.QCoreApplication.translate

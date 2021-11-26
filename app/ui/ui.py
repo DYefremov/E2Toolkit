@@ -1157,6 +1157,7 @@ class MainUiWindow(QtWidgets.QMainWindow):
         self.logo_action.setObjectName("logo_action")
         self.log_action = QtWidgets.QAction(self)
         self.log_action.setCheckable(True)
+        self.log_action.setShortcut("Ctrl+L")
         self.log_action.setObjectName("log_action")
         self.subtitle_track_menu = QtWidgets.QMenu(self)
         self.subtitle_track_menu.setObjectName("subtitle_track_menu")

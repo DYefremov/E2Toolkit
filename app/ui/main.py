@@ -27,6 +27,7 @@ import sys
 from collections import OrderedDict, Counter, defaultdict
 from datetime import datetime
 from pathlib import Path
+from urllib.parse import quote
 
 from PyQt5.QtCore import QTranslator, QStringListModel, QTimer, pyqtSlot, Qt, QFile, QDir
 from PyQt5.QtGui import QIcon, QStandardItem, QPixmap
@@ -168,7 +169,7 @@ class MainWindow(MainUiWindow):
         self.add_stream_action.triggered.connect(self.on_add_iptv_service)
         # Timers.
         self.timer_add_button.clicked.connect(self.on_timer_add)
-        self.timer_remove_button.clicked.connect(self.on_timer_remove)
+        self.timer_remove_button.clicked.connect(self.timer_view.on_remove)
         self.timer_view.edited.connect(self.on_timer_edit)
         self.timer_view.removed.connect(self.on_timer_remove)
         self.epg_view.timer_add.connect(self.on_timer_add_from_event)
@@ -248,6 +249,7 @@ class MainWindow(MainUiWindow):
         callbacks = {HttpAPI.Request.INFO: self.update_state_info,
                      HttpAPI.Request.SIGNAL: self.update_signal,
                      HttpAPI.Request.STREAM: self.update_playback,
+                     HttpAPI.Request.TIMER: self.on_timer_done,
                      HttpAPI.Request.TIMER_LIST: self.update_timer_list,
                      HttpAPI.Request.EPG: self.update_single_epg,
                      HttpAPI.Request.GRUB: self.update_screenshot,
@@ -582,7 +584,7 @@ class MainWindow(MainUiWindow):
             return
 
         if os.listdir(resp):
-            msg = "{}\n\t{}".format(self.tr("The selected folder already contains files!"), self.tr("Are you sure?"))
+            msg = f"{self.tr('The selected folder already contains files!')}\n\t{self.tr('Are you sure?')}"
             if QMessageBox.question(self, APP_NAME, msg) != QMessageBox.Yes:
                 return
         self.save_data(resp + os.sep, False)
@@ -688,7 +690,7 @@ class MainWindow(MainUiWindow):
         if not resp:
             return
         # Checking if the given name is already present.
-        if self._bouquets.keys() & {"{}:{}".format(name, BqType.TV.value), "{}:{}".format(name, BqType.RADIO.value)}:
+        if self._bouquets.keys() & {f"{name}:{BqType.TV.value}", f"{name}:{BqType.RADIO.value}"}:
             self.show_error_dialog(self.tr("A bouquet with that name exists!"))
             return
 
@@ -703,12 +705,12 @@ class MainWindow(MainUiWindow):
         bq = (QStandardItem(name), None, None, QStandardItem(b_type))
         row = 0 if parent_row < 0 else cur_index.row() + 1
         root_item.insertRow(row, bq)
-        self._bouquets["{}:{}".format(name, b_type)] = []
+        self._bouquets[f"{name}:{b_type}"] = []
 
     def on_bouquet_selection(self, selected_item, deselected_item):
         indexes = selected_item.indexes()
         if len(indexes) > 1:
-            self._bq_selected = "{}:{}".format(indexes[Column.BQ_NAME].data(), indexes[Column.BQ_TYPE].data())
+            self._bq_selected = f"{indexes[Column.BQ_NAME].data()}:{indexes[Column.BQ_TYPE].data()}"
             self.update_bouquet_services(self._bq_selected)
 
     def on_fav_selection(self, selected_item, deselected_item):
@@ -769,7 +771,7 @@ class MainWindow(MainUiWindow):
             list(map(bq.pop, rows))
 
     def remove_bouquets(self, rows):
-        bqs = {"{}:{}".format(r[Column.BQ_NAME].data(), r[Column.BQ_TYPE].data()) for r in rows}
+        bqs = {f"{r[Column.BQ_NAME].data()}:{r[Column.BQ_TYPE].data()}" for r in rows}
         list(map(self._bouquets.pop, bqs))
         self.fav_view.clear_data() if self._bq_selected in bqs else None
 
@@ -782,7 +784,7 @@ class MainWindow(MainUiWindow):
 
     def get_bouquet(self, bq_name, locked, hidden, bq_type):
         """ Constructs and returns Bouquet class instance. """
-        bq_id = "{}:{}".format(bq_name, bq_type)
+        bq_id = f"{bq_name}:{bq_type}"
         ext_services = self._extra_bouquets.get(bq_id, None)
         bq_s = list(filter(None, [self._services.get(f_id, None) for f_id in self._bouquets.get(bq_id, [])]))
         bq_s = self.get_bq_services(bq_s, ext_services)
@@ -1128,22 +1130,9 @@ class MainWindow(MainUiWindow):
     # ********************** EPG *********************** #
 
     def update_single_epg(self, epg):
-        event_list = epg.get("event_list", [])
         self.epg_view.clear_data()
         model = self.epg_view.model()
-
-        for event in event_list:
-            title = event.get("e2eventtitle", "")
-            desc = event.get("e2eventdescription", "")
-            start = int(event.get("e2eventstart", "0"))
-            start_time = datetime.fromtimestamp(start)
-            end_time = datetime.fromtimestamp(start + int(event.get("e2eventduration", "0")))
-            time_header = "{} - {}".format(start_time.strftime("%A, %H:%M"), end_time.strftime("%H:%M"))
-
-            data_item = QStandardItem("Event")
-            data_item.setData(event, Qt.UserRole)
-            model.appendRow((QStandardItem(title), QStandardItem(time_header), QStandardItem(desc), data_item))
-
+        [model.appendRow(self.get_epg_row(event)) for event in epg.get("event_list", [])]
         self.fav_view.setEnabled(True)
 
     def update_multiple_epg(self, epg):
@@ -1157,51 +1146,92 @@ class MainWindow(MainUiWindow):
             elif srv.picon_id:
                 return srv.picon_id.rstrip(".png").replace("_", ":")
 
+    def get_epg_row(self, event):
+        """ Returns EPG row representation as a tuple. """
+        title = event.get("e2eventtitle", "")
+        desc = event.get("e2eventdescription", "")
+        start = int(event.get("e2eventstart", "0"))
+        start_time = datetime.fromtimestamp(start)
+        end_time = datetime.fromtimestamp(start + int(event.get("e2eventduration", "0")))
+        time_header = f"{start_time.strftime('%A, %H:%M')} - {end_time.strftime('%H:%M')}"
+        data_item = QStandardItem("Event")
+        data_item.setData(event, Qt.UserRole)
+
+        return QStandardItem(title), QStandardItem(time_header), QStandardItem(desc), data_item
+
     # ********************* Timer ********************** #
 
     def on_timer_page_show(self):
         self._http_api.send(HttpAPI.Request.TIMER_LIST)
 
     def update_timer_list(self, timer_list):
-        timer_list = timer_list.get("timer_list", [])
-
         self.timer_view.clear_data()
         model = self.timer_view.model()
+        [model.appendRow(self.get_timer_row(timer)) for timer in timer_list.get("timer_list", [])]
 
-        for timer in timer_list:
-            name = timer.get("e2name", "") or ""
-            description = timer.get("e2description", "") or ""
-            service_name = timer.get("e2servicename", "") or ""
+    def on_timer_add(self, state):
+        rows = self.fav_view.selectionModel().selectedRows()
+        row_count = len(rows)
 
-            start_time = datetime.fromtimestamp(int(timer.get("e2timebegin", "0")))
-            end_time = datetime.fromtimestamp(int(timer.get("e2timeend", "0")))
-            time_str = "{} - {}".format(start_time.strftime("%A, %H:%M"), end_time.strftime("%H:%M"))
-
-            data_item = QStandardItem("data")
-            data_item.setData(timer, Qt.UserRole)
-            model.appendRow((QStandardItem(name),
-                             QStandardItem(description),
-                             QStandardItem(service_name),
-                             QStandardItem(time_str),
-                             data_item))
-
-    def on_timer_add(self, row):
-        QMessageBox.information(self, APP_NAME, self.tr("Not implemented yet!"))
+        if row_count == 1:
+            row = rows[0].row()
+            model = self.fav_view.model()
+            t_data = {"e2servicename": model.index(row, Column.NAME).data(),
+                      "e2servicereference": model.index(row, Column.PICON_ID).data().rstrip(".png").replace("_", ":")}
+            timer_dialog = TimerDialog(t_data, TimerDialog.TimerAction.ADD)
+            if timer_dialog.exec():
+                self._http_api.send(HttpAPI.Request.TIMER, timer_dialog.request)
+        elif row_count > 1:
+            self.show_error_dialog("Please, select only one item!")
+        else:
+            self.show_error_dialog("No selected item!")
 
     def on_timer_remove(self):
-        QMessageBox.information(self, APP_NAME, self.tr("Not implemented yet!"))
+        if QMessageBox.question(self, APP_NAME, self.tr("Are you sure?")) != QMessageBox.Yes:
+            return
+
+        for i in self.timer_view.selectionModel().selectedRows():
+            timer = self.timer_view.model().index(i.row(), Column.TIMER_DATA).data(Qt.UserRole)
+            s_ref = quote(timer.get("e2servicereference", ""))
+            req = f"timerdelete?sRef={s_ref}&begin={timer.get('e2timebegin', '')}&end={timer.get('e2timeend', '')}"
+            self._http_api.send(HttpAPI.Request.TIMER, req)
 
     def on_timer_add_from_event(self, row):
         event = self.epg_view.model().index(row, Column.EPG_EVENT).data(Qt.UserRole)
         timer_dialog = TimerDialog(event, TimerDialog.TimerAction.EVENT)
         if timer_dialog.exec():
-            QMessageBox.information(self, APP_NAME, self.tr("Not implemented yet!"))
+            self._http_api.send(HttpAPI.Request.TIMER, timer_dialog.request)
 
     def on_timer_edit(self, row):
         index = self.timer_view.model().index(row, Column.TIMER_DATA)
         timer_dialog = TimerDialog(index.data(Qt.UserRole), TimerDialog.TimerAction.EDIT)
         if timer_dialog.exec():
-            QMessageBox.information(self, APP_NAME, self.tr("Not implemented yet!"))
+            self._http_api.send(HttpAPI.Request.TIMER, timer_dialog.request)
+
+    def on_timer_done(self, resp):
+        if "error" in resp:
+            msg = f"Error getting timer status.\n{resp.get('reason', 'Unknown')}"
+        else:
+            state = resp.get("e2state", None)
+            msg = resp.get("e2statetext", "") if state else "Error getting timer status. No response!"
+            
+        self.log_text_browser.append(msg)
+        log(msg)
+
+    def get_timer_row(self, timer):
+        """ Returns timer row representation as a tuple. """
+        name = timer.get("e2name", "") or ""
+        desc = timer.get("e2description", "") or ""
+        srv_name = timer.get("e2servicename", "") or ""
+
+        start_time = datetime.fromtimestamp(int(timer.get("e2timebegin", "0")))
+        end_time = datetime.fromtimestamp(int(timer.get("e2timeend", "0")))
+        time_str = f"{start_time.strftime('%A, %H:%M')} - {end_time.strftime('%H:%M')}"
+
+        data_item = QStandardItem("data")
+        data_item.setData(timer, Qt.UserRole)
+
+        return QStandardItem(name), QStandardItem(desc), QStandardItem(srv_name), QStandardItem(time_str), data_item
 
     # ******************** Control ********************* #
 
