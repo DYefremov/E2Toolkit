@@ -32,6 +32,7 @@ from PyQt5 import QtWidgets, QtCore, QtGui
 
 from app.commons import log
 from app.enigma.ecommons import Pids, Flag, Service, BqServiceType, FEC, SYSTEM, POLARIZATION, MODULATION, PLS_MODE
+from app.satellites.satxml import get_key_by_value
 from app.streams.iptv import StreamType, get_fav_id
 from app.ui.models import ServiceTypeModel
 from app.ui.views import BackupFileView
@@ -1327,10 +1328,16 @@ class SatelliteDialog(QtWidgets.QDialog):
         self.side_box.setCurrentText("W" if pos < 0 else "E")
 
     def save(self):
+        if not self.is_data_correct():
+            return
+
         pos = f"{self.position_box.value() * (-10 if self.side_box.currentText() == 'W' else 10):0.1f}"
         self._satellite = self._satellite._replace(name=self.name_edit.text(), position=f"{int(float(pos)):d}")
 
         self.accept()
+
+    def is_data_correct(self):
+        return True
 
     def retranslate_ui(self):
         _translate = QtCore.QCoreApplication.translate
@@ -1437,7 +1444,7 @@ class TransponderDialog(QtWidgets.QDialog):
         self.fec_combo_box.setModel(QtCore.QStringListModel(sorted(set(FEC.values()))))
         self.system_combo_box.setModel(QtCore.QStringListModel(SYSTEM.values()))
         self.mod_combo_box.setModel(QtCore.QStringListModel(MODULATION.values()))
-        self.pls_combo_box.setModel(QtCore.QStringListModel(PLS_MODE.values()))
+        self.pls_combo_box.setModel(QtCore.QStringListModel(tuple(PLS_MODE.values()) + ("None",)))
         # Value validation.
         self.freq_edit.setValidator(QtGui.QIntValidator(self.freq_edit))
         self.sr_edit.setValidator(QtGui.QIntValidator(self.sr_edit))
@@ -1445,9 +1452,47 @@ class TransponderDialog(QtWidgets.QDialog):
         self.is_id_edit.setValidator(QtGui.QIntValidator(self.is_id_edit))
 
         self.retranslate_ui()
-        self.button_box.accepted.connect(self.accept)
+        self.button_box.accepted.connect(self.save)
         self.button_box.rejected.connect(self.reject)
         QtCore.QMetaObject.connectSlotsByName(self)
+
+        self._transponder = transponder
+        self.init_data()
+
+    @property
+    def transponder(self):
+        return self._transponder
+
+    def init_data(self):
+        self.freq_edit.setText(self._transponder.frequency)
+        self.sr_edit.setText(self._transponder.symbol_rate)
+        self.pol_combo_box.setCurrentText(self._transponder.polarization)
+        self.fec_combo_box.setCurrentText(self._transponder.fec_inner)
+        self.system_combo_box.setCurrentText(self._transponder.system)
+        self.mod_combo_box.setCurrentText(self._transponder.modulation)
+        self.pls_combo_box.setCurrentText(str(self._transponder.pls_mode))
+        self.pls_code_edit.setText(self._transponder.pls_code)
+        self.is_id_edit.setText(self._transponder.is_id)
+
+    def save(self):
+        if not self.is_data_correct():
+            return
+
+        self._transponder = self._transponder._replace(frequency=self.freq_edit.text(),
+                                                       symbol_rate=self.sr_edit.text(),
+                                                       polarization=self.pol_combo_box.currentText(),
+                                                       fec_inner=self.fec_combo_box.currentText(),
+                                                       system=self.system_combo_box.currentText(),
+                                                       modulation=self.mod_combo_box.currentText(),
+                                                       pls_mode=get_key_by_value(PLS_MODE,
+                                                                                 self.pls_combo_box.currentText()),
+                                                       pls_code=self.pls_code_edit.text() or None,
+                                                       is_id=self.is_id_edit.text() or None)
+
+        self.accept()
+
+    def is_data_correct(self):
+        return True
 
     def retranslate_ui(self):
         _translate = QtCore.QCoreApplication.translate

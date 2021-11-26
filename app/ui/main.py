@@ -913,19 +913,27 @@ class MainWindow(MainUiWindow):
         return f"{abs(sat_pos / 10):0.1f}{'W' if sat_pos < 0 else 'E'}"
 
     def on_transponder_edit(self, row):
-        index = self.transponder_view.model().index(row, 0)
-        tr_dialog = TransponderDialog((index.data(),))
+        sat_model = self.satellite_view.model()
+        sat_index = sat_model.index(self.satellite_view.currentIndex().row(), Column.SAT_DATA)
+        sat = sat_index.data(Qt.UserRole)
+        if not sat:
+            return
+
+        tr_dialog = TransponderDialog(sat.transponders[row])
         if tr_dialog.exec():
-            QMessageBox.information(self, APP_NAME, self.tr("Not implemented yet!"))
+            transponder = tr_dialog.transponder
+            sat.transponders[row] = transponder
+            t_model = self.transponder_view.model()
+            [t_model.setData(t_model.index(row, c), d) for c, d in enumerate(transponder)]
+            sat_model.setData(sat_index, sat, Qt.UserRole)
 
     def on_transponder_remove(self, rows):
         rows = sorted(rows, reverse=True)
         if not rows:
             return
 
-        cur_index = self.satellite_view.currentIndex()
         model = self.satellite_view.model()
-        data_index = model.index(cur_index.row(), Column.SAT_DATA)
+        data_index = model.index(self.satellite_view.currentIndex().row(), Column.SAT_DATA)
         sat = data_index.data(Qt.UserRole)
         if sat:
             list(map(sat.transponders.pop, rows))
