@@ -90,6 +90,12 @@
             <verstretch>0</verstretch>
            </sizepolicy>
           </property>
+          <property name="minimumSize">
+           <size>
+            <width>100</width>
+            <height>0</height>
+           </size>
+          </property>
          </widget>
         </item>
         <item row="3" column="0">
@@ -106,6 +112,12 @@
             <horstretch>0</horstretch>
             <verstretch>0</verstretch>
            </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>100</width>
+            <height>0</height>
+           </size>
           </property>
          </widget>
         </item>
@@ -124,6 +136,12 @@
             <verstretch>0</verstretch>
            </sizepolicy>
           </property>
+          <property name="minimumSize">
+           <size>
+            <width>100</width>
+            <height>0</height>
+           </size>
+          </property>
          </widget>
         </item>
         <item row="5" column="0">
@@ -141,6 +159,12 @@
             <verstretch>0</verstretch>
            </sizepolicy>
           </property>
+          <property name="minimumSize">
+           <size>
+            <width>100</width>
+            <height>0</height>
+           </size>
+          </property>
          </widget>
         </item>
         <item row="6" column="0">
@@ -151,7 +175,14 @@
          </widget>
         </item>
         <item row="6" column="1">
-         <widget class="QComboBox" name="pls_combo_box"/>
+         <widget class="QComboBox" name="pls_combo_box">
+          <property name="minimumSize">
+           <size>
+            <width>100</width>
+            <height>0</height>
+           </size>
+          </property>
+         </widget>
         </item>
         <item row="7" column="0">
          <widget class="QLabel" name="pls_code_label">

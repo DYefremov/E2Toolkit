@@ -173,6 +173,7 @@ class MainWindow(MainUiWindow):
         self.timer_view.edited.connect(self.on_timer_edit)
         self.timer_view.removed.connect(self.on_timer_remove)
         self.epg_view.timer_add.connect(self.on_timer_add_from_event)
+        self.epg_add_timer_button.clicked.connect(self.on_timer_add_from_event)
         # Remote controller actions.
         self.control_up_button.clicked.connect(lambda b: self.on_remote_action(HttpAPI.Remote.UP))
         self.control_down_button.clicked.connect(lambda b: self.on_remote_action(HttpAPI.Remote.DOWN))
@@ -1080,14 +1081,21 @@ class MainWindow(MainUiWindow):
             self._player.stop()
 
     def show_full_screen(self, event=None):
-        self.media_widget.hide()
-        if self.media_widget.isFullScreen():
-            self.media_widget.setWindowState(Qt.WindowNoState)
-            self.media_widget.setWindowFlags(Qt.Widget)
-        else:
-            self.media_widget.setWindowFlags(Qt.Window)
-            self.media_widget.setWindowState(Qt.WindowFullScreen)
-        self.media_widget.show()
+        """ Сontrols the full screen mode for playback. """
+        # It looks a bit tricky but works.
+        is_full = self.isFullScreen()
+        self.header_widget.setVisible(is_full)
+        self.media_control_widget.setVisible(is_full)
+        self.menuBar().setVisible(is_full)
+        self.statusBar().setVisible(is_full)
+        self.main_frame.setVisible(is_full)
+        self.media_frame.setFrameShape(self.media_frame.Box if is_full else self.media_frame.NoFrame)
+
+        margin_value = 6 if is_full else 0
+        self.media_layout.setContentsMargins(margin_value, margin_value, margin_value, margin_value)
+        self.central_layout.setContentsMargins(margin_value, margin_value, margin_value, margin_value)
+
+        self.showNormal() if is_full else self.showFullScreen()
 
     def update_audio_tracks(self, tracks):
         self.audio_track_menu.clear()
@@ -1214,7 +1222,7 @@ class MainWindow(MainUiWindow):
         else:
             state = resp.get("e2state", None)
             msg = resp.get("e2statetext", "") if state else "Error getting timer status. No response!"
-            
+
         self.log_text_browser.append(msg)
         log(msg)
 

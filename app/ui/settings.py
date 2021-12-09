@@ -23,15 +23,23 @@
 
 """ Main settings module. """
 import os
+import sys
 from collections import OrderedDict
 from enum import Enum
 from pathlib import Path
 
+from PyQt5 import uic
 from PyQt5.QtCore import QSettings, QSize, QStringListModel
 from PyQt5.QtWidgets import QDialog, QMessageBox, QDialogButtonBox, QFileDialog
 
 from app.commons import APP_NAME
-from app.ui.settings_ui import Ui_SettingsDialog
+
+IS_DARWIN = sys.platform == "darwin"
+IS_WIN = sys.platform == "win32"
+IS_LINUX = sys.platform == "linux"
+
+# Base UI files path.
+UI_PATH = "app/ui/res/"
 
 
 class Settings(QSettings):
@@ -40,9 +48,9 @@ class Settings(QSettings):
     class Default(Enum):
         """ Default settings """
         HOME_PATH = str(Path.home())
-        DATA_PATH = HOME_PATH + "/{}/data/".format(APP_NAME)
-        BACKUP_PATH = DATA_PATH + "backup/"
-        PICON_PATH = DATA_PATH + "picons/"
+        DATA_PATH = f"{HOME_PATH}/{APP_NAME}/data/"
+        BACKUP_PATH = f"{DATA_PATH}backup/"
+        PICON_PATH = f"{DATA_PATH}picons/"
         BOX_PICON_PATH = "/usr/share/enigma2/picon/"
         BOX_SERVICES_PATH = "/etc/enigma2/"
         BOX_SATELLITE_PATH = "/etc/tuxbox/"
@@ -216,10 +224,9 @@ class Settings(QSettings):
 
 
 class SettingsDialog(QDialog):
-    def __init__(self):
-        super(SettingsDialog, self).__init__()
-        self.ui = Ui_SettingsDialog()
-        self.ui.setupUi(self)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        uic.loadUi(f"{UI_PATH}settings.ui", self)
 
         self.settings = Settings()
         self._profiles = OrderedDict()
@@ -233,78 +240,78 @@ class SettingsDialog(QDialog):
 
     def init_ui(self):
         # Setting model to profiles view.
-        self.ui.profile_view.setModel(QStringListModel())
-        # Init picon paths for the box
-        self.ui.picon_path_box.addItems(("/usr/share/enigma2/picon/", "/media/hdd/picon/", "/media/usb/picon/",
-                                         "/media/mmc/picon/", "/media/cf/picon/"))
+        self.profile_view.setModel(QStringListModel())
+        # Init picon paths for the box.
+        self.picon_path_box.addItems(("/usr/share/enigma2/picon/", "/media/hdd/picon/", "/media/usb/picon/",
+                                      "/media/mmc/picon/", "/media/cf/picon/"))
         # Streams.
         modes = (self.tr("Play"), self.tr("Zap"), self.tr("Zap and Play"), self.tr("Disabled"))
-        self.ui.play_streams_mode_combo_box.setModel(QStringListModel(modes))
-        self.ui.play_streams_mode_combo_box.setEnabled(False)
-        self.ui.stream_lib_combo_box.setModel(QStringListModel(("VLC", "MPV", "GStreamer")))
+        self.play_streams_mode_combo_box.setModel(QStringListModel(modes))
+        self.play_streams_mode_combo_box.setEnabled(False)
+        self.stream_lib_combo_box.setModel(QStringListModel(("VLC", "MPV", "GStreamer")))
 
     def init_actions(self):
-        self.ui.network_tool_button.toggled.connect(lambda s: self.ui.stacked_widget.setCurrentIndex(0) if s else None)
-        self.ui.paths_tool_button.toggled.connect(lambda s: self.ui.stacked_widget.setCurrentIndex(1) if s else None)
-        self.ui.program_tool_button.toggled.connect(lambda s: self.ui.stacked_widget.setCurrentIndex(2) if s else None)
+        self.network_tool_button.toggled.connect(lambda s: self.stacked_widget.setCurrentIndex(0) if s else None)
+        self.paths_tool_button.toggled.connect(lambda s: self.stacked_widget.setCurrentIndex(1) if s else None)
+        self.program_tool_button.toggled.connect(lambda s: self.stacked_widget.setCurrentIndex(2) if s else None)
         # Profile
-        self.ui.profile_add_button.clicked.connect(self.on_profile_add)
-        self.ui.profile_edit_button.clicked.connect(self.on_profile_edit)
-        self.ui.profile_remove_button.clicked.connect(self.on_profile_remove)
-        self.ui.test_button.clicked.connect(self.on_test_connection)
-        self.ui.profile_view.selectionModel().currentChanged.connect(self.on_profile_selection)
-        self.ui.login_edit.editingFinished.connect(lambda: self.on_profile_params_set("user", self.ui.login_edit))
-        self.ui.password_edit.editingFinished.connect(
-            lambda: self.on_profile_params_set("password", self.ui.password_edit))
-        self.ui.host_edit.editingFinished.connect(lambda: self.on_profile_params_set("host", self.ui.host_edit))
-        self.ui.ftp_port_edit.editingFinished.connect(
-            lambda: self.on_profile_params_set("ftp_port", self.ui.ftp_port_edit))
-        self.ui.http_port_edit.editingFinished.connect(
-            lambda: self.on_profile_params_set("http_port", self.ui.http_port_edit))
-        self.ui.telnet_port_edit.editingFinished.connect(
-            lambda: self.on_profile_params_set("ftp_port", self.ui.telnet_port_edit))
-        self.ui.picon_path_box.activated.connect(
-            lambda i: self._current_profile.update({"box_picon_path": self.ui.picon_path_box.currentText()}))
-        self.ui.http_ssl_check_box.toggled.connect(self.on_http_ssl_toggled)
+        self.profile_add_button.clicked.connect(self.on_profile_add)
+        self.profile_edit_button.clicked.connect(self.on_profile_edit)
+        self.profile_remove_button.clicked.connect(self.on_profile_remove)
+        self.test_button.clicked.connect(self.on_test_connection)
+        self.profile_view.selectionModel().currentChanged.connect(self.on_profile_selection)
+        self.login_edit.editingFinished.connect(lambda: self.on_profile_params_set("user", self.login_edit))
+        self.password_edit.editingFinished.connect(
+            lambda: self.on_profile_params_set("password", self.password_edit))
+        self.host_edit.editingFinished.connect(lambda: self.on_profile_params_set("host", self.host_edit))
+        self.ftp_port_edit.editingFinished.connect(
+            lambda: self.on_profile_params_set("ftp_port", self.ftp_port_edit))
+        self.http_port_edit.editingFinished.connect(
+            lambda: self.on_profile_params_set("http_port", self.http_port_edit))
+        self.telnet_port_edit.editingFinished.connect(
+            lambda: self.on_profile_params_set("ftp_port", self.telnet_port_edit))
+        self.picon_path_box.activated.connect(
+            lambda i: self._current_profile.update({"box_picon_path": self.picon_path_box.currentText()}))
+        self.http_ssl_check_box.toggled.connect(self.on_http_ssl_toggled)
         # Paths
-        self.ui.browse_data_path_button.clicked.connect(lambda b: self.on_path_set(self.ui.data_path_edit))
-        self.ui.browse_picon_path_button.clicked.connect(lambda b: self.on_path_set(self.ui.picon_path_edit))
-        self.ui.browse_backup_path_button.clicked.connect(lambda b: self.on_path_set(self.ui.backup_path_edit))
+        self.browse_data_path_button.clicked.connect(lambda b: self.on_path_set(self.data_path_edit))
+        self.browse_picon_path_button.clicked.connect(lambda b: self.on_path_set(self.picon_path_edit))
+        self.browse_backup_path_button.clicked.connect(lambda b: self.on_path_set(self.backup_path_edit))
         # Dialog buttons
-        self.ui.action_button_box.clicked.connect(self.on_accept)
+        self.action_button_box.clicked.connect(self.on_accept)
 
     def init_settings(self):
         # Profiles
         for p in self.settings.profiles:
             self._profiles[p.get("name")] = p
-        self.ui.profile_view.model().setStringList(self._profiles)
-        self.ui.profile_view.setCurrentIndex(self.ui.profile_view.model().createIndex(0, 0))
+        self.profile_view.model().setStringList(self._profiles)
+        self.profile_view.setCurrentIndex(self.profile_view.model().createIndex(0, 0))
         # Paths
-        self.ui.data_path_edit.setText(self.settings.data_path)
-        self.ui.picon_path_edit.setText(self.settings.picon_path)
-        self.ui.backup_path_edit.setText(self.settings.backup_path)
+        self.data_path_edit.setText(self.settings.data_path)
+        self.picon_path_edit.setText(self.settings.picon_path)
+        self.backup_path_edit.setText(self.settings.backup_path)
         # Program
-        self.ui.load_last_config_check_box.setChecked(self.settings.load_last_config)
-        self.ui.show_services_hints_check_box.setChecked(self.settings.show_srv_hints)
-        self.ui.show_fav_hints_check_box.setChecked(self.settings.show_fav_hints)
-        self.ui.backup_befor_save_check_box.setChecked(self.settings.backup_before_save)
-        self.ui.backup_befor_download_check_box.setChecked(self.settings.backup_before_downloading)
-        self.ui.stream_lib_combo_box.setCurrentText(self.settings.stream_lib)
+        self.load_last_config_check_box.setChecked(self.settings.load_last_config)
+        self.show_services_hints_check_box.setChecked(self.settings.show_srv_hints)
+        self.show_fav_hints_check_box.setChecked(self.settings.show_fav_hints)
+        self.backup_befor_save_check_box.setChecked(self.settings.backup_before_save)
+        self.backup_befor_download_check_box.setChecked(self.settings.backup_before_downloading)
+        self.stream_lib_combo_box.setCurrentText(self.settings.stream_lib)
 
     def settings_save(self):
         # Profiles
         self.settings.profiles = self._profiles.values()
         # Paths
-        self.settings.data_path = self.ui.data_path_edit.text()
-        self.settings.picon_path = self.ui.picon_path_edit.text()
-        self.settings.backup_path = self.ui.backup_path_edit.text()
+        self.settings.data_path = self.data_path_edit.text()
+        self.settings.picon_path = self.picon_path_edit.text()
+        self.settings.backup_path = self.backup_path_edit.text()
         # Program
-        self.settings.load_last_config = self.ui.load_last_config_check_box.isChecked()
-        self.settings.show_srv_hints = self.ui.show_services_hints_check_box.isChecked()
-        self.settings.show_fav_hints = self.ui.show_fav_hints_check_box.isChecked()
-        self.settings.backup_before_save = self.ui.backup_befor_save_check_box.isChecked()
-        self.settings.backup_before_downloading = self.ui.backup_befor_download_check_box.isChecked()
-        self.settings.stream_lib = self.ui.stream_lib_combo_box.currentText()
+        self.settings.load_last_config = self.load_last_config_check_box.isChecked()
+        self.settings.show_srv_hints = self.show_services_hints_check_box.isChecked()
+        self.settings.show_fav_hints = self.show_fav_hints_check_box.isChecked()
+        self.settings.backup_before_save = self.backup_befor_save_check_box.isChecked()
+        self.settings.backup_before_downloading = self.backup_befor_download_check_box.isChecked()
+        self.settings.stream_lib = self.stream_lib_combo_box.currentText()
 
     # ******************** Network ******************** #
 
@@ -321,14 +328,14 @@ class SettingsDialog(QDialog):
         profile = self._profiles.get(index.data(), None)
         if profile:
             self._current_profile = profile
-            self.ui.login_edit.setText(profile.get("user", Settings.Default.USER.value))
-            self.ui.password_edit.setText(profile.get("password", Settings.Default.PASSWORD.value))
-            self.ui.host_edit.setText(profile.get("host", Settings.Default.HOST.value))
-            self.ui.ftp_port_edit.setText(profile.get("ftp_port", Settings.Default.FTP_PORT.value))
-            self.ui.http_port_edit.setText(profile.get("http_port", Settings.Default.HTTP_PORT.value))
-            self.ui.telnet_port_edit.setText(profile.get("telnet_port", Settings.Default.TELNET_PORT.value))
-            self.ui.picon_path_box.setCurrentText(profile.get("box_picon_path", Settings.Default.BOX_PICON_PATH.value))
-            self.ui.http_ssl_check_box.setChecked(profile.get("http_use_ssl", Settings.Default.HTTP_USE_SSL.value))
+            self.login_edit.setText(profile.get("user", Settings.Default.USER.value))
+            self.password_edit.setText(profile.get("password", Settings.Default.PASSWORD.value))
+            self.host_edit.setText(profile.get("host", Settings.Default.HOST.value))
+            self.ftp_port_edit.setText(profile.get("ftp_port", Settings.Default.FTP_PORT.value))
+            self.http_port_edit.setText(profile.get("http_port", Settings.Default.HTTP_PORT.value))
+            self.telnet_port_edit.setText(profile.get("telnet_port", Settings.Default.TELNET_PORT.value))
+            self.picon_path_box.setCurrentText(profile.get("box_picon_path", Settings.Default.BOX_PICON_PATH.value))
+            self.http_ssl_check_box.setChecked(profile.get("http_use_ssl", Settings.Default.HTTP_USE_SSL.value))
         else:
             QMessageBox.critical(self, APP_NAME, self.tr("Profile loading error!"))
 
@@ -346,7 +353,7 @@ class SettingsDialog(QDialog):
     def on_http_ssl_toggled(self, checked):
         self._current_profile["http_use_ssl"] = checked
         port = "443" if checked else Settings.Default.HTTP_PORT.value
-        self.ui.http_port_edit.setText(port)
+        self.http_port_edit.setText(port)
         self._current_profile["http_port"] = port
 
     # ******************** Paths ******************** #
@@ -360,7 +367,7 @@ class SettingsDialog(QDialog):
     # ******************** Dialog buttons. ******************** #
 
     def on_accept(self, button):
-        role = self.ui.action_button_box.buttonRole(button)
+        role = self.action_button_box.buttonRole(button)
         if role == QDialogButtonBox.AcceptRole:
             if QMessageBox.question(self, APP_NAME, self.tr("Are you sure?")) == QMessageBox.Yes:
                 self.settings_save()

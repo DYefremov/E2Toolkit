@@ -23,6 +23,7 @@
 """ Common UI module. """
 from enum import IntEnum
 
+
 # Icons
 CODED_ICON = None
 LOCKED_ICON = None

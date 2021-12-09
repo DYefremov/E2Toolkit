@@ -101,7 +101,14 @@
          </widget>
         </item>
         <item row="1" column="1">
-         <widget class="QLineEdit" name="timer_name_edit"/>
+         <widget class="QLineEdit" name="timer_name_edit">
+          <property name="minimumSize">
+           <size>
+            <width>200</width>
+            <height>0</height>
+           </size>
+          </property>
+         </widget>
         </item>
         <item row="2" column="0">
          <widget class="QLabel" name="timer_description_label">
@@ -111,7 +118,14 @@
          </widget>
         </item>
         <item row="2" column="1">
-         <widget class="QLineEdit" name="timer_description_edit"/>
+         <widget class="QLineEdit" name="timer_description_edit">
+          <property name="minimumSize">
+           <size>
+            <width>200</width>
+            <height>0</height>
+           </size>
+          </property>
+         </widget>
         </item>
         <item row="3" column="0">
          <widget class="QLabel" name="timer_service_label">
@@ -121,7 +135,14 @@
          </widget>
         </item>
         <item row="3" column="1">
-         <widget class="QLineEdit" name="timer_service_edit"/>
+         <widget class="QLineEdit" name="timer_service_edit">
+          <property name="minimumSize">
+           <size>
+            <width>200</width>
+            <height>0</height>
+           </size>
+          </property>
+         </widget>
         </item>
         <item row="4" column="0">
          <widget class="QLabel" name="timer_service_ref_label">
@@ -131,7 +152,14 @@
          </widget>
         </item>
         <item row="4" column="1">
-         <widget class="QLineEdit" name="timer_ref_edit"/>
+         <widget class="QLineEdit" name="timer_ref_edit">
+          <property name="minimumSize">
+           <size>
+            <width>200</width>
+            <height>0</height>
+           </size>
+          </property>
+         </widget>
         </item>
         <item row="5" column="0">
          <widget class="QLabel" name="timer_event_id_label">
@@ -141,7 +169,14 @@
          </widget>
         </item>
         <item row="5" column="1">
-         <widget class="QLineEdit" name="timer_event_id_edit"/>
+         <widget class="QLineEdit" name="timer_event_id_edit">
+          <property name="minimumSize">
+           <size>
+            <width>200</width>
+            <height>0</height>
+           </size>
+          </property>
+         </widget>
         </item>
         <item row="6" column="0">
          <widget class="QLabel" name="timer_begins_label">
@@ -349,7 +384,14 @@
          </widget>
         </item>
         <item row="9" column="1">
-         <widget class="QComboBox" name="timer_action_combo_box"/>
+         <widget class="QComboBox" name="timer_action_combo_box">
+          <property name="minimumSize">
+           <size>
+            <width>185</width>
+            <height>0</height>
+           </size>
+          </property>
+         </widget>
         </item>
         <item row="10" column="0">
          <widget class="QLabel" name="timer_after_event_label">
@@ -359,7 +401,14 @@
          </widget>
         </item>
         <item row="10" column="1">
-         <widget class="QComboBox" name="timer_after_event_combo_box"/>
+         <widget class="QComboBox" name="timer_after_event_combo_box">
+          <property name="minimumSize">
+           <size>
+            <width>185</width>
+            <height>0</height>
+           </size>
+          </property>
+         </widget>
         </item>
         <item row="11" column="0">
          <widget class="QLabel" name="timer_location_label">
@@ -369,7 +418,14 @@
          </widget>
         </item>
         <item row="11" column="1">
-         <widget class="QComboBox" name="timer_location_combo_box"/>
+         <widget class="QComboBox" name="timer_location_combo_box">
+          <property name="minimumSize">
+           <size>
+            <width>185</width>
+            <height>0</height>
+           </size>
+          </property>
+         </widget>
         </item>
         <item row="6" column="1">
          <widget class="QDateTimeEdit" name="timer_begins_edit"/>
