@@ -23,6 +23,10 @@
 """ Common UI module. """
 from enum import IntEnum
 
+# Base UI files path.
+UI_PATH = "app/ui/res/"
+# Translation
+LANG_PATH = "app/ui/locale/"
 
 # Icons
 CODED_ICON = None

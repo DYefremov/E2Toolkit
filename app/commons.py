@@ -25,8 +25,7 @@
 # Application
 APP_NAME = "E2Toolkit"
 APP_VERSION = "1.0.0 Pre-Alpha"
-# Translation
-LANG_PATH = "app/ui/locale/"
+
 # Just add your language to appear on the menu.
 LOCALES = (("English", "en"), ("español", "es"), ("Deutsch", "de"),
            ("Nederlands", "nl"), ("polski", "pl"), ("português", "pt"),

@@ -31,9 +31,9 @@ from urllib.parse import quote
 
 from PyQt5.QtCore import QTranslator, QStringListModel, QTimer, pyqtSlot, Qt, QFile, QDir
 from PyQt5.QtGui import QIcon, QStandardItem, QPixmap
-from PyQt5.QtWidgets import QApplication, QMessageBox, QFileDialog, QActionGroup, QAction, QInputDialog
+from PyQt5.QtWidgets import QApplication, QMessageBox, QFileDialog, QActionGroup, QAction
 
-from app.commons import APP_VERSION, APP_NAME, LANG_PATH, log, LOCALES
+from app.commons import APP_VERSION, APP_NAME, log, LOCALES
 from app.connections import HttpAPI, DownloadType, DataLoader, PiconDeleter
 from app.enigma.backup import backup_data, clear_data_path
 from app.enigma.blacklist import write_blacklist
@@ -44,7 +44,7 @@ from app.satellites.satxml import get_satellites, write_satellites
 from app.streams.iptv import import_m3u
 from app.ui.dialogs import *
 from app.ui.settings import SettingsDialog, Settings
-from app.ui.uicommons import Column, IPTV_ICON, LOCKED_ICON, BqGenType
+from app.ui.uicommons import Column, IPTV_ICON, LOCKED_ICON, BqGenType, LANG_PATH
 from .ui import MainUiWindow, Page
 
 
@@ -67,7 +67,7 @@ class Application(QApplication):
         sys.exit(app.exec())
 
     def set_locale(self, locale):
-        if self.translator.load("{}e2toolkit.{}.qm".format(LANG_PATH, locale)):
+        if self.translator.load(f"{LANG_PATH}e2toolkit.{locale}.qm"):
             self.installTranslator(self.translator)
         else:
             self.removeTranslator(self.translator)
@@ -234,9 +234,7 @@ class MainWindow(MainUiWindow):
         group.triggered.connect(lambda a: self.set_locale(a.data() or ""))
 
     def init_profiles(self):
-        for p in self.settings.profiles:
-            self._profiles[p.get("name")] = p
-
+        self._profiles = self.settings.profiles
         self.profile_combo_box.setModel(QStringListModel(list(self._profiles)))
         self.settings.current_profile = self._profiles[self.profile_combo_box.currentText()]
         picon_path = self.get_picon_path()
@@ -395,13 +393,13 @@ class MainWindow(MainUiWindow):
 
     def get_data_path(self):
         profile = self._profiles.get(self.profile_combo_box.currentText())
-        return "{}{}{}".format(self.settings.data_path, profile["name"], os.sep)
+        return f"{self.settings.data_path}{profile['name']}{os.sep}"
 
     def get_picon_path(self):
-        return "{}{}{}".format(self.settings.picon_path, self.profile_combo_box.currentText(), os.sep)
+        return f"{self.settings.picon_path}{self.profile_combo_box.currentText()}{os.sep}"
 
     def get_backup_path(self):
-        return "{}{}{}".format(self.settings.backup_path, self.profile_combo_box.currentText(), os.sep)
+        return f"{self.settings.backup_path}{self.profile_combo_box.currentText()}{os.sep}"
 
     def load_data(self, path=None):
         if not path:
@@ -687,9 +685,11 @@ class MainWindow(MainUiWindow):
             self.show_error_dialog(self.tr("No data loaded!"))
             return
 
-        name, resp = QInputDialog.getText(self, "E2Toolkit [New bouquet]", self.tr("Enter the name of the bouquet."))
-        if not resp:
+        dialog = InputDialog("E2Toolkit [New bouquet]", "Enter the name of the bouquet.", parent=self)
+        if not dialog.exec():
             return
+
+        name = dialog.textValue()
         # Checking if the given name is already present.
         if self._bouquets.keys() & {f"{name}:{BqType.TV.value}", f"{name}:{BqType.RADIO.value}"}:
             self.show_error_dialog(self.tr("A bouquet with that name exists!"))

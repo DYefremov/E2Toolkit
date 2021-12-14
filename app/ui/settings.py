@@ -25,21 +25,22 @@
 import os
 import sys
 from collections import OrderedDict
+from copy import deepcopy
 from enum import Enum
 from pathlib import Path
 
 from PyQt5 import uic
 from PyQt5.QtCore import QSettings, QSize, QStringListModel
+from PyQt5.QtGui import QIntValidator
 from PyQt5.QtWidgets import QDialog, QMessageBox, QDialogButtonBox, QFileDialog
 
 from app.commons import APP_NAME
+from app.ui.dialogs import InputDialog
+from app.ui.uicommons import UI_PATH
 
 IS_DARWIN = sys.platform == "darwin"
 IS_WIN = sys.platform == "win32"
 IS_LINUX = sys.platform == "linux"
-
-# Base UI files path.
-UI_PATH = "app/ui/res/"
 
 
 class Settings(QSettings):
@@ -67,20 +68,26 @@ class Settings(QSettings):
         APP_LOCALE = "en"
         STREAM_LIB = "VLC"
 
-        DEFAULT_FROFILE_NAME = "Default"
-        DEFAULT_PROFILE = {"name": DEFAULT_FROFILE_NAME,
-                           "user": USER,
-                           "password": PASSWORD,
-                           "host": HOST,
-                           "ftp_port": FTP_PORT,
-                           "http_port": HTTP_PORT,
-                           "telnet_port": TELNET_PORT,
-                           "http_use_ssl": HTTP_USE_SSL,
-                           "box_picon_path": BOX_PICON_PATH}
+        PROFILE_NAME = "Default"
+        PROFILE = {"name": PROFILE_NAME,
+                   "user": USER,
+                   "password": PASSWORD,
+                   "host": HOST,
+                   "ftp_port": FTP_PORT,
+                   "http_port": HTTP_PORT,
+                   "telnet_port": TELNET_PORT,
+                   "http_use_ssl": HTTP_USE_SSL,
+                   "box_picon_path": BOX_PICON_PATH}
+
+        PICON_PATHS = ("/usr/share/enigma2/picon/",
+                       "/media/hdd/picon/",
+                       "/media/usb/picon/",
+                       "/media/mmc/picon/",
+                       "/media/cf/picon/")
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self._current_profile = self.Default.DEFAULT_PROFILE.value
+        self._current_profile = self.Default.PROFILE.value
 
     # ******************** Application ******************** #
 
@@ -188,20 +195,22 @@ class Settings(QSettings):
     def profiles(self):
         self.beginGroup("profiles")
         prs = self.childKeys()
+        profiles = OrderedDict()
         if not prs:
-            self.endGroup()
-            return [self.Default.DEFAULT_PROFILE.value]
-
-        prs = [self.value(p) for p in prs]
+            profiles[self.Default.PROFILE_NAME.value] = deepcopy(self.Default.PROFILE.value)
+        else:
+            for p in prs:
+                profiles[p] = self.value(p, type=dict)
         self.endGroup()
 
-        return prs
+        return profiles
 
     @profiles.setter
     def profiles(self, prs):
+        self.remove("profiles")
         self.beginGroup("profiles")
-        for p in prs:
-            self.setValue(p["name"], p)
+        for n, p in prs.items():
+            self.setValue(n, p)
         self.endGroup()
 
     @property
@@ -211,6 +220,25 @@ class Settings(QSettings):
     @current_profile.setter
     def current_profile(self, value):
         self._current_profile = value
+
+    @property
+    def picon_paths(self):
+        paths = []
+        for i in range(self.beginReadArray("picon_paths")):
+            self.setArrayIndex(i)
+            paths.append(self.value("path"))
+        self.endArray()
+
+        return paths or self.Default.PICON_PATHS.value
+
+    @picon_paths.setter
+    def picon_paths(self, paths):
+        self.remove("picon_paths")
+        self.beginWriteArray("picon_paths")
+        for i, v in enumerate(paths):
+            self.setArrayIndex(i)
+            self.setValue("path", v)
+        self.endArray()
 
     # ******************** Streams ******************** #
 
@@ -229,21 +257,22 @@ class SettingsDialog(QDialog):
         uic.loadUi(f"{UI_PATH}settings.ui", self)
 
         self.settings = Settings()
-        self._profiles = OrderedDict()
+        self._profiles = None
         self._current_profile = None
 
         self.init_ui()
         self.init_actions()
         self.init_settings()
 
-        self.exec_()
+        self.exec()
 
     def init_ui(self):
-        # Setting model to profiles view.
+        # Validators.
+        self.ftp_port_edit.setValidator(QIntValidator(self.ftp_port_edit))
+        self.http_port_edit.setValidator(QIntValidator(self.http_port_edit))
+        self.telnet_port_edit.setValidator(QIntValidator(self.telnet_port_edit))
+        # Setting model to profile view.
         self.profile_view.setModel(QStringListModel())
-        # Init picon paths for the box.
-        self.picon_path_box.addItems(("/usr/share/enigma2/picon/", "/media/hdd/picon/", "/media/usb/picon/",
-                                      "/media/mmc/picon/", "/media/cf/picon/"))
         # Streams.
         modes = (self.tr("Play"), self.tr("Zap"), self.tr("Zap and Play"), self.tr("Disabled"))
         self.play_streams_mode_combo_box.setModel(QStringListModel(modes))
@@ -258,6 +287,9 @@ class SettingsDialog(QDialog):
         self.profile_add_button.clicked.connect(self.on_profile_add)
         self.profile_edit_button.clicked.connect(self.on_profile_edit)
         self.profile_remove_button.clicked.connect(self.on_profile_remove)
+        profile_model = self.profile_view.model()
+        profile_model.dataChanged.connect(self.on_prfile_name_changed)
+        profile_model.rowsRemoved.connect(self.on_profiles_changed)
         self.test_button.clicked.connect(self.on_test_connection)
         self.profile_view.selectionModel().currentChanged.connect(self.on_profile_selection)
         self.login_edit.editingFinished.connect(lambda: self.on_profile_params_set("user", self.login_edit))
@@ -273,6 +305,11 @@ class SettingsDialog(QDialog):
         self.picon_path_box.activated.connect(
             lambda i: self._current_profile.update({"box_picon_path": self.picon_path_box.currentText()}))
         self.http_ssl_check_box.toggled.connect(self.on_http_ssl_toggled)
+        self.add_picon_path_button.clicked.connect(self.on_picon_path_add)
+        self.remove_picon_path_button.clicked.connect(self.on_picon_path_remove)
+        picon_paths_model = self.picon_path_box.model()
+        picon_paths_model.rowsRemoved.connect(self.on_picon_paths_changed)
+        picon_paths_model.rowsInserted.connect(self.on_picon_paths_changed)
         # Paths
         self.browse_data_path_button.clicked.connect(lambda b: self.on_path_set(self.data_path_edit))
         self.browse_picon_path_button.clicked.connect(lambda b: self.on_path_set(self.picon_path_edit))
@@ -282,10 +319,14 @@ class SettingsDialog(QDialog):
 
     def init_settings(self):
         # Profiles
-        for p in self.settings.profiles:
-            self._profiles[p.get("name")] = p
+        self._profiles = self.settings.profiles
         self.profile_view.model().setStringList(self._profiles)
         self.profile_view.setCurrentIndex(self.profile_view.model().createIndex(0, 0))
+        self.on_profiles_changed()
+        #  Init picon paths for the box.
+        self.picon_path_box.model().clear()
+        self.picon_path_box.addItems(self.settings.picon_paths)
+        self.picon_path_box.setCurrentText(self._current_profile.get("box_picon_path"))
         # Paths
         self.data_path_edit.setText(self.settings.data_path)
         self.picon_path_edit.setText(self.settings.picon_path)
@@ -300,8 +341,11 @@ class SettingsDialog(QDialog):
 
     def settings_save(self):
         # Profiles
-        self.settings.profiles = self._profiles.values()
+        self.settings.profiles = self._profiles
         # Paths
+        p_model = self.picon_path_box.model()
+        p_paths = [p_model.index(r, 0).data() for r in range(p_model.rowCount())]
+        self.settings.picon_paths = p_paths
         self.settings.data_path = self.data_path_edit.text()
         self.settings.picon_path = self.picon_path_edit.text()
         self.settings.backup_path = self.backup_path_edit.text()
@@ -316,13 +360,55 @@ class SettingsDialog(QDialog):
     # ******************** Network ******************** #
 
     def on_profile_add(self, state):
-        QMessageBox.information(self, APP_NAME, self.tr("Not implemented yet!"))
+        count = 0
+        name = "profile"
+        while name in self._profiles:
+            count += 1
+            name = f"profile{count}"
+
+        p_data = deepcopy(self.settings.Default.PROFILE.value)
+        p_data["name"] = name
+        self._profiles[name] = p_data
+        model = self.profile_view.model()
+        model.setStringList(self._profiles)
+        self.profile_view.setCurrentIndex(model.index(model.rowCount() - 1))
+        self.on_profiles_changed()
 
     def on_profile_edit(self, state):
-        QMessageBox.information(self, APP_NAME, self.tr("Not implemented yet!"))
+        indexes = self.profile_view.selectionModel().selectedIndexes()
+        if not indexes:
+            return
+
+        if len(indexes) > 1:
+            QMessageBox.critical(self, APP_NAME, self.tr("Please, select only one item!"))
+            return
+
+        self.profile_view.edit(indexes[0])
+
+    def on_prfile_name_changed(self, top, bottom):
+        prev_name = self._current_profile["name"]
+        cur_name = top.data()
+        if cur_name == prev_name:
+            return
+
+        if not cur_name:
+            QMessageBox.critical(self, APP_NAME, self.tr("The name can't be empty!"))
+            top.model().setData(top, prev_name)
+            return
+
+        profile = self._profiles.pop(prev_name, None)
+        if profile:
+            self._current_profile["name"] = cur_name
+            self._profiles[cur_name] = profile
 
     def on_profile_remove(self, state):
-        QMessageBox.information(self, APP_NAME, self.tr("Not implemented yet!"))
+        if QMessageBox.question(self, APP_NAME, self.tr("Are you sure?")) != QMessageBox.Yes:
+            return
+
+        model = self.profile_view.model()
+        for i in self.profile_view.selectionModel().selectedIndexes():
+            if self._profiles.pop(i.data(), None):
+                model.removeRow(i.row())
 
     def on_profile_selection(self, index):
         profile = self._profiles.get(index.data(), None)
@@ -356,13 +442,38 @@ class SettingsDialog(QDialog):
         self.http_port_edit.setText(port)
         self._current_profile["http_port"] = port
 
+    def on_profiles_changed(self):
+        self.profile_remove_button.setEnabled(self.profile_view.model().rowCount() > 1)
+
     # ******************** Paths ******************** #
+
+    def on_picon_path_add(self, state=False):
+        dialog = InputDialog("E2Toolkit [New path to picons]", "Path:", parent=self)
+        if not dialog.exec():
+            return
+
+        path = dialog.textValue()
+        path = path if path.endswith("/") else f"{path}/"
+        path = path if path.startswith("/") else f"/{path}"
+        model = self.picon_path_box.model()
+        if path in {model.index(r, 0).data() for r in range(model.rowCount())}:
+            QMessageBox.critical(self, APP_NAME, self.tr("This path already exist!"))
+            return
+
+        self.picon_path_box.insertItem(self.picon_path_box.count() + 1, path)
+        self.picon_path_box.setCurrentText(path)
+
+    def on_picon_path_remove(self):
+        self.picon_path_box.removeItem(self.picon_path_box.currentIndex())
 
     def on_path_set(self, edit):
         """ Sets path to the given edit field. """
         path = QFileDialog.getExistingDirectory(self, self.tr("Select Directory"), edit.text())
         if path:
             edit.setText(path + os.sep)
+
+    def on_picon_paths_changed(self):
+        self.remove_picon_path_button.setEnabled(self.picon_path_box.count() > 1)
 
     # ******************** Dialog buttons. ******************** #
 

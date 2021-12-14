@@ -21,7 +21,13 @@
 #
 
 
-__all__ = ["TimerDialog", "ServiceDialog", "IptvServiceDialog", "BackupDialog", "SatelliteDialog", "TransponderDialog"]
+__all__ = ["TimerDialog",
+           "ServiceDialog",
+           "IptvServiceDialog",
+           "BackupDialog",
+           "SatelliteDialog",
+           "TransponderDialog",
+           "InputDialog"]
 
 import zipfile
 from datetime import datetime
@@ -35,7 +41,7 @@ from app.enigma.ecommons import Pids, Flag, Service, BqServiceType, FEC, SYSTEM,
 from app.satellites.satxml import get_key_by_value
 from app.streams.iptv import StreamType, get_fav_id
 from app.ui.models import ServiceTypeModel
-from app.ui.settings import UI_PATH
+from app.ui.uicommons import UI_PATH
 from app.ui.views import BackupFileView
 
 
@@ -229,7 +235,6 @@ class ServiceDialog(QtWidgets.QDialog):
     def __init__(self, service, *args, **kwargs):
         super().__init__(*args, **kwargs)
         uic.loadUi(f"{UI_PATH}service_dialog.ui", self)
-        min_edit_width = 180
         # Types.
         self.type_combo_box.setModel(ServiceTypeModel(self.type_combo_box))
         self.type_combo_box.currentTextChanged.connect(self.update_reference_entry)
@@ -604,6 +609,7 @@ class BackupDialog(QtWidgets.QDialog):
         self.details_view.setObjectName("details_view")
 
         self.retranslate_ui()
+        self.button_box.rejected.connect(self.reject)
         self.details_button.clicked["bool"].connect(self.details_view.setVisible)
         self.file_view.selectionModel().selectionChanged.connect(self.on_file_selection)
         self.restore_bouquets_button.clicked.connect(lambda: self.restore((".tv", ".radio")))
@@ -781,3 +787,12 @@ class TransponderDialog(QtWidgets.QDialog):
         self.pls_mode_label.setText(_translate("transponder_dialog", "PLS mode:"))
         self.pls_code_label.setText(_translate("transponder_dialog", "PLS code:"))
         self.is_id_label.setText(_translate("transponder_dialog", "Is ID:"))
+
+
+class InputDialog(QtWidgets.QInputDialog):
+    def __init__(self, title, label, width=320, height=-1, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.setInputMode(QtWidgets.QInputDialog.TextInput)
+        self.setWindowTitle(self.tr(title))
+        self.setLabelText(self.tr(label))
+        self.resize(width, height)
