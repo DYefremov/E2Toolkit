@@ -540,7 +540,7 @@
                </sizepolicy>
               </property>
               <property name="currentIndex">
-               <number>0</number>
+               <number>3</number>
               </property>
               <widget class="QWidget" name="bouquet_page">
                <layout class="QGridLayout" name="bouquets_page_layout">
@@ -554,7 +554,7 @@
                  <number>6</number>
                 </property>
                 <property name="bottomMargin">
-                 <number>2</number>
+                 <number>0</number>
                 </property>
                 <item row="1" column="0">
                  <widget class="QGroupBox" name="services_group_box">
@@ -566,13 +566,13 @@
                     <number>6</number>
                    </property>
                    <property name="leftMargin">
-                    <number>0</number>
+                    <number>2</number>
                    </property>
                    <property name="topMargin">
                     <number>6</number>
                    </property>
                    <property name="rightMargin">
-                    <number>0</number>
+                    <number>2</number>
                    </property>
                    <property name="bottomMargin">
                     <number>0</number>
@@ -817,10 +817,10 @@
                  <number>0</number>
                 </property>
                 <property name="rightMargin">
-                 <number>6</number>
+                 <number>0</number>
                 </property>
                 <property name="bottomMargin">
-                 <number>2</number>
+                 <number>0</number>
                 </property>
                 <item row="0" column="0">
                  <widget class="QSplitter" name="satellite_splitter">
@@ -833,6 +833,9 @@
                   <property name="orientation">
                    <enum>Qt::Horizontal</enum>
                   </property>
+                  <property name="handleWidth">
+                   <number>6</number>
+                  </property>
                   <widget class="QGroupBox" name="satellites_group_box">
                    <property name="title">
                     <string>Satellites</string>
@@ -842,13 +845,13 @@
                      <number>6</number>
                     </property>
                     <property name="leftMargin">
-                     <number>0</number>
+                     <number>2</number>
                     </property>
                     <property name="topMargin">
                      <number>6</number>
                     </property>
                     <property name="rightMargin">
-                     <number>6</number>
+                     <number>2</number>
                     </property>
                     <property name="bottomMargin">
                      <number>0</number>
@@ -965,13 +968,13 @@
                      <number>6</number>
                     </property>
                     <property name="leftMargin">
-                     <number>0</number>
+                     <number>2</number>
                     </property>
                     <property name="topMargin">
                      <number>6</number>
                     </property>
                     <property name="rightMargin">
-                     <number>0</number>
+                     <number>2</number>
                     </property>
                     <property name="bottomMargin">
                      <number>0</number>
@@ -1100,13 +1103,13 @@
                      </property>
                      <layout class="QVBoxLayout" name="picon_src_layout">
                       <property name="leftMargin">
-                       <number>0</number>
+                       <number>2</number>
                       </property>
                       <property name="topMargin">
                        <number>6</number>
                       </property>
                       <property name="rightMargin">
-                       <number>6</number>
+                       <number>2</number>
                       </property>
                       <property name="bottomMargin">
                        <number>2</number>
@@ -1164,13 +1167,13 @@
                      </property>
                      <layout class="QVBoxLayout" name="picon_dst_layout">
                       <property name="leftMargin">
-                       <number>0</number>
+                       <number>2</number>
                       </property>
                       <property name="topMargin">
                        <number>6</number>
                       </property>
                       <property name="rightMargin">
-                       <number>6</number>
+                       <number>2</number>
                       </property>
                       <property name="bottomMargin">
                        <number>2</number>
@@ -1222,6 +1225,12 @@
                           <property name="icon">
                            <iconset theme="user-trash">
                             <normaloff>.</normaloff>.</iconset>
+                          </property>
+                          <property name="iconSize">
+                           <size>
+                            <width>16</width>
+                            <height>16</height>
+                           </size>
                           </property>
                           <property name="popupMode">
                            <enum>QToolButton::InstantPopup</enum>
@@ -1285,13 +1294,13 @@
                   </property>
                   <layout class="QVBoxLayout" name="epg_group_box_layout">
                    <property name="leftMargin">
-                    <number>0</number>
+                    <number>2</number>
                    </property>
                    <property name="topMargin">
                     <number>6</number>
                    </property>
                    <property name="rightMargin">
-                    <number>0</number>
+                    <number>2</number>
                    </property>
                    <property name="bottomMargin">
                     <number>2</number>
@@ -1325,8 +1334,24 @@
                          <verstretch>0</verstretch>
                         </sizepolicy>
                        </property>
+                       <property name="minimumSize">
+                        <size>
+                         <width>32</width>
+                         <height>0</height>
+                        </size>
+                       </property>
                        <property name="text">
                         <string>Add timer</string>
+                       </property>
+                       <property name="icon">
+                        <iconset theme="alarm-symbolic">
+                         <normaloff>.</normaloff>.</iconset>
+                       </property>
+                       <property name="iconSize">
+                        <size>
+                         <width>16</width>
+                         <height>16</height>
+                        </size>
                        </property>
                       </widget>
                      </item>
@@ -1378,7 +1403,7 @@
                  <number>2</number>
                 </property>
                 <property name="bottomMargin">
-                 <number>2</number>
+                 <number>0</number>
                 </property>
                 <item row="0" column="0">
                  <widget class="QGroupBox" name="timer_group_box">
@@ -1387,16 +1412,16 @@
                   </property>
                   <layout class="QHBoxLayout" name="timer_group_box_layout">
                    <property name="leftMargin">
-                    <number>0</number>
+                    <number>2</number>
                    </property>
                    <property name="topMargin">
                     <number>0</number>
                    </property>
                    <property name="rightMargin">
-                    <number>0</number>
+                    <number>2</number>
                    </property>
                    <property name="bottomMargin">
-                    <number>0</number>
+                    <number>2</number>
                    </property>
                    <item>
                     <layout class="QVBoxLayout" name="timer_view_layout">
@@ -1772,7 +1797,7 @@
                         <number>9</number>
                        </property>
                        <property name="bottomMargin">
-                        <number>9</number>
+                        <number>6</number>
                        </property>
                        <item>
                         <layout class="QFormLayout" name="box_info_layout">
@@ -2291,7 +2316,7 @@
                          </item>
                         </layout>
                        </item>
-                       <item>
+                       <item alignment="Qt::AlignHCenter">
                         <widget class="QCheckBox" name="grub_screenshot_box">
                          <property name="sizePolicy">
                           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
@@ -2653,7 +2678,7 @@
      <x>0</x>
      <y>0</y>
      <width>1000</width>
-     <height>22</height>
+     <height>26</height>
     </rect>
    </property>
    <widget class="QMenu" name="file_menu">
