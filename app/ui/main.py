@@ -109,6 +109,16 @@ class MainWindow(MainUiWindow):
 
     def init_ui(self):
         self.resize(self.settings.app_window_size)
+        # View.
+        if self.settings.alternate_layout:
+            self.alternate_layout_action.setChecked(self.settings.alternate_layout)
+        self.alternate_layout_action.setChecked(self.settings.alternate_layout)
+        self.bouquets_action.setChecked(self.settings.show_bouquets)
+        self.satellites_action.setChecked(self.settings.show_satellites)
+        self.picons_action.setChecked(self.settings.show_picons)
+        self.epg_action.setChecked(self.settings.show_epg)
+        self.timer_action.setChecked(self.settings.show_timers)
+        self.control_action.setChecked(self.settings.show_control)
 
     def init_actions(self):
         # File menu.
@@ -282,8 +292,20 @@ class MainWindow(MainUiWindow):
         self.retranslate_ui(self)
 
     def closeEvent(self, event):
-        """ Main window close event. """
+        """ Main window close event.
+
+             Used to save app state settings.
+         """
         self.settings.app_window_size = self.size()
+        # View.
+        self.settings.alternate_layout = self.alternate_layout_action.isChecked()
+        self.settings.show_bouquets = self.bouquets_action.isChecked()
+        self.settings.show_satellites = self.satellites_action.isChecked()
+        self.settings.show_picons = self.picons_action.isChecked()
+        self.settings.show_epg = self.epg_action.isChecked()
+        self.settings.show_timers = self.timer_action.isChecked()
+        self.settings.show_control = self.control_action.isChecked()
+
         if self.settings.load_last_config:
             config = {"last_profile": self.profile_combo_box.currentText()}
             indexes = self.bouquets_view.selectionModel().selectedIndexes()

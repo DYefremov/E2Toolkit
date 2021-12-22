@@ -22,12 +22,11 @@
 
 
 """ Core UI module. """
-import sys
 from enum import IntEnum
 
 from PyQt5 import QtCore, QtGui, QtWidgets, uic
 
-from app.ui.settings import UI_PATH
+from app.ui.settings import UI_PATH, IS_LINUX
 from app.ui.views import *
 
 
@@ -157,6 +156,7 @@ class MainUiWindow(QtWidgets.QMainWindow):
         self.ftp_action.toggled['bool'].connect(self.ftp_tool_button.setVisible)
         self.logo_action.toggled['bool'].connect(self.logo_tool_button.setVisible)
         self.control_action.toggled['bool'].connect(self.control_tool_button.setVisible)
+        self.alternate_layout_action.toggled['bool'].connect(self.set_layout)
         self.log_action.toggled['bool'].connect(self.log_text_browser.setVisible)
         QtCore.QMetaObject.connectSlotsByName(self)
         # Toolbar.
@@ -198,8 +198,8 @@ class MainUiWindow(QtWidgets.QMainWindow):
         self.green_button.setStyleSheet("background-color: green; border: 2px solid green")
         self.yellow_button.setStyleSheet("background-color: yellow; border: 2px solid yellow")
         self.blue_button.setStyleSheet("background-color: blue; border: 2px solid blue")
-        # Button icons
-        if sys.platform != "linux":
+        # Button icons.
+        if not IS_LINUX:
             style = self.style()
             # Player
             self.media_play_tool_button.setIcon(style.standardIcon(style.SP_MediaPlay))
@@ -250,6 +250,13 @@ class MainUiWindow(QtWidgets.QMainWindow):
 
         self.media_frame.setVisible(state)
         self.stacked_widget.setVisible(not state)
+
+    def set_layout(self, alt):
+        """ Sets main elements layout type. """
+        index = int(not alt)
+        self.base_splitter.insertWidget(index, self.main_frame)
+        self.main_splitter.insertWidget(index, self.fav_splitter)
+        self.control_horizontal_layout.insertWidget(index, self.remote_controller_box)
 
     # ******************** Handlers ******************** #
 
@@ -383,7 +390,7 @@ class MainUiWindow(QtWidgets.QMainWindow):
         self.epg_action.setText(_translate("MainWindow", "EPG"))
         self.timer_action.setText(_translate("MainWindow", "Timer"))
         self.logo_action.setText(_translate("MainWindow", "Logo"))
-        self.log_action.setText(_translate("MainWindow", "Log"))
+        self.log_action.setText(_translate("MainWindow", "Logs"))
         # ******************** Popups and menu. ******************** #
         # FAV tools menu.
         self.fav_tools_menu.setTitle(_translate("MainWindow", "Tools"))

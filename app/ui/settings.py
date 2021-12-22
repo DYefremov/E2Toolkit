@@ -155,6 +155,64 @@ class Settings(QSettings):
     def backup_before_downloading(self, value):
         self.setValue("backup_before_downloading", value)
 
+    # *********************** View ************************ #
+
+    @property
+    def alternate_layout(self):
+        return self.value("alternate_layout", IS_DARWIN, bool)
+
+    @alternate_layout.setter
+    def alternate_layout(self, value):
+        self.setValue("alternate_layout", value)
+
+    @property
+    def show_bouquets(self):
+        return self.value("show_bouquets", True, bool)
+
+    @show_bouquets.setter
+    def show_bouquets(self, value):
+        self.setValue("show_bouquets", value)
+
+    @property
+    def show_satellites(self):
+        return self.value("show_satellites", True, bool)
+
+    @show_satellites.setter
+    def show_satellites(self, value):
+        self.setValue("show_satellites", value)
+
+    @property
+    def show_picons(self):
+        return self.value("show_picons", True, bool)
+
+    @show_picons.setter
+    def show_picons(self, value):
+        self.setValue("show_picons", value)
+
+    @property
+    def show_epg(self):
+        return self.value("show_epg", True, bool)
+
+    @show_epg.setter
+    def show_epg(self, value):
+        self.setValue("show_epg", value)
+
+    @property
+    def show_timers(self):
+        return self.value("show_timers", True, bool)
+
+    @show_timers.setter
+    def show_timers(self, value):
+        self.setValue("show_timers", value)
+
+    @property
+    def show_control(self):
+        return self.value("show_control", True, bool)
+
+    @show_control.setter
+    def show_control(self, value):
+        self.setValue("show_control", value)
+
     # ******************** Local paths ******************** #
 
     @property

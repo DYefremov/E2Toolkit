@@ -540,7 +540,7 @@
                </sizepolicy>
               </property>
               <property name="currentIndex">
-               <number>3</number>
+               <number>0</number>
               </property>
               <widget class="QWidget" name="bouquet_page">
                <layout class="QGridLayout" name="bouquets_page_layout">
@@ -1778,6 +1778,9 @@
                   </item>
                   <item>
                    <layout class="QHBoxLayout" name="control_horizontal_layout">
+                    <property name="spacing">
+                     <number>9</number>
+                    </property>
                     <item>
                      <widget class="QGroupBox" name="control_info_group_box">
                       <property name="title">
@@ -2678,7 +2681,7 @@
      <x>0</x>
      <y>0</y>
      <width>1000</width>
-     <height>26</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="file_menu">
@@ -2738,6 +2741,7 @@
      <addaction name="logo_action"/>
      <addaction name="control_action"/>
     </widget>
+    <addaction name="alternate_layout_action"/>
     <addaction name="log_action"/>
     <addaction name="separator"/>
     <addaction name="tools_menu"/>
@@ -2991,7 +2995,7 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Log</string>
+    <string>Logs</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+L</string>
@@ -3087,6 +3091,14 @@
    </property>
    <property name="text">
     <string>Control</string>
+   </property>
+  </action>
+  <action name="alternate_layout_action">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Alternate layout</string>
    </property>
   </action>
  </widget>
