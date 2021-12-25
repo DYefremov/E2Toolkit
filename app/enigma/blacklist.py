@@ -32,14 +32,14 @@ __FILE_NAME = "blacklist"
 
 def get_blacklist(path):
     with suppress(FileNotFoundError):
-        with open(path + __FILE_NAME, "r") as file:
+        with open(path + __FILE_NAME, "r", encoding="utf-8") as file:
             # filter empty values and "\n"
             return {*list(filter(None, (x.strip() for x in file.readlines())))}
     return {}
 
 
 def write_blacklist(path, channels):
-    with open(path + __FILE_NAME, "w") as file:
+    with open(path + __FILE_NAME, "w", encoding="utf-8") as file:
         if channels:
             file.writelines("\n".join(channels))
 

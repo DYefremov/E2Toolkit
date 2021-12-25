@@ -539,8 +539,7 @@ class MainWindow(MainUiWindow):
                 self._services[fav_id] = srv
             elif s_type is BqServiceType.BOUQUET:
                 # Sub bouquets!
-                msg = "Detected sub-bouquets! This feature is not fully supported yet!"
-                QMessageBox.information(self, APP_NAME, self.tr(msg))
+                log(f"Detected sub-bouquet: [{srv.name}]! This feature is not supported yet!")
             elif srv.name:
                 extra_services[fav_id] = srv.name
             services.append(fav_id)

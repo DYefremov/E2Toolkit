@@ -21,7 +21,7 @@
 #
 
 
-"""  This module used for parsing and write lamedb file. """
+"""   This module used for parsing and write lamedb file.   """
 import re
 
 from app.commons import log
@@ -43,7 +43,7 @@ class LameDbReader:
     """ Lamedb parser class.
 
         Reads and parses the Enigma2 lamedb[5] file.
-        Supports versions 3, 4 and 5..
+        Supports versions 3, 4 and 5.
     """
     __slots__ = ["_path", "_fmt"]
 
@@ -90,7 +90,7 @@ class LameDbReader:
             try:
                 data = str(file.read())
             except UnicodeDecodeError as e:
-                log("lamedb parse error: " + str(e))
+                log(f"lamedb parse error: {e}")
             else:
                 return self.get_services_list(data)
 
@@ -106,7 +106,7 @@ class LameDbReader:
             for line in lns:
                 if line.startswith("s:"):
                     srv_data = line.strip("s:").split(",", 2)
-                    srv_data[1] = srv_data[1].strip("\"")
+                    srv_data[1] = srv_data[1].strip("\"\n")
                     data_len = len(srv_data)
                     if data_len == 3:
                         srv_data[2] = srv_data[2].strip()
@@ -120,7 +120,7 @@ class LameDbReader:
                         tr, srv = data[0].strip("t:"), data[1].strip().replace(":", " ", 1)
                         trs[tr] = srv
                     else:
-                        log("Error while parsing transponder data [ver. 5] for line: {}".format(line))
+                        log(f"Error while parsing transponder data [ver. 5] for line: {line}")
 
             return self.parse_services(srvs, trs)
 
@@ -152,7 +152,7 @@ class LameDbReader:
                 data[0] = f"{data[0]:0>4}"
                 data_id = _SEP.join(data)
 
-            service_type = int(data[4])
+            srv_type = int(data[4])
             transponder_id = f"{data[1]}:{tid}:{nid}"
             transponder = transponders.get(transponder_id, None)
             # The tid and nid values can be 0.
@@ -162,8 +162,8 @@ class LameDbReader:
             onid = str(data[1]).lstrip(sp).upper()
             # For comparison in bouquets. Needed in upper case!!!
             fav_id = f"{ssid}:{tid}:{nid}:{onid}"
-            picon_id = f"1_0_{service_type:X}_{ssid}_{tid}_{nid}_{onid}_0_0_0.png"
-            s_id = f"1:0:{service_type:X}:{ssid}:{tid}:{nid}:{onid}:0:0:0:"
+            picon_id = f"1_0_{srv_type:X}_{ssid}_{tid}_{nid}_{onid}_0_0_0.png"
+            s_id = f"1:0:{srv_type:X}:{ssid}:{tid}:{nid}:{onid}:0:0:0:"
 
             all_flags = srv[2].split(",")
             coded = CODED_ICON if list(filter(lambda x: x.startswith("C:"), all_flags)) else None
@@ -179,7 +179,7 @@ class LameDbReader:
                 tr_type = TrType(tr_type)
                 tr = tr.split(_SEP)
                 service_type = SERVICE_TYPE.get(data[4], SERVICE_TYPE["-2"])
-                # Removing all non printable symbols!
+                # Removing all non-printable symbols!
                 srv_name = "".join(c for c in srv[1] if c.isprintable())
                 freq = tr[0]
                 rate = tr[1]
@@ -251,16 +251,15 @@ class LameDbReader:
             data_id = str(srv.data_id).split(_SEP)
             tr_id = f"{data_id[1]}:{data_id[2]}:{data_id[3]}"
             if tr_id not in tr_set:
-                transponder = f"{tr_id}\n\t{srv.transponder}\n/\n"
-                tr_lines.append(transponder)
+                tr_lines.append(f"{tr_id}\n\t{srv.transponder}\n/\n")
                 tr_set.add(tr_id)
-            # Services.
+            # Services
             services_lines.append(f"{srv.data_id}\n{srv.name}\n{srv.flags_cas}\n")
 
         tr_lines.sort()
         lines.extend(tr_lines)
         lines.extend(services_lines)
-        lines.append("end\n" + _END_LINE)
+        lines.append(f"end\n{_END_LINE}")
 
         return lines
 
@@ -301,7 +300,7 @@ class LameDbWriter:
 
     def write(self):
         if self._fmt == 4:
-            # Writing lamedb file ver.4.
+            # Writing lamedb file ver.4
             with open(self._path + _FILE_NAME, "w", encoding="utf-8") as file:
                 file.writelines(LameDbReader.get_services_lines(self._services))
         elif self._fmt == 5:
@@ -317,7 +316,7 @@ class LameDbWriter:
             data_id = str(srv.data_id).split(_SEP)
             tr_id = f"{data_id[1]}:{data_id[2]}:{data_id[3]}"
             tr_set.add(f"t:{tr_id},{srv.transponder.replace(' ', ':', 1)}\n")
-            # Removing empty packages.
+            # Removing empty packages
             flags = list(filter(lambda x: x != "p:", srv.flags_cas.split(",")))
             flags = ",".join(flags)
             flags = "," + flags if flags else ""
