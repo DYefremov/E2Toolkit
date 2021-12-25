@@ -586,8 +586,8 @@ class HttpAPI:
     def __init__(self, settings, callbacks={}):
         self._is_owif = True
         host, use_ssl, port = settings["host"], settings["http_use_ssl"], settings["http_port"]
-        self._base_url = "http{}://{}:{}/".format("s" if use_ssl else "", host, port)
-        self._main_url = "http{}://{}:{}/web/".format("s" if use_ssl else "", host, port)
+        self._base_url = f"http{'s' if use_ssl else ''}://{host}:{port}/"
+        self._main_url = f"http{'s' if use_ssl else ''}://{host}:{port}/web/"
         self._settings = settings
         self._use_ssl = use_ssl
         self._callbacks = callbacks
@@ -617,7 +617,7 @@ class HttpAPI:
 
     def send(self, req, params=None):
         url = self._main_url if req is not HttpAPI.Request.GRUB else self._base_url
-        request = QNetworkRequest(QUrl("{}{}{}".format(url, req, params if params else "")))
+        request = QNetworkRequest(QUrl(f"{url}{req}{params if params else ''}"))
         request.setSslConfiguration(self._ssl_config)
         request.setAttribute(request.CustomVerbAttribute, req)
         if req is HttpAPI.Request.GRUB:
@@ -659,14 +659,14 @@ class HttpAPI:
         self._callbacks[req] = callback
 
     def set_token(self, data):
-        self._token = "sessionid={}".format(data.get("e2sessionid", "0")).encode()
+        self._token = f"sessionid={data.get('e2sessionid', '0')}".encode()
 
     def api_callback(self, info):
         if info:
             version = info.get("e2webifversion", "").upper()
             self._is_owif = "OWIF" in version
-            version_info = "Web Interface version: {}".format(version) if version else ""
-            log("HTTP API initialized... {}".format(version_info))
+            version_info = f"Web Interface version: {version}" if version else ""
+            log(f"HTTP API initialized... {version_info}")
 
     @property
     def is_owif(self):

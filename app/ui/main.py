@@ -101,9 +101,9 @@ class MainWindow(MainUiWindow):
         self._player = None
         # Initialization.
         self.init_ui()
-        self.init_actions()
         self.init_language()
         self.init_profiles()
+        self.init_actions()
         self.init_http_api()
         self.init_last_config()
 
@@ -128,6 +128,8 @@ class MainWindow(MainUiWindow):
         self.save_action.triggered.connect(self.on_data_save)
         self.save_as_action.triggered.connect(self.on_data_save_as)
         self.exit_action.triggered.connect(self.on_app_exit)
+        # Profiles.
+        self.profile_combo_box.currentTextChanged.connect(self.on_profile_changed)
         # Backup
         self.backup_restore_action.triggered.connect(self.on_data_restore)
         # Settings.
@@ -246,10 +248,6 @@ class MainWindow(MainUiWindow):
     def init_profiles(self):
         self._profiles = self.settings.profiles
         self.profile_combo_box.setModel(QStringListModel(list(self._profiles)))
-        self.settings.current_profile = self._profiles[self.profile_combo_box.currentText()]
-        picon_path = self.get_picon_path()
-        self.services_view.model().picon_path = picon_path
-        self.fav_view.model().picon_path = picon_path
 
     def init_http_api(self):
         if self._http_api:
@@ -274,13 +272,27 @@ class MainWindow(MainUiWindow):
             config = self.settings.last_config
             self.profile_combo_box.setCurrentText(config.get("last_profile", ""))
             self.load_data()
-            last_bouquet = config.get("last_bouquet", (-1, -1, -1, -1))
             # Last selected bouquet.
+            last_bouquet = config.get("last_bouquet", (-1, -1, -1, -1))
             sel_model = self.bouquets_view.selectionModel()
             root_index = self.bouquets_view.model().index(last_bouquet[0], last_bouquet[1])
             index = root_index.child(last_bouquet[2], last_bouquet[3])
             sel_model.select(index, sel_model.ClearAndSelect | sel_model.Rows)
             sel_model.setCurrentIndex(index, sel_model.NoUpdate)
+
+    def on_profile_changed(self, name):
+        self.settings.current_profile = self._profiles[name]
+        picon_path = self.get_picon_path()
+        self.services_view.model().picon_path = picon_path
+        self.fav_view.model().picon_path = picon_path
+
+        self.load_data()
+        self.load_satellites(f"{self.get_data_path()}satellites.xml")
+        self.load_picons()
+        self.timer_view.clear_data()
+        self.epg_view.clear_data()
+
+        self.init_http_api()
 
     def on_settings_dialog(self, state):
         SettingsDialog()
@@ -885,15 +897,15 @@ class MainWindow(MainUiWindow):
 
     def on_satellite_page_show(self):
         if not self.satellite_view.model().rowCount():
-            self.load_satellites(self.get_data_path() + "satellites.xml")
+            self.load_satellites(f"{self.get_data_path()}satellites.xml")
 
     def load_satellites(self, path):
+        self.satellite_view.clear_data()
         try:
             satellites = get_satellites(path)
         except FileNotFoundError as e:
             log(e)
         else:
-            self.satellite_view.clear_data()
             model = self.satellite_view.model()
             [model.appendRow((self.get_satellite_row(sat))) for sat in satellites]
             self.satellite_count_label.setText(str(model.rowCount()))
@@ -1304,13 +1316,13 @@ class MainWindow(MainUiWindow):
 
     def update_state_info(self, info):
         info_text = "Connection status: {}. {}"
+        model, e2_ver, img_ver, def_str = None, None, None, "N/A"
+
         if info and not info.get("error", None):
-            image = info.get("e2distroversion", "")
-            model = info.get("e2model", "")
-            self.status_bar.showMessage(info_text.format("OK", "Current Box: {} Image: {}".format(model, image)))
-            self.model_label.setText(model)
-            self.e2_version_label.setText(info.get("e2enigmaversion", "N/A"))
-            self.image_version_label.setText(info.get("e2imageversion", "N/A"))
+            image = info.get("e2distroversion", def_str)
+            model = info.get("e2model", def_str)
+            self.status_bar.showMessage(info_text.format("OK", f"Current Box: {model} Image: {image}"))
+            e2_ver, img_ver = info.get("e2enigmaversion", def_str), info.get("e2imageversion", def_str)
         else:
             self.status_bar.showMessage(info_text.format("Disconnected.", ""))
             if all((self.log_action.isChecked(),
@@ -1318,6 +1330,10 @@ class MainWindow(MainUiWindow):
                     self.upload_tool_button.isEnabled())):
                 reason = info.get("reason", None)
                 self.log_text_browser.append(reason) if reason else None
+
+        self.model_label.setText(model or def_str)
+        self.e2_version_label.setText(e2_ver or def_str)
+        self.image_version_label.setText(img_ver or def_str)
 
         if self.current_page is Page.CONTROL:
             self._http_api.send(HttpAPI.Request.SIGNAL)
