@@ -158,6 +158,7 @@ class MainWindow(MainUiWindow):
         self.satellite_view.selectionModel().currentRowChanged.connect(self.on_satellite_selection)
         self.satellite_view.add.connect(self.on_satellite_add)
         self.satellite_view.edited.connect(self.on_satellite_edit)
+        self.satellite_view.removed.connect(self.on_satellite_remove)
         self.transponder_view.add.connect(self.on_transponder_add)
         self.transponder_view.edited.connect(self.on_transponder_edit)
         self.transponder_view.removed.connect(self.on_transponder_remove)
@@ -515,6 +516,7 @@ class MainWindow(MainUiWindow):
             for bq in bqs.bouquets:
                 self.append_bouquet(bq, root)
             root_node.appendRow(root)
+        self.bouquets_count_label.setText(str(len(self._bouquets)))
 
     def append_bouquet(self, bq, parent):
         name, bq_type, locked, hidden = bq.name, bq.type, bq.locked, bq.hidden
@@ -565,6 +567,7 @@ class MainWindow(MainUiWindow):
         """ Updates FAV model. """
         services = self._bouquets.get(bq_selected, [])
         ex_services = self._extra_bouquets.get(bq_selected, None)
+        self.fav_count_label.setText(str(len(services)))
 
         self.fav_view.clear_data()
         model = self.fav_view.model()
@@ -740,6 +743,7 @@ class MainWindow(MainUiWindow):
         row = 0 if parent_row < 0 else cur_index.row() + 1
         root_item.insertRow(row, bq)
         self._bouquets[f"{name}:{b_type}"] = []
+        self.bouquets_count_label.setText(str(len(self._bouquets)))
 
     def on_bouquet_selection(self, selected_item, deselected_item):
         indexes = selected_item.indexes()
@@ -769,6 +773,7 @@ class MainWindow(MainUiWindow):
         model = self.fav_view.model()
         for r in range(model.rowCount()):
             bq.append(model.index(r, Column.FAV_ID).data())
+        self.fav_count_label.setText(str(len(bq)))
 
     def on_service_edit(self, row, model):
         service = self._services.get(model.index(row, Column.FAV_ID).data(), None)
@@ -803,11 +808,13 @@ class MainWindow(MainUiWindow):
         bq = self._bouquets.get(self._bq_selected, None)
         if bq:
             list(map(bq.pop, rows))
+            self.fav_count_label.setText(str(len(bq)))
 
     def remove_bouquets(self, rows):
         bqs = {f"{r[Column.BQ_NAME].data()}:{r[Column.BQ_TYPE].data()}" for r in rows}
         list(map(self._bouquets.pop, bqs))
         self.fav_view.clear_data() if self._bq_selected in bqs else None
+        self.bouquets_count_label.setText(str(len(self._bouquets)))
 
     def update_services_count(self, services):
         """ Updates service counters. """
@@ -937,6 +944,10 @@ class MainWindow(MainUiWindow):
             model.setData(index, satellite, Qt.UserRole)
             model.setData(model.index(row, Column.SAT_NAME), satellite.name)
             model.setData(model.index(row, Column.SAT_POS), self.get_sat_position(int(satellite.position)))
+
+    def on_satellite_remove(self, rows):
+        if rows:
+            self.satellite_count_label.setText(str(self.satellite_view.model().rowCount() - 1))
 
     def get_satellite_row(self, satellite):
         """ Returns the satellite row representation as a QStandardItem tuple. """

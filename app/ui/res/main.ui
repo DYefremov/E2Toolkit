@@ -747,17 +747,11 @@
                       <number>6</number>
                      </property>
                      <item>
-                      <spacer name="services_horizontal_spacer">
-                       <property name="orientation">
-                        <enum>Qt::Horizontal</enum>
+                      <widget class="QLabel" name="services_info_label">
+                       <property name="text">
+                        <string notr="true">Info:</string>
                        </property>
-                       <property name="sizeHint" stdset="0">
-                        <size>
-                         <width>40</width>
-                         <height>20</height>
-                        </size>
-                       </property>
-                      </spacer>
+                      </widget>
                      </item>
                      <item>
                       <widget class="QLabel" name="tv_label">
@@ -800,6 +794,19 @@
                         <string>0</string>
                        </property>
                       </widget>
+                     </item>
+                     <item>
+                      <spacer name="services_horizontal_spacer">
+                       <property name="orientation">
+                        <enum>Qt::Horizontal</enum>
+                       </property>
+                       <property name="sizeHint" stdset="0">
+                        <size>
+                         <width>40</width>
+                         <height>20</height>
+                        </size>
+                       </property>
+                      </spacer>
                      </item>
                     </layout>
                    </item>
@@ -923,7 +930,7 @@
                        <number>6</number>
                       </property>
                       <item>
-                       <widget class="QLabel" name="satellite_label">
+                       <widget class="QLabel" name="satellite_info_label">
                         <property name="text">
                          <string>Satellites:</string>
                         </property>
@@ -1027,7 +1034,7 @@
                        <number>6</number>
                       </property>
                       <item>
-                       <widget class="QLabel" name="satellite_transponder_label">
+                       <widget class="QLabel" name="transponder_info_label">
                         <property name="text">
                          <string>Transponders:</string>
                         </property>
@@ -1249,16 +1256,6 @@
                            </size>
                           </property>
                          </spacer>
-                        </item>
-                        <item>
-                         <widget class="QCheckBox" name="picon_load_only_selected_box">
-                          <property name="layoutDirection">
-                           <enum>Qt::RightToLeft</enum>
-                          </property>
-                          <property name="text">
-                           <string>Load only selected items</string>
-                          </property>
-                         </widget>
                         </item>
                        </layout>
                       </item>
@@ -2450,7 +2447,7 @@
                <property name="title">
                 <string>Bouquet services</string>
                </property>
-               <layout class="QGridLayout" name="fav_layout">
+               <layout class="QVBoxLayout" name="fav_layout">
                 <property name="leftMargin">
                  <number>2</number>
                 </property>
@@ -2461,12 +2458,9 @@
                  <number>2</number>
                 </property>
                 <property name="bottomMargin">
-                 <number>2</number>
+                 <number>0</number>
                 </property>
-                <property name="verticalSpacing">
-                 <number>6</number>
-                </property>
-                <item row="0" column="1">
+                <item>
                  <layout class="QHBoxLayout" name="fav_h_layout">
                   <property name="leftMargin">
                    <number>6</number>
@@ -2501,7 +2495,7 @@
                      <string notr="true">IPTV</string>
                     </property>
                     <property name="icon">
-                     <iconset theme="open-menu">
+                     <iconset theme="emblem-shared">
                       <normaloff>.</normaloff>.</iconset>
                     </property>
                     <property name="iconSize">
@@ -2561,16 +2555,50 @@
                   </item>
                  </layout>
                 </item>
+                <item>
+                 <layout class="QHBoxLayout" name="fav_bottom_layout">
+                  <property name="leftMargin">
+                   <number>6</number>
+                  </property>
+                  <property name="rightMargin">
+                   <number>6</number>
+                  </property>
+                  <item>
+                   <widget class="QLabel" name="fav_info_label">
+                    <property name="text">
+                     <string/>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLabel" name="fav_count_label">
+                    <property name="text">
+                     <string notr="true">0</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <spacer name="horizontalSpacer">
+                    <property name="orientation">
+                     <enum>Qt::Horizontal</enum>
+                    </property>
+                    <property name="sizeHint" stdset="0">
+                     <size>
+                      <width>40</width>
+                      <height>20</height>
+                     </size>
+                    </property>
+                   </spacer>
+                  </item>
+                 </layout>
+                </item>
                </layout>
               </widget>
               <widget class="QGroupBox" name="bouquets_group_box">
                <property name="title">
                 <string>Bouquets</string>
                </property>
-               <property name="alignment">
-                <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-               </property>
-               <layout class="QGridLayout" name="bouquets_top_layout">
+               <layout class="QVBoxLayout" name="bouquets_layout">
                 <property name="leftMargin">
                  <number>2</number>
                 </property>
@@ -2581,12 +2609,9 @@
                  <number>2</number>
                 </property>
                 <property name="bottomMargin">
-                 <number>2</number>
+                 <number>0</number>
                 </property>
-                <property name="verticalSpacing">
-                 <number>6</number>
-                </property>
-                <item row="0" column="0">
+                <item>
                  <layout class="QHBoxLayout" name="bq_h_layout">
                   <property name="leftMargin">
                    <number>6</number>
@@ -2644,6 +2669,43 @@
                   </item>
                  </layout>
                 </item>
+                <item>
+                 <layout class="QHBoxLayout" name="horizontalLayout">
+                  <property name="leftMargin">
+                   <number>6</number>
+                  </property>
+                  <property name="rightMargin">
+                   <number>6</number>
+                  </property>
+                  <item>
+                   <widget class="QLabel" name="bouquets_info_label">
+                    <property name="text">
+                     <string notr="true"/>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLabel" name="bouquets_count_label">
+                    <property name="text">
+                     <string notr="true">0</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <spacer name="horizontalSpacer_2">
+                    <property name="orientation">
+                     <enum>Qt::Horizontal</enum>
+                    </property>
+                    <property name="sizeHint" stdset="0">
+                     <size>
+                      <width>40</width>
+                      <height>20</height>
+                     </size>
+                    </property>
+                   </spacer>
+                  </item>
+                 </layout>
+                </item>
                </layout>
               </widget>
              </widget>
@@ -2681,7 +2743,7 @@
      <x>0</x>
      <y>0</y>
      <width>1000</width>
-     <height>22</height>
+     <height>24</height>
     </rect>
    </property>
    <widget class="QMenu" name="file_menu">

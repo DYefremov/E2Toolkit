@@ -57,10 +57,10 @@ class MainUiWindow(QtWidgets.QMainWindow):
         self.services_group_box_layout.insertWidget(1, self.services_view)
         # FAV
         self.fav_view = FavView(self.fav_group_box)
-        self.fav_layout.addWidget(self.fav_view, 3, 1, 1, 1)
+        self.fav_layout.insertWidget(1, self.fav_view)
         # Bouquets
         self.bouquets_view = BouquetsView(self.bouquets_group_box)
-        self.bouquets_top_layout.addWidget(self.bouquets_view, 3, 0, 1, 1)
+        self.bouquets_layout.insertWidget(1, self.bouquets_view)
         # Satellites
         self.satellite_view = SatelliteView(self.satellites_group_box)
         self.satellite_view.setObjectName("satellite_view")
@@ -201,6 +201,7 @@ class MainUiWindow(QtWidgets.QMainWindow):
         # Button icons.
         if not IS_LINUX:
             style = self.style()
+            self.fav_menu_button.setIcon(style.standardIcon(style.SP_DriveNetIcon))
             # Player
             self.media_play_tool_button.setIcon(style.standardIcon(style.SP_MediaPlay))
             self.media_stop_tool_button.setIcon(style.standardIcon(style.SP_MediaStop))
@@ -210,6 +211,16 @@ class MainUiWindow(QtWidgets.QMainWindow):
             self.media_play_button.setIcon(style.standardIcon(style.SP_MediaPlay))
             self.media_stop_button.setIcon(style.standardIcon(style.SP_MediaStop))
             self.media_next_button.setIcon(style.standardIcon(style.SP_MediaSeekForward))
+
+            info_pix = style.standardIcon(style.SP_MessageBoxInformation).pixmap(QtCore.QSize(16, 16))
+        else:
+            info_pix = QtGui.QIcon.fromTheme("document-properties").pixmap(QtCore.QSize(16, 16))
+        # Info labels.
+        self.fav_info_label.setPixmap(info_pix)
+        self.bouquets_info_label.setPixmap(info_pix)
+        self.services_info_label.setPixmap(info_pix)
+        self.satellite_info_label.setPixmap(info_pix)
+        self.transponder_info_label.setPixmap(info_pix)
 
     def init_playback_elements(self):
         # Aspect ratio.
@@ -292,17 +303,14 @@ class MainUiWindow(QtWidgets.QMainWindow):
         self.satellites_group_box.setTitle(_translate("MainWindow", "Satellites"))
         self.satellite_update_tool_button.setText(_translate("MainWindow", "Update"))
         self.satellite_filter_edit.setPlaceholderText(_translate("MainWindow", "Filter..."))
-        self.satellite_label.setText(_translate("MainWindow", "Satellites:"))
         self.transponders_box.setTitle(_translate("MainWindow", "Transponders"))
         self.transponders_filter_edit.setPlaceholderText(_translate("MainWindow", "Filter..."))
-        self.satellite_transponder_label.setText(_translate("MainWindow", "Transponders:"))
         # Picons page.
         self.picon_src_box.setTitle(_translate("MainWindow", "Source"))
         self.picon_dst_box.setTitle(_translate("MainWindow", "Picons"))
         self.picon_src_filter_edit.setPlaceholderText(_translate("MainWindow", "Filter..."))
         self.picon_dest_filter_edit.setPlaceholderText(_translate("MainWindow", "Filter..."))
         self.picon_dst_remove_button.setText(_translate("MainWindow", "Remove"))
-        self.picon_load_only_selected_box.setText(_translate("MainWindow", "Load only selected items"))
         # Streams page.
         self.media_play_tool_button.setText(_translate("MainWindow", "Play"))
         self.media_stop_tool_button.setText(_translate("MainWindow", "Stop"))
