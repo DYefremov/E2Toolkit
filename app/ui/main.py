@@ -767,6 +767,8 @@ class MainWindow(MainUiWindow):
         """
         bq = self._bouquets.get(self._bq_selected, None)
         if bq is None:
+            self.fav_view.clear_data()
+            self.show_error_dialog(self.tr("No bouquet is selected!"))
             return
 
         bq.clear()
@@ -856,9 +858,12 @@ class MainWindow(MainUiWindow):
         self.copy_to(self.services_view, self.fav_view, model.index(model.rowCount() - 1, 0))
 
     def copy_to(self, src_view, dst_view, index):
-        dst_view.setCurrentIndex(index)
-        src_view.on_copy()
-        dst_view.on_paste()
+        if self._bq_selected in self._bouquets:
+            dst_view.setCurrentIndex(index)
+            src_view.on_copy()
+            dst_view.on_paste()
+        else:
+            self.show_error_dialog(self.tr("No bouquet is selected!"))
 
     def gen_bouquets(self, gen_type):
         """ Creates and adds bouquets of the given type. """

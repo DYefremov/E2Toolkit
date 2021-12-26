@@ -285,8 +285,6 @@ class ServicesView(BaseTableView, PiconAssignment, Searcher):
             self.remove_action = QtWidgets.QAction(QtGui.QIcon.fromTheme("list-remove"), self.tr("Remove"), self)
             self.remove_action.setShortcut("Del")
             self.addAction(self.remove_action)
-            # Disabled actions.
-            self.create_bouquet_menu.setEnabled(False)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
