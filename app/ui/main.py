@@ -386,9 +386,10 @@ class MainWindow(MainUiWindow):
 
     def on_data_load_error(self, msg):
         self.status_bar.showMessage(msg)
-        self.log_text_browser.setVisible(True)
         self.upload_tool_button.setEnabled(True)
         self.download_tool_button.setEnabled(True)
+        if not self.log_action.isChecked():
+            self.log_action.toggle()
 
     def http_send_callback(self, commands):
         self._http_api.send(commands[0])
@@ -1308,7 +1309,7 @@ class MainWindow(MainUiWindow):
         self._http_api.send(HttpAPI.Request.GRUB, "&mode=osd" if self._http_api.is_owif else "&o=")
 
     def on_action_done(self, req):
-        if self.grub_screenshot_box.isChecked():
+        if self.grub_screenshot_button.isChecked():
             self._http_api.send(HttpAPI.Request.GRUB)
 
     def on_volume_changed(self, value):
@@ -1371,7 +1372,7 @@ class MainWindow(MainUiWindow):
                          self.tr("GNU General Public License, version 3 or later"))
         msg = """<h2>{}</h2>
                   <h4>{}</h4>
-                  Copyright &copy; 2021 Dmitriy Yefremov<br/><br/>
+                  Copyright &copy; 2022 Dmitriy Yefremov<br/><br/>
                   {}
                   """.format(APP_NAME, APP_VERSION, lic)
 
