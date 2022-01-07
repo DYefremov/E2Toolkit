@@ -38,7 +38,7 @@ from app.connections import HttpAPI, DownloadType, DataLoader, PiconDeleter
 from app.enigma.backup import backup_data, clear_data_path
 from app.enigma.blacklist import write_blacklist
 from app.enigma.bouquets import BouquetsReader, BouquetsWriter
-from app.enigma.ecommons import BqServiceType, Service, Bouquet, Bouquets, BqType, BouquetService
+from app.enigma.ecommons import BqServiceType, Service, Bouquet, Bouquets, BqType, BouquetService, Satellite
 from app.enigma.lamedb import LameDbWriter, LameDbReader
 from app.satellites.satxml import get_satellites, write_satellites
 from app.streams.iptv import import_m3u
@@ -157,11 +157,15 @@ class MainWindow(MainUiWindow):
         # Satellites.
         self.satellite_view.selectionModel().currentRowChanged.connect(self.on_satellite_selection)
         self.satellite_view.add.connect(self.on_satellite_add)
+        self.add_satellite_button.clicked.connect(self.on_satellite_add)
         self.satellite_view.edited.connect(self.on_satellite_edit)
         self.satellite_view.removed.connect(self.on_satellite_remove)
+        self.remove_satellite_button.clicked.connect(self.satellite_view.on_remove)
         self.transponder_view.add.connect(self.on_transponder_add)
+        self.add_transponder_button.clicked.connect(self.on_transponder_add)
         self.transponder_view.edited.connect(self.on_transponder_edit)
         self.transponder_view.removed.connect(self.on_transponder_remove)
+        self.remove_transponder_button.clicked.connect(self.transponder_view.on_remove)
         # Picons.
         self.picon_src_view.id_received.connect(self.on_picon_ids_received)
         self.picon_src_view.urls_received.connect(self.on_picon_urls_received)
@@ -935,7 +939,20 @@ class MainWindow(MainUiWindow):
         self.satellite_transponder_count_label.setText(str(t_model.rowCount()))
 
     def on_satellite_add(self):
-        QMessageBox.information(self, APP_NAME, self.tr("Not implemented yet!"))
+        sat_dialog = SatelliteDialog(Satellite("New", "1", "0", []))
+        if sat_dialog.exec():
+            model = self.satellite_view.model()
+            sat = sat_dialog.satellite
+
+            if sat.name in {model.index(r, 0).data() for r in range(model.rowCount())}:
+                self.show_error_dialog("This name already exists!")
+            else:
+                model.appendRow(self.get_satellite_row(sat))
+                self.satellite_count_label.setText(str(model.rowCount()))
+                self.satellite_view.scrollToBottom()
+                sel_model = self.satellite_view.selectionModel()
+                index = model.index(model.rowCount() - 1, 0)
+                sel_model.setCurrentIndex(index, sel_model.ClearAndSelect | sel_model.Rows)
 
     def on_transponder_add(self):
         QMessageBox.information(self, APP_NAME, self.tr("Not implemented yet!"))

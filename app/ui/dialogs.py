@@ -683,9 +683,9 @@ class SatelliteDialog(QtWidgets.QDialog):
         super().__init__(*args, **kwargs)
         uic.loadUi(f"{UI_PATH}satellite_dialog.ui", self)
 
-        self.retranslate_ui()
-
         self._satellite = satellite
+        self.side_box.setModel(QtCore.QStringListModel(("E", "W")))
+        self.retranslate_ui()
         self.init_data()
 
     @property
