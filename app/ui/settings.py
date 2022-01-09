@@ -30,7 +30,7 @@ from enum import Enum
 from pathlib import Path
 
 from PyQt5 import uic
-from PyQt5.QtCore import QSettings, QSize, QStringListModel
+from PyQt5.QtCore import QSettings, QSize, QStringListModel, QCoreApplication
 from PyQt5.QtGui import QIntValidator
 from PyQt5.QtWidgets import QDialog, QMessageBox, QDialogButtonBox, QFileDialog
 
@@ -319,6 +319,7 @@ class SettingsDialog(QDialog):
         self._current_profile = None
 
         self.init_ui()
+        self.retranslate_ui()
         self.init_actions()
         self.init_settings()
 
@@ -336,6 +337,15 @@ class SettingsDialog(QDialog):
         self.play_streams_mode_combo_box.setModel(QStringListModel(modes))
         self.play_streams_mode_combo_box.setEnabled(False)
         self.stream_lib_combo_box.setModel(QStringListModel(("VLC", "MPV", "GStreamer")))
+
+    def retranslate_ui(self):
+        _translate = QCoreApplication.translate
+        if not IS_LINUX:
+            self.profile_add_button.setText(_translate("SettingsDialog", "Add"))
+            self.profile_edit_button.setText(_translate("SettingsDialog", "Rename"))
+            self.profile_remove_button.setText(_translate("SettingsDialog", "Remove"))
+            self.add_picon_path_button.setText("+")
+            self.remove_picon_path_button.setText("-")
 
     def init_actions(self):
         self.network_tool_button.toggled.connect(lambda s: self.stacked_widget.setCurrentIndex(0) if s else None)

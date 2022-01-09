@@ -2561,7 +2561,7 @@
                      <string notr="true">IPTV</string>
                     </property>
                     <property name="icon">
-                     <iconset theme="emblem-shared">
+                     <iconset theme="network-workgroup-symbolic">
                       <normaloff>.</normaloff>.</iconset>
                     </property>
                     <property name="iconSize">
