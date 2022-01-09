@@ -38,7 +38,8 @@ from app.connections import HttpAPI, DownloadType, DataLoader, PiconDeleter
 from app.enigma.backup import backup_data, clear_data_path
 from app.enigma.blacklist import write_blacklist
 from app.enigma.bouquets import BouquetsReader, BouquetsWriter
-from app.enigma.ecommons import BqServiceType, Service, Bouquet, Bouquets, BqType, BouquetService, Satellite
+from app.enigma.ecommons import (BqServiceType, Service, Bouquet, Bouquets, BqType, BouquetService, Satellite,
+                                 Transponder)
 from app.enigma.lamedb import LameDbWriter, LameDbReader
 from app.satellites.satxml import get_satellites, write_satellites
 from app.streams.iptv import import_m3u
@@ -955,7 +956,7 @@ class MainWindow(MainUiWindow):
                 sel_model.setCurrentIndex(index, sel_model.ClearAndSelect | sel_model.Rows)
 
     def on_transponder_add(self):
-        QMessageBox.information(self, APP_NAME, self.tr("Not implemented yet!"))
+        self.on_transponder_edit()
 
     def on_satellite_edit(self, row):
         model = self.satellite_view.model()
@@ -982,19 +983,27 @@ class MainWindow(MainUiWindow):
     def get_sat_position(self, sat_pos):
         return f"{abs(sat_pos / 10):0.1f}{'W' if sat_pos < 0 else 'E'}"
 
-    def on_transponder_edit(self, row):
+    def on_transponder_edit(self, row=None):
         sat_model = self.satellite_view.model()
         sat_index = sat_model.index(self.satellite_view.currentIndex().row(), Column.SAT_DATA)
         sat = sat_index.data(Qt.UserRole)
         if not sat:
             return
 
-        tr_dialog = TransponderDialog(sat.transponders[row])
+        is_add = row is None
+        tr = Transponder("0", "0", "H", "3/4", "DVB-S", "QPSK", None, None, None) if is_add else sat.transponders[row]
+
+        tr_dialog = TransponderDialog(tr)
         if tr_dialog.exec():
             transponder = tr_dialog.transponder
-            sat.transponders[row] = transponder
             t_model = self.transponder_view.model()
-            [t_model.setData(t_model.index(row, c), d) for c, d in enumerate(transponder)]
+            if is_add:
+                sat.transponders.append(transponder)
+                t_model.appendRow(QStandardItem(i) for i in transponder)
+                self.satellite_transponder_count_label.setText(str(t_model.rowCount()))
+            else:
+                sat.transponders[row] = transponder
+                [t_model.setData(t_model.index(row, c), d) for c, d in enumerate(transponder)]
             sat_model.setData(sat_index, sat, Qt.UserRole)
 
     def on_transponder_remove(self, rows):
