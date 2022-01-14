@@ -360,6 +360,7 @@ class ServicesView(BaseTableView, PiconAssignment, Searcher):
 class FavView(BaseTableView, PiconAssignment, Searcher):
     """ Main class for favorites list. """
     picon_assigned = QtCore.pyqtSignal(tuple)
+    locate_service = QtCore.pyqtSignal(str)
     insert_marker = QtCore.pyqtSignal()
     insert_space = QtCore.pyqtSignal()
 
@@ -386,13 +387,13 @@ class FavView(BaseTableView, PiconAssignment, Searcher):
             icon = QtGui.QIcon.fromTheme("document-revert")
             self.set_default_name_action = QtWidgets.QAction(icon, self.tr("Set default name"), self)
             self.addAction(self.set_default_name_action)
-            self.addSeparator()
             icon = QtGui.QIcon.fromTheme("edit-find")
             self.locate_action = QtWidgets.QAction(icon, self.tr("Locate in services"), self)
             self.addAction(self.locate_action)
             icon = QtGui.QIcon.fromTheme("format-text-bold")
             self.mark_duplicates_action = QtWidgets.QAction(icon, self.tr("Mark duplicates"), self)
             self.addAction(self.mark_duplicates_action)
+            self.addSeparator()
             icon = QtGui.QIcon.fromTheme("insert-text")
             self.insert_marker_action = QtWidgets.QAction(icon, self.tr("Insert marker"), self)
             self.addAction(self.insert_marker_action)
@@ -412,7 +413,6 @@ class FavView(BaseTableView, PiconAssignment, Searcher):
             # Disabled [hidden] actions.
             self.set_extra_name_action.setVisible(False)
             self.set_default_name_action.setVisible(False)
-            self.locate_action.setVisible(False)
             self.mark_duplicates_action.setVisible(False)
 
     def __init__(self, *args, **kwargs):
@@ -446,6 +446,7 @@ class FavView(BaseTableView, PiconAssignment, Searcher):
         self.context_menu.paste_action.triggered.connect(self.on_paste)
         self.context_menu.cut_action.triggered.connect(self.on_cut)
         self.context_menu.edit_action.triggered.connect(self.on_edit)
+        self.context_menu.locate_action.triggered.connect(self.on_locate_service)
         self.context_menu.copy_ref_action.triggered.connect(self.copy_reference)
         self.context_menu.assign_action.triggered.connect(self.assign_picon)
         # Copy - Paste items.
@@ -459,6 +460,11 @@ class FavView(BaseTableView, PiconAssignment, Searcher):
 
     def contextMenuEvent(self, event):
         self.context_menu.popup(QtGui.QCursor.pos())
+
+    def on_locate_service(self):
+        fav_id = self.model().index(self.selectionModel().currentIndex().row(), Column.FAV_ID).data()
+        if fav_id:
+            self.locate_service.emit(fav_id)
 
     def dropEvent(self, event):
         super().dropEvent(event)

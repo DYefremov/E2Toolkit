@@ -142,6 +142,7 @@ class MainWindow(MainUiWindow):
         self.bouquets_view.selectionModel().selectionChanged.connect(self.on_bouquet_selection)
         self.fav_view.selectionModel().selectionChanged.connect(self.on_fav_selection)
         self.fav_view.edited.connect(lambda r: self.on_service_edit(r, self.fav_view.model()))
+        self.fav_view.locate_service.connect(self.on_locate_service)
         self.fav_view.insert_marker.connect(self.insert_marker)
         self.fav_view.insert_space.connect(self.insert_space)
         self.fav_view.removed.connect(self.remove_favorites)
@@ -784,6 +785,16 @@ class MainWindow(MainUiWindow):
         for r in range(model.rowCount()):
             bq.append(model.index(r, Column.FAV_ID).data())
         self.fav_count_label.setText(str(len(bq)))
+
+    def on_locate_service(self, fav_id):
+        model = self.services_view.model()
+        for r in range(model.rowCount()):
+            index = model.index(r, Column.FAV_ID)
+            if fav_id == index.data():
+                sel_model = self.services_view.selectionModel()
+                sel_model.select(index, sel_model.ClearAndSelect | sel_model.Rows)
+                self.services_view.scrollTo(model.index(r, Column.NAME))
+                break
 
     def insert_marker(self):
         dialog = InputDialog("E2Toolkit [New marker]", "Enter marker text.", parent=self)
