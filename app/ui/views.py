@@ -360,6 +360,8 @@ class ServicesView(BaseTableView, PiconAssignment, Searcher):
 class FavView(BaseTableView, PiconAssignment, Searcher):
     """ Main class for favorites list. """
     picon_assigned = QtCore.pyqtSignal(tuple)
+    insert_marker = QtCore.pyqtSignal()
+    insert_space = QtCore.pyqtSignal()
 
     class ContextMenu(QtWidgets.QMenu):
         def __init__(self, *args, **kwargs):
@@ -375,30 +377,31 @@ class FavView(BaseTableView, PiconAssignment, Searcher):
             self.paste_action.setEnabled(False)
             self.addAction(self.paste_action)
             self.addSeparator()
-            self.edit_action = QtWidgets.QAction(QtGui.QIcon.fromTheme("document-edit"), self.tr("Edit"), self)
+            icon = QtGui.QIcon.fromTheme("document-edit")
+            self.edit_action = QtWidgets.QAction(icon, self.tr("Edit"), self)
             self.addAction(self.edit_action)
-            self.set_extra_name_action = QtWidgets.QAction(QtGui.QIcon.fromTheme("document-edit"),
-                                                           self.tr("Rename for this bouquet"), self)
+            icon = QtGui.QIcon.fromTheme("document-edit")
+            self.set_extra_name_action = QtWidgets.QAction(icon, self.tr("Rename for this bouquet"), self)
             self.addAction(self.set_extra_name_action)
-            self.set_default_name_action = QtWidgets.QAction(QtGui.QIcon.fromTheme("document-revert"),
-                                                             self.tr("Set default name"), self)
+            icon = QtGui.QIcon.fromTheme("document-revert")
+            self.set_default_name_action = QtWidgets.QAction(icon, self.tr("Set default name"), self)
             self.addAction(self.set_default_name_action)
             self.addSeparator()
-            self.locate_action = QtWidgets.QAction(QtGui.QIcon.fromTheme("edit-find"), self.tr("Locate in services"),
-                                                   self)
+            icon = QtGui.QIcon.fromTheme("edit-find")
+            self.locate_action = QtWidgets.QAction(icon, self.tr("Locate in services"), self)
             self.addAction(self.locate_action)
-            self.mark_duplicates_action = QtWidgets.QAction(QtGui.QIcon.fromTheme("format-text-bold"),
-                                                            self.tr("Mark duplicates"), self)
+            icon = QtGui.QIcon.fromTheme("format-text-bold")
+            self.mark_duplicates_action = QtWidgets.QAction(icon, self.tr("Mark duplicates"), self)
             self.addAction(self.mark_duplicates_action)
-            self.insert_marker_action = QtWidgets.QAction(QtGui.QIcon.fromTheme("insert-text"),
-                                                          self.tr("Insert marker"), self)
+            icon = QtGui.QIcon.fromTheme("insert-text")
+            self.insert_marker_action = QtWidgets.QAction(icon, self.tr("Insert marker"), self)
             self.addAction(self.insert_marker_action)
-            self.insert_space_action = QtWidgets.QAction(QtGui.QIcon.fromTheme("format-text-underline"),
-                                                         self.tr("Insert space"), self)
+            icon = QtGui.QIcon.fromTheme("format-text-underline")
+            self.insert_space_action = QtWidgets.QAction(icon, self.tr("Insert space"), self)
             self.addAction(self.insert_space_action)
             self.addSeparator()
-            self.copy_ref_action = QtWidgets.QAction(QtGui.QIcon.fromTheme("edit-copy"), self.tr("Copy reference"),
-                                                     self)
+            icon = QtGui.QIcon.fromTheme("edit-copy")
+            self.copy_ref_action = QtWidgets.QAction(icon, self.tr("Copy reference"), self)
             self.addAction(self.copy_ref_action)
             self.assign_action = QtWidgets.QAction(QtGui.QIcon.fromTheme("insert-image"), self.tr("Assign picon"), self)
             self.addAction(self.assign_action)
@@ -411,8 +414,6 @@ class FavView(BaseTableView, PiconAssignment, Searcher):
             self.set_default_name_action.setVisible(False)
             self.locate_action.setVisible(False)
             self.mark_duplicates_action.setVisible(False)
-            self.insert_marker_action.setVisible(False)
-            self.insert_space_action.setVisible(False)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -449,9 +450,12 @@ class FavView(BaseTableView, PiconAssignment, Searcher):
         self.context_menu.assign_action.triggered.connect(self.assign_picon)
         # Copy - Paste items.
         self.copied.connect(self.context_menu.paste_action.setEnabled)
-        self.inserted.connect(lambda b: self.context_menu.paste_action.setEnabled(not b))
-        self.copied.connect(lambda b: self.context_menu.copy_action.setEnabled(not b))
+        self.inserted.connect(self.context_menu.paste_action.setDisabled)
+        self.copied.connect(self.context_menu.copy_action.setDisabled)
         self.inserted.connect(self.context_menu.copy_action.setEnabled)
+        # Marker\Space.
+        self.context_menu.insert_marker_action.triggered.connect(self.insert_marker.emit)
+        self.context_menu.insert_space_action.triggered.connect(self.insert_space.emit)
 
     def contextMenuEvent(self, event):
         self.context_menu.popup(QtGui.QCursor.pos())

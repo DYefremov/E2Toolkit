@@ -142,6 +142,8 @@ class MainWindow(MainUiWindow):
         self.bouquets_view.selectionModel().selectionChanged.connect(self.on_bouquet_selection)
         self.fav_view.selectionModel().selectionChanged.connect(self.on_fav_selection)
         self.fav_view.edited.connect(lambda r: self.on_service_edit(r, self.fav_view.model()))
+        self.fav_view.insert_marker.connect(self.insert_marker)
+        self.fav_view.insert_space.connect(self.insert_space)
         self.fav_view.removed.connect(self.remove_favorites)
         self.fav_view.inserted.connect(self.on_fav_data_changed)
         self.fav_view.picon_assigned.connect(lambda d: self.copy_picons(*d))
@@ -782,6 +784,28 @@ class MainWindow(MainUiWindow):
         for r in range(model.rowCount()):
             bq.append(model.index(r, Column.FAV_ID).data())
         self.fav_count_label.setText(str(len(bq)))
+
+    def insert_marker(self):
+        dialog = InputDialog("E2Toolkit [New marker]", "Enter marker text.", parent=self)
+        if dialog.exec():
+            self.insert_marker_data(BqServiceType.MARKER, dialog.textValue())
+
+    def insert_space(self):
+        self.insert_marker_data(BqServiceType.SPACE)
+
+    def insert_marker_data(self, m_type, txt=None):
+        if m_type is BqServiceType.MARKER:
+            fav_id = f"1:64:0:0:0:0:0:0:0:0::{txt}\n#DESCRIPTION {txt}\n"
+        else:
+            fav_id = "1:832:D:0:0:0:0:0:0:0:\n"
+
+        marker = Service(*[None] * 5, txt, None, None, None, m_type.name, *[None] * 8, fav_id, None)
+        model = self.fav_view.model()
+        row = (QStandardItem(d) for d in marker)
+        target = self.fav_view.selectionModel().currentIndex()
+        model.insertRow(target.row() + 1, row)
+        self.fav_view.inserted.emit(True)
+        self._services[fav_id] = marker
 
     def on_service_edit(self, row, model):
         service = self._services.get(model.index(row, Column.FAV_ID).data(), None)
