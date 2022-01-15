@@ -30,7 +30,7 @@ from enum import Enum
 from pathlib import Path
 
 from PyQt5 import uic
-from PyQt5.QtCore import QSettings, QSize, QStringListModel, QCoreApplication
+from PyQt5.QtCore import QSettings, QSize, QStringListModel, QCoreApplication, pyqtSignal
 from PyQt5.QtGui import QIntValidator
 from PyQt5.QtWidgets import QDialog, QMessageBox, QDialogButtonBox, QFileDialog
 
@@ -310,6 +310,8 @@ class Settings(QSettings):
 
 
 class SettingsDialog(QDialog):
+    test = pyqtSignal(bool)
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         uic.loadUi(f"{UI_PATH}settings.ui", self)
@@ -326,6 +328,7 @@ class SettingsDialog(QDialog):
         self.exec()
 
     def init_ui(self):
+        self.test_network_box.setVisible(False)
         # Validators.
         self.ftp_port_edit.setValidator(QIntValidator(self.ftp_port_edit))
         self.http_port_edit.setValidator(QIntValidator(self.http_port_edit))
@@ -358,7 +361,6 @@ class SettingsDialog(QDialog):
         profile_model = self.profile_view.model()
         profile_model.dataChanged.connect(self.on_prfile_name_changed)
         profile_model.rowsRemoved.connect(self.on_profiles_changed)
-        self.test_button.clicked.connect(self.on_test_connection)
         self.profile_view.selectionModel().currentChanged.connect(self.on_profile_selection)
         self.login_edit.editingFinished.connect(lambda: self.on_profile_params_set("user", self.login_edit))
         self.password_edit.editingFinished.connect(
@@ -378,6 +380,14 @@ class SettingsDialog(QDialog):
         picon_paths_model = self.picon_path_box.model()
         picon_paths_model.rowsRemoved.connect(self.on_picon_paths_changed)
         picon_paths_model.rowsInserted.connect(self.on_picon_paths_changed)
+        # Network testing
+        self.test_button.clicked.connect(lambda: self.test.emit(True))
+        self.close_test_button.clicked.connect(lambda: self.test.emit(False))
+        self.test.connect(self.test_network_box.setVisible)
+        self.test.connect(self.test_button.setHidden)
+        self.test.connect(self.profile_buttons_frame.setHidden)
+        self.test.connect(self.profile_view.setDisabled)
+        self.test.connect(self.on_test_connection)
         # Paths
         self.browse_data_path_button.clicked.connect(lambda b: self.on_path_set(self.data_path_edit))
         self.browse_picon_path_button.clicked.connect(lambda b: self.on_path_set(self.picon_path_edit))
@@ -494,7 +504,8 @@ class SettingsDialog(QDialog):
             QMessageBox.critical(self, APP_NAME, self.tr("Profile loading error!"))
 
     def on_test_connection(self, state):
-        QMessageBox.information(self, APP_NAME, self.tr("Not implemented yet!"))
+        if state:
+            QMessageBox.information(self, APP_NAME, self.tr("Not implemented yet!"))
 
     def on_profile_params_set(self, param, edit):
         """ Sets the current profile parameter when editing the value is finished [editingFinished event].
