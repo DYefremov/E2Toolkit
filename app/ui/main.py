@@ -98,6 +98,10 @@ class MainWindow(MainUiWindow):
         # HTTP API.
         self._update_state_timer = QTimer(self)
         self._http_api = None
+        # Search.
+        self.service_search_timer = QTimer(self)
+        self.service_search_timer.setSingleShot(True)
+        self.service_search_timer.setInterval(1000)
         # Streams.
         self._player = None
         # Initialization.
@@ -233,7 +237,8 @@ class MainWindow(MainUiWindow):
         # Context menu items.
         self.services_view.copied.connect(self.fav_view.context_menu.paste_action.setEnabled)
         # Search.
-        self.service_search_edit.textChanged.connect(self.services_view.search)
+        self.service_search_timer.timeout.connect(self.on_services_search)
+        self.service_search_edit.textChanged.connect(self.service_search_timer.start)
         self.bq_service_search_edit.textChanged.connect(self.fav_view.search)
         self.epg_search_edit.textChanged.connect(self.epg_view.search)
         self.timer_search_edit.textChanged.connect(self.timer_view.search)
@@ -721,6 +726,15 @@ class MainWindow(MainUiWindow):
                 model.insertRow(row + 1, (QStandardItem(i) for i in service))
                 bq.insert(row + 1, service.fav_id)
             self._services[service.fav_id] = service
+
+    # ********************** Search ********************** #
+
+    def on_services_search(self):
+        """ Starts a search in the main service view. """
+        self.service_search_edit.setEnabled(False)
+        self.services_view.search(self.service_search_edit.text())
+        self.service_search_edit.setEnabled(True)
+        self.service_search_edit.setFocus()
 
     # ********************* Bouquets ********************* #
 
