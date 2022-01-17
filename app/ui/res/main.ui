@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1000</width>
-    <height>700</height>
+    <width>720</width>
+    <height>560</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -20,6 +20,12 @@
    <string>E2Toolkit</string>
   </property>
   <property name="documentMode">
+   <bool>false</bool>
+  </property>
+  <property name="dockNestingEnabled">
+   <bool>false</bool>
+  </property>
+  <property name="unifiedTitleAndToolBarOnMac">
    <bool>false</bool>
   </property>
   <widget class="QWidget" name="central_widget">
@@ -528,10 +534,16 @@
              </property>
              <widget class="QStackedWidget" name="stacked_widget">
               <property name="sizePolicy">
-               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+               <sizepolicy hsizetype="Ignored" vsizetype="Expanding">
                 <horstretch>0</horstretch>
                 <verstretch>0</verstretch>
                </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>250</width>
+                <height>0</height>
+               </size>
               </property>
               <property name="focusPolicy">
                <enum>Qt::ClickFocus</enum>
@@ -849,7 +861,16 @@
                   <property name="handleWidth">
                    <number>6</number>
                   </property>
+                  <property name="childrenCollapsible">
+                   <bool>false</bool>
+                  </property>
                   <widget class="QGroupBox" name="satellites_group_box">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
                    <property name="title">
                     <string>Satellites</string>
                    </property>
@@ -982,7 +1003,7 @@
                   </widget>
                   <widget class="QGroupBox" name="transponders_box">
                    <property name="sizePolicy">
-                    <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                      <horstretch>0</horstretch>
                      <verstretch>0</verstretch>
                     </sizepolicy>
@@ -2486,7 +2507,7 @@
              </widget>
              <widget class="QSplitter" name="fav_splitter">
               <property name="sizePolicy">
-               <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+               <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                 <horstretch>0</horstretch>
                 <verstretch>0</verstretch>
                </sizepolicy>
@@ -2792,7 +2813,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1000</width>
+     <width>720</width>
      <height>22</height>
     </rect>
    </property>
@@ -2853,6 +2874,17 @@
      <addaction name="logo_action"/>
      <addaction name="control_action"/>
     </widget>
+    <widget class="QMenu" name="bouquets_display_menu">
+     <property name="title">
+      <string>Display bouquets</string>
+     </property>
+     <property name="separatorsCollapsible">
+      <bool>true</bool>
+     </property>
+     <addaction name="bq_display_vertical_action"/>
+     <addaction name="bq_display_horizontally_action"/>
+    </widget>
+    <addaction name="bouquets_display_menu"/>
     <addaction name="alternate_layout_action"/>
     <addaction name="log_action"/>
     <addaction name="separator"/>
@@ -3213,6 +3245,28 @@
     <string>Alternate layout</string>
    </property>
   </action>
+  <action name="bq_display_vertical_action">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Vertical</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>true</bool>
+   </property>
+  </action>
+  <action name="bq_display_horizontally_action">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Horizontally</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections>
@@ -3227,8 +3281,136 @@
      <y>-1</y>
     </hint>
     <hint type="destinationlabel">
-     <x>507</x>
-     <y>668</y>
+     <x>522</x>
+     <y>662</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>bouquets_action</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>bouquet_tool_button</receiver>
+   <slot>setVisible(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>318</x>
+     <y>55</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>satellites_action</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>satellite_tool_button</receiver>
+   <slot>setVisible(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>55</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>picons_action</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>picon_tool_button</receiver>
+   <slot>setVisible(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>480</x>
+     <y>55</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>epg_action</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>epg_tool_button</receiver>
+   <slot>setVisible(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>561</x>
+     <y>55</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>timer_action</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>timer_tool_button</receiver>
+   <slot>setVisible(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>642</x>
+     <y>55</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>ftp_action</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>ftp_tool_button</receiver>
+   <slot>setVisible(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>723</x>
+     <y>55</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>logo_action</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>logo_tool_button</receiver>
+   <slot>setVisible(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>804</x>
+     <y>55</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>control_action</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>control_tool_button</receiver>
+   <slot>setVisible(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>882</x>
+     <y>55</y>
     </hint>
    </hints>
   </connection>

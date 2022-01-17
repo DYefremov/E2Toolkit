@@ -143,21 +143,16 @@ class MainUiWindow(QtWidgets.QMainWindow):
         # Setting the stretch factor to proportional widgets resize
         self.main_splitter.setStretchFactor(0, 4)
         self.main_splitter.setStretchFactor(1, 5)
-        self.satellite_splitter.setStretchFactor(0, 2)  # -> index, stretch factor
-        self.satellite_splitter.setStretchFactor(1, 3)
+        self.satellite_splitter.setStretchFactor(0, 1)  # -> index, stretch factor
+        self.satellite_splitter.setStretchFactor(1, 2)
         # Current stack page
         self.current_page = Page.BOUQUETS
         # Actions.
-        self.bouquets_action.toggled['bool'].connect(self.bouquet_tool_button.setVisible)
-        self.satellites_action.toggled['bool'].connect(self.satellite_tool_button.setVisible)
-        self.picons_action.toggled['bool'].connect(self.picon_tool_button.setVisible)
-        self.epg_action.toggled['bool'].connect(self.epg_tool_button.setVisible)
-        self.timer_action.toggled['bool'].connect(self.timer_tool_button.setVisible)
-        self.ftp_action.toggled['bool'].connect(self.ftp_tool_button.setVisible)
-        self.logo_action.toggled['bool'].connect(self.logo_tool_button.setVisible)
-        self.control_action.toggled['bool'].connect(self.control_tool_button.setVisible)
         self.alternate_layout_action.toggled['bool'].connect(self.set_layout)
-        self.log_action.toggled['bool'].connect(self.log_text_browser.setVisible)
+        bq_display_group = QtWidgets.QActionGroup(self.bouquets_display_menu)
+        bq_display_group.addAction(self.bq_display_vertical_action)
+        bq_display_group.addAction(self.bq_display_horizontally_action)
+        bq_display_group.triggered.connect(self.on_bouquets_display_mode_changed)
         QtCore.QMetaObject.connectSlotsByName(self)
         # Toolbar.
         self.bouquet_tool_button.toggled.connect(lambda s: self.on_stack_page_changed(s, Page.BOUQUETS))
@@ -262,14 +257,48 @@ class MainUiWindow(QtWidgets.QMainWindow):
         self.media_frame.setVisible(state)
         self.stacked_widget.setVisible(not state)
 
+    # ******************** Handlers ******************** #
+
+    def on_stack_page_changed(self, state, p_num):
+        if state:
+            self.stacked_widget.setCurrentIndex(p_num)
+            self.fav_splitter.setVisible(p_num not in (Page.SAT, Page.FTP, Page.LOGO, Page.CONTROL))
+            is_file_action = p_num in (Page.BOUQUETS, Page.SAT, Page.PICONS)
+            self.open_action.setEnabled(is_file_action)
+            self.import_action.setEnabled(is_file_action)
+            self.extract_action.setEnabled(is_file_action)
+            self.save_action.setEnabled(is_file_action)
+            self.save_as_action.setEnabled(is_file_action)
+            self.upload_tool_button.setEnabled(is_file_action)
+
+    def on_current_page_changed(self, index):
+        page = Page(index)
+        self.current_page = page
+        if page is Page.SAT:
+            self.on_satellite_page_show()
+        elif page is Page.PICONS:
+            self.on_picon_page_show()
+        elif page is Page.TIMER:
+            self.on_timer_page_show()
+
     def set_layout(self, alt):
         """ Sets main elements layout type. """
         index = int(not alt)
         self.base_splitter.insertWidget(index, self.main_frame)
         self.main_splitter.insertWidget(index, self.fav_splitter)
         self.control_horizontal_layout.insertWidget(index, self.remote_controller_box)
+        if self.bq_display_horizontally_action.isChecked():
+            self.fav_splitter.insertWidget(index, self.fav_group_box)
+            self.fav_splitter.insertWidget(index, self.bouquets_group_box)
 
-    # ******************** Handlers ******************** #
+    def on_bouquets_display_mode_changed(self, action):
+        """ Sets  bouquets and favorites list display position. """
+        vertical = self.bq_display_vertical_action.isChecked()
+        self.fav_splitter.setOrientation(QtCore.Qt.Vertical if vertical else QtCore.Qt.Horizontal)
+        if self.alternate_layout_action.isChecked():
+            index = int(not vertical)
+            self.fav_splitter.insertWidget(index, self.bouquets_group_box)
+            self.fav_splitter.insertWidget(index, self.fav_group_box)
 
     def retranslate_ui(self, main_window):
         _translate = QtCore.QCoreApplication.translate
@@ -404,28 +433,6 @@ class MainUiWindow(QtWidgets.QMainWindow):
         self.fav_tools_menu.setTitle(_translate("MainWindow", "Tools"))
         self.add_stream_action.setText(_translate("MainWindow", "Add IPTV or stream service"))
         self.import_m3u_action.setText(_translate("MainWindow", "Import *m3u"))
-
-    def on_stack_page_changed(self, state, p_num):
-        if state:
-            self.stacked_widget.setCurrentIndex(p_num)
-            self.fav_splitter.setVisible(p_num not in (Page.SAT, Page.FTP, Page.LOGO, Page.CONTROL))
-            is_file_action = p_num in (Page.BOUQUETS, Page.SAT, Page.PICONS)
-            self.open_action.setEnabled(is_file_action)
-            self.import_action.setEnabled(is_file_action)
-            self.extract_action.setEnabled(is_file_action)
-            self.save_action.setEnabled(is_file_action)
-            self.save_as_action.setEnabled(is_file_action)
-            self.upload_tool_button.setEnabled(is_file_action)
-
-    def on_current_page_changed(self, index):
-        page = Page(index)
-        self.current_page = page
-        if page is Page.SAT:
-            self.on_satellite_page_show()
-        elif page is Page.PICONS:
-            self.on_picon_page_show()
-        elif page is Page.TIMER:
-            self.on_timer_page_show()
 
     # Pages
     def on_satellite_page_show(self):
