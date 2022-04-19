@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2021 Dmitriy Yefremov
+# Copyright (C) 2021-2022 Dmitriy Yefremov
 #
 # This file is part of E2Toolkit.
 #
@@ -204,6 +204,14 @@ class Settings(QSettings):
     @show_timers.setter
     def show_timers(self, value):
         self.setValue("show_timers", value)
+
+    @property
+    def show_ftp(self):
+        return self.value("show_ftp", True, bool)
+
+    @show_ftp.setter
+    def show_ftp(self, value):
+        self.setValue("show_ftp", value)
 
     @property
     def show_control(self):

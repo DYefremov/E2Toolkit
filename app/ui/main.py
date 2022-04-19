@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2021 Dmitriy Yefremov
+# Copyright (C) 2021-2022 Dmitriy Yefremov
 #
 # This file is part of E2Toolkit.
 #
@@ -26,6 +26,7 @@ import os
 import sys
 from collections import OrderedDict, Counter, defaultdict
 from datetime import datetime
+from ftplib import all_errors
 from pathlib import Path
 from urllib.parse import quote
 
@@ -34,7 +35,7 @@ from PyQt5.QtGui import QIcon, QStandardItem, QPixmap
 from PyQt5.QtWidgets import QApplication, QMessageBox, QFileDialog, QActionGroup, QAction
 
 from app.commons import APP_VERSION, APP_NAME, log, LOCALES
-from app.connections import HttpAPI, DownloadType, DataLoader, PiconDeleter
+from app.connections import HttpAPI, DownloadType, DataLoader, PiconDeleter, UtfFTP
 from app.enigma.backup import backup_data, clear_data_path
 from app.enigma.blacklist import write_blacklist
 from app.enigma.bouquets import BouquetsReader, BouquetsWriter
@@ -63,6 +64,9 @@ class Application(QApplication):
     @staticmethod
     def run():
         app = Application(sys.argv)
+        # Enable High DPI display with PyQt5.
+        if hasattr(Qt, "AA_UseHighDpiPixmaps"):
+            app.setAttribute(Qt.AA_UseHighDpiPixmaps)
         main_window = MainWindow()
         main_window.show()
         sys.exit(app.exec())
@@ -104,6 +108,8 @@ class MainWindow(MainUiWindow):
         self.service_search_timer.setInterval(1000)
         # Streams.
         self._player = None
+        # FTP.
+        self._ftp = None
         # Initialization.
         self.init_ui()
         self.init_language()
@@ -123,9 +129,12 @@ class MainWindow(MainUiWindow):
         self.picons_action.setChecked(self.settings.show_picons)
         self.epg_action.setChecked(self.settings.show_epg)
         self.timer_action.setChecked(self.settings.show_timers)
+        self.ftp_action.setChecked(self.settings.show_ftp)
         self.control_action.setChecked(self.settings.show_control)
 
     def init_actions(self):
+        # Stack pages.
+        self.stacked_widget.currentChanged.connect(self.on_current_page_changed)
         # File menu.
         self.import_action.triggered.connect(self.on_data_import)
         self.open_action.triggered.connect(self.on_data_open)
@@ -294,6 +303,18 @@ class MainWindow(MainUiWindow):
             sel_model.select(index, sel_model.ClearAndSelect | sel_model.Rows)
             sel_model.setCurrentIndex(index, sel_model.NoUpdate)
 
+    def on_current_page_changed(self, index):
+        page = Page(index)
+        self.current_page = page
+        if page is Page.SAT:
+            self.on_satellite_page_show()
+        elif page is Page.PICONS:
+            self.on_picon_page_show()
+        elif page is Page.TIMER:
+            self.on_timer_page_show()
+        elif page is Page.FTP:
+            self.on_ftp_page_show()
+
     def on_profile_changed(self, name):
         self.settings.current_profile = self._profiles[name]
         picon_path = self.get_picon_path()
@@ -330,6 +351,7 @@ class MainWindow(MainUiWindow):
         self.settings.show_picons = self.picons_action.isChecked()
         self.settings.show_epg = self.epg_action.isChecked()
         self.settings.show_timers = self.timer_action.isChecked()
+        self.settings.show_ftp = self.ftp_action.isChecked()
         self.settings.show_control = self.control_action.isChecked()
 
         if self.settings.load_last_config:
@@ -1152,8 +1174,8 @@ class MainWindow(MainUiWindow):
         header = "{}: {}\n{}: {}\n{}: {}\n".format(self.tr("Name"), srv.name,
                                                    self.tr("Type"), srv.service_type,
                                                    self.tr("Package"), srv.package)
-        ref = "{}: {}".format(self.tr("Service reference"), srv.picon_id.rstrip(".png"))
-        return "{}\n{}".format(header, ref)
+        ref = f"{self.tr('Service reference')}: {srv.picon_id.rstrip('.png')}"
+        return f"{header}\n{ref}"
 
     def selected_dst_picons(self):
         """ Returns a set of selected picon files from the dst view. """
@@ -1365,6 +1387,72 @@ class MainWindow(MainUiWindow):
         data_item.setData(timer, Qt.UserRole)
 
         return QStandardItem(name), QStandardItem(desc), QStandardItem(srv_name), QStandardItem(time_str), data_item
+
+    # ********************** FTP *********************** #
+
+    def on_ftp_page_show(self):
+        try:
+            if self._ftp:
+                self._ftp.close()
+
+            st = self._profiles.get(self.profile_combo_box.currentText())
+            self._ftp = UtfFTP(host=st["host"], user=st["user"], passwd=st["password"])
+            self._ftp.encoding = "utf-8"
+            self.ftp_src_status_label.setText(self._ftp.getwelcome())
+        except all_errors as e:
+            log(e)
+        else:
+            self.init_ftp_data()
+
+    def init_ftp_data(self, path=None):
+        self.ftp_src_view.clear_data()
+        if not self._ftp:
+            return
+
+        if path:
+            try:
+                self._ftp.cwd(path)
+            except all_errors as e:
+                log(e)
+
+        files = []
+        try:
+            self._ftp.dir(files.append)
+        except all_errors as e:
+            log(e)
+            self.on_disconnect()
+        else:
+            model = self.ftp_src_view.model()
+            root = (QStandardItem(QIcon.fromTheme("folder"), ".."), None, None, None)
+            model.appendRow(root)
+            for f in files:
+                f_data = self._ftp.get_file_data(f)
+                f_type = f_data[0][0]
+                is_dir = f_type == "d"
+                is_link = f_type == "l"
+                size = f_data[4]
+
+                icon = "file"
+                if is_dir:
+                    icon = "folder"
+                elif is_link:
+                    icon = "emblem-symbolic-link"
+
+                size = self._ftp.get_size_from_bytes(size)
+                date = f"{f_data[5]}, {f_data[6]}  {f_data[7]}"
+                icon = QIcon.fromTheme(icon)
+
+                model.appendRow((QStandardItem(icon, f_data[8]),
+                                 QStandardItem(size),
+                                 QStandardItem(date),
+                                 QStandardItem(f_data[0])))
+
+    def on_connect(self):
+        self.init_ftp()
+
+    def on_disconnect(self):
+        if self._ftp:
+            self._ftp.close()
 
     # ******************** Control ********************* #
 

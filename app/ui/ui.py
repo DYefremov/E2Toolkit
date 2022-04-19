@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2021 Dmitriy Yefremov
+# Copyright (C) 2021-2022 Dmitriy Yefremov
 #
 # This file is part of E2Toolkit.
 #
@@ -169,23 +169,22 @@ class MainUiWindow(QtWidgets.QMainWindow):
         self.transponders_filter_edit.textChanged.connect(self.transponder_view.model().set_filter_text)
         self.picon_src_filter_edit.textChanged.connect(self.picon_src_view.model().filter)
         self.picon_dest_filter_edit.textChanged.connect(self.picon_dst_view.model().filter)
-        # Stack pages.
-        self.stacked_widget.currentChanged.connect(self.on_current_page_changed)
         # Styled elements.
         self.init_styled()
         # Playback.
         self.init_playback_elements()
+        # Hidden by default.
+        self.bq_search_edit.setVisible(False)
+        self.bq_service_search_edit.setVisible(False)
+        self.picon_src_box.setVisible(False)
         # Disabled items!!!
         self.logo_tool_button.setVisible(False)
-        self.ftp_tool_button.setVisible(False)
-        self.picon_src_box.setVisible(False)
         self.import_action.setVisible(False)
         self.filter_free_button.setVisible(False)
         self.filter_type_combo_box.setVisible(False)
         self.filter_pos_combo_box.setVisible(False)
         self.not_in_bq_filter_button.setVisible(False)
         self.satellite_update_tool_button.setVisible(False)
-        self.ftp_action.setVisible(False)
         self.logo_action.setVisible(False)
 
     def init_styled(self):
@@ -270,16 +269,6 @@ class MainUiWindow(QtWidgets.QMainWindow):
             self.save_action.setEnabled(is_file_action)
             self.save_as_action.setEnabled(is_file_action)
             self.upload_tool_button.setEnabled(is_file_action)
-
-    def on_current_page_changed(self, index):
-        page = Page(index)
-        self.current_page = page
-        if page is Page.SAT:
-            self.on_satellite_page_show()
-        elif page is Page.PICONS:
-            self.on_picon_page_show()
-        elif page is Page.TIMER:
-            self.on_timer_page_show()
 
     def set_layout(self, alt):
         """ Sets main elements layout type. """
@@ -433,16 +422,6 @@ class MainUiWindow(QtWidgets.QMainWindow):
         self.fav_tools_menu.setTitle(_translate("MainWindow", "Tools"))
         self.add_stream_action.setText(_translate("MainWindow", "Add IPTV or stream service"))
         self.import_m3u_action.setText(_translate("MainWindow", "Import *m3u"))
-
-    # Pages
-    def on_satellite_page_show(self):
-        pass
-
-    def on_picon_page_show(self):
-        pass
-
-    def on_timer_page_show(self):
-        pass
 
     # Playback
     def set_aspect_ratio(self, action):

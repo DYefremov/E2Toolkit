@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2021 Dmitriy Yefremov
+# Copyright (C) 2021-2022 Dmitriy Yefremov
 #
 # This file is part of E2Toolkit.
 #
@@ -374,6 +374,34 @@ class UtfFTP(FTP):
             callback(msg)
 
         return resp
+
+    @staticmethod
+    def get_file_data(file):
+        """ Returns a prepared list of file data from a file string. """
+        f_data = file.split()
+        # Ignoring space in file name.
+        f_data = f_data[0:9]
+        f_data[8] = file[file.index(f_data[8]):]
+        return f_data
+
+    @staticmethod
+    def get_size_from_bytes(size):
+        """ Simple convert function from bytes to other units like K, M or G. """
+        try:
+            b = float(size)
+        except ValueError:
+            return size
+        else:
+            kb, mb, gb = 1024.0, 1048576.0, 1073741824.0
+
+            if b < kb:
+                return str(b)
+            elif kb <= b < mb:
+                return f"{b / kb:.1f} K"
+            elif mb <= b < gb:
+                return f"{b / mb:.1f} M"
+            elif gb <= b:
+                return f"{b / gb:.1f} G"
 
 
 def download_data(*, settings, download_type=DownloadType.ALL, callback=log, files_filter=None):

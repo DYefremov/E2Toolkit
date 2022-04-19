@@ -2547,7 +2547,7 @@
                 <item>
                  <layout class="QHBoxLayout" name="fav_h_layout">
                   <property name="spacing">
-                   <number>6</number>
+                   <number>2</number>
                   </property>
                   <property name="leftMargin">
                    <number>6</number>
@@ -2555,6 +2555,61 @@
                   <property name="rightMargin">
                    <number>6</number>
                   </property>
+                  <item>
+                   <widget class="QPushButton" name="fav_search_button">
+                    <property name="sizePolicy">
+                     <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                      <horstretch>0</horstretch>
+                      <verstretch>0</verstretch>
+                     </sizepolicy>
+                    </property>
+                    <property name="text">
+                     <string/>
+                    </property>
+                    <property name="icon">
+                     <iconset theme="edit-find">
+                      <normaloff>.</normaloff>.</iconset>
+                    </property>
+                    <property name="checkable">
+                     <bool>true</bool>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLineEdit" name="bq_service_search_edit">
+                    <property name="sizePolicy">
+                     <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                      <horstretch>0</horstretch>
+                      <verstretch>0</verstretch>
+                     </sizepolicy>
+                    </property>
+                    <property name="inputMask">
+                     <string notr="true"/>
+                    </property>
+                    <property name="text">
+                     <string notr="true"/>
+                    </property>
+                    <property name="placeholderText">
+                     <string>Search...</string>
+                    </property>
+                    <property name="clearButtonEnabled">
+                     <bool>true</bool>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <spacer name="fav_spacer">
+                    <property name="orientation">
+                     <enum>Qt::Horizontal</enum>
+                    </property>
+                    <property name="sizeHint" stdset="0">
+                     <size>
+                      <width>40</width>
+                      <height>20</height>
+                     </size>
+                    </property>
+                   </spacer>
+                  </item>
                   <item>
                    <widget class="QPushButton" name="fav_menu_button">
                     <property name="sizePolicy">
@@ -2590,41 +2645,6 @@
                       <width>16</width>
                       <height>16</height>
                      </size>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <spacer name="fav_spacer">
-                    <property name="orientation">
-                     <enum>Qt::Horizontal</enum>
-                    </property>
-                    <property name="sizeHint" stdset="0">
-                     <size>
-                      <width>40</width>
-                      <height>20</height>
-                     </size>
-                    </property>
-                   </spacer>
-                  </item>
-                  <item>
-                   <widget class="QLineEdit" name="bq_service_search_edit">
-                    <property name="sizePolicy">
-                     <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                      <horstretch>0</horstretch>
-                      <verstretch>0</verstretch>
-                     </sizepolicy>
-                    </property>
-                    <property name="inputMask">
-                     <string notr="true"/>
-                    </property>
-                    <property name="text">
-                     <string notr="true"/>
-                    </property>
-                    <property name="placeholderText">
-                     <string>Search...</string>
-                    </property>
-                    <property name="clearButtonEnabled">
-                     <bool>true</bool>
                     </property>
                    </widget>
                   </item>
@@ -2691,12 +2711,64 @@
                 </property>
                 <item>
                  <layout class="QHBoxLayout" name="bq_h_layout">
+                  <property name="spacing">
+                   <number>2</number>
+                  </property>
                   <property name="leftMargin">
                    <number>6</number>
                   </property>
                   <property name="rightMargin">
                    <number>6</number>
                   </property>
+                  <item>
+                   <widget class="QPushButton" name="bq_search_button">
+                    <property name="sizePolicy">
+                     <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                      <horstretch>0</horstretch>
+                      <verstretch>0</verstretch>
+                     </sizepolicy>
+                    </property>
+                    <property name="text">
+                     <string/>
+                    </property>
+                    <property name="icon">
+                     <iconset theme="edit-find">
+                      <normaloff>.</normaloff>.</iconset>
+                    </property>
+                    <property name="checkable">
+                     <bool>true</bool>
+                    </property>
+                    <property name="flat">
+                     <bool>false</bool>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLineEdit" name="bq_search_edit">
+                    <property name="sizePolicy">
+                     <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                      <horstretch>0</horstretch>
+                      <verstretch>0</verstretch>
+                     </sizepolicy>
+                    </property>
+                    <property name="placeholderText">
+                     <string>Search...</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <spacer name="bouquets_spacer">
+                    <property name="orientation">
+                     <enum>Qt::Horizontal</enum>
+                    </property>
+                    <property name="sizeHint" stdset="0">
+                     <size>
+                      <width>40</width>
+                      <height>20</height>
+                     </size>
+                    </property>
+                   </spacer>
+                  </item>
                   <item>
                    <widget class="QPushButton" name="add_bouquet_button">
                     <property name="sizePolicy">
@@ -2724,19 +2796,6 @@
                      <string>Add</string>
                     </property>
                    </widget>
-                  </item>
-                  <item>
-                   <spacer name="bouquets_spacer">
-                    <property name="orientation">
-                     <enum>Qt::Horizontal</enum>
-                    </property>
-                    <property name="sizeHint" stdset="0">
-                     <size>
-                      <width>40</width>
-                      <height>20</height>
-                     </size>
-                    </property>
-                   </spacer>
                   </item>
                  </layout>
                 </item>
@@ -3217,10 +3276,10 @@
     <bool>true</bool>
    </property>
    <property name="checked">
-    <bool>false</bool>
+    <bool>true</bool>
    </property>
    <property name="enabled">
-    <bool>false</bool>
+    <bool>true</bool>
    </property>
    <property name="text">
     <string>FTP</string>
@@ -3411,6 +3470,38 @@
     <hint type="destinationlabel">
      <x>882</x>
      <y>55</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>bq_search_button</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>bq_search_edit</receiver>
+   <slot>setVisible(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>527</x>
+     <y>305</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>621</x>
+     <y>305</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>fav_search_button</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>bq_service_search_edit</receiver>
+   <slot>setVisible(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>470</x>
+     <y>142</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>546</x>
+     <y>142</y>
     </hint>
    </hints>
   </connection>

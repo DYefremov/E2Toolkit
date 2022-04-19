@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2021 Dmitriy Yefremov
+# Copyright (C) 2021-2022 Dmitriy Yefremov
 #
 # This file is part of E2Toolkit.
 #
@@ -842,11 +842,14 @@ class TimerView(BaseTableView, Searcher):
         return Column.TIMER_NAME, Column.TIMER_DESC, Column.TIMER_SRV, Column.TIMER_TIME
 
 
-class FtpView(QtWidgets.QListView):
+class FtpView(QtWidgets.QTableView):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.setEditTriggers(self.NoEditTriggers)
         self.setObjectName("ftp_view")
+        self.setShowGrid(False)
+        self.setSelectionBehavior(self.SelectRows)
+        self.verticalHeader().setVisible(False)
 
         self.setModel(FtpModel(self))
 
@@ -855,16 +858,43 @@ class FtpView(QtWidgets.QListView):
         model.removeRows(0, model.rowCount())
 
 
-class FileView(QtWidgets.QListView):
+class FileView(QtWidgets.QTableView):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.setObjectName("file_view")
+        self.setShowGrid(False)
+        self.setSelectionBehavior(self.SelectRows)
+        self.verticalHeader().setVisible(False)
         # Init root path
         root_path = QtCore.QDir.rootPath()
         model = FileModel(self)
         model.setRootPath(root_path)
         self.setModel(model)
         self.setRootIndex(model.index(root_path))
+
+    def keyPressEvent(self, event):
+        key = event.key()
+        if key == QtCore.Qt.Key_Return:
+            self.change_path(self.currentIndex())
+        elif key == QtCore.Qt.Key_Delete:
+            self.on_remove(True)
+        else:
+            super().keyPressEvent(event)
+
+    def mouseDoubleClickEvent(self, event):
+        index = self.indexAt(event.pos())
+        if index.isValid():
+            self.change_path(index)
+
+    def change_path(self, index):
+        model = self.model()
+        if model.isDir(index):
+            path = self.model().data(index)
+            if path == "..":
+                self.setRootIndex(self.rootIndex().parent())
+            else:
+                if self.model().hasChildren(index):
+                    self.setRootIndex(index)
 
 
 class MediaView(QtWidgets.QGraphicsView):
