@@ -408,8 +408,7 @@ class MainWindow(MainUiWindow):
             download_type = DownloadType.SATELLITES
         elif self.current_page is Page.PICONS:
             download_type = DownloadType.PICONS
-            if self.picon_load_only_selected_box.isChecked():
-                f_filter = self.selected_dst_picons()
+            f_filter = self.selected_dst_picons()
 
         data_loader = DataLoader(self.settings, download_type, upload, self._http_api, f_filter, parent=self)
         data_loader.message.connect(self.log_text_browser.append)

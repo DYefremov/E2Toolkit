@@ -26,6 +26,7 @@ from enum import IntEnum
 
 from PyQt5 import QtCore, QtGui, QtWidgets, uic
 
+from app.commons import log
 from app.ui.settings import UI_PATH, IS_LINUX
 from app.ui.views import *
 
@@ -207,6 +208,15 @@ class MainUiWindow(QtWidgets.QMainWindow):
             self.media_next_button.setIcon(style.standardIcon(style.SP_MediaSeekForward))
 
             info_pix = style.standardIcon(style.SP_MessageBoxInformation).pixmap(QtCore.QSize(16, 16))
+
+            # QtAwesome -> https://github.com/spyder-ide/qtawesome
+            try:
+                import qtawesome as qa
+            except ImportError as e:
+                log(e)
+            else:
+                self.fav_search_button.setIcon(qa.icon("fa.search"))
+                self.bq_search_button.setIcon(qa.icon("fa.search"))
         else:
             info_pix = QtGui.QIcon.fromTheme("document-properties").pixmap(QtCore.QSize(16, 16))
         # Info labels.
