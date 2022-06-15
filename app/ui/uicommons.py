@@ -21,12 +21,19 @@
 #
 
 """ Common UI module. """
+import os
+import sys
 from enum import IntEnum
 
 # Base UI files path.
 UI_PATH = "app/ui/res/"
 # Translation
 LANG_PATH = "app/ui/locale/"
+
+if getattr(sys, "frozen", False):
+    # Bundle!
+    UI_PATH = f"{sys._MEIPASS}{os.sep}{UI_PATH}"
+    LANG_PATH = f"{sys._MEIPASS}{os.sep}{LANG_PATH}"
 
 # Icons
 CODED_ICON = None
