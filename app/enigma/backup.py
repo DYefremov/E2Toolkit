@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2021 Dmitriy Yefremov
+# Copyright (C) 2021-2022 Dmitriy Yefremov
 #
 # This file is part of E2Toolkit.
 #
@@ -26,7 +26,6 @@ import os
 import shutil
 from datetime import datetime
 
-
 _XML_DATA = {"satellites.xml", "terrestrial.xml", "cables.xml"}
 
 
@@ -35,7 +34,7 @@ def backup_data(path, backup_path, move=True):
 
         Returns full path to the compressed file.
     """
-    backup_path = "{}{}/".format(backup_path, datetime.now().strftime("%Y-%m-%d_%H-%M-%S"))
+    backup_path = f"{backup_path}{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}{os.sep}"
     os.makedirs(os.path.dirname(backup_path), exist_ok=True)
     os.makedirs(os.path.dirname(path), exist_ok=True)
     # Backup files in data dir(skipping dirs and *.xml)
@@ -43,7 +42,7 @@ def backup_data(path, backup_path, move=True):
         src, dst = os.path.join(path, file), backup_path + file
         shutil.move(src, dst) if move else shutil.copy(src, dst)
     # Compressing to zip and delete remaining files.
-    zip_file = shutil.make_archive(backup_path, "zip", backup_path)
+    zip_file = shutil.make_archive(backup_path.rstrip(os.sep), "zip", backup_path)
     shutil.rmtree(backup_path)
 
     return zip_file
