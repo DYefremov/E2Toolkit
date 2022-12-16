@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2021 Dmitriy Yefremov
+# Copyright (C) 2021-2022 Dmitriy Yefremov
 #
 # This file is part of E2Toolkit.
 #
@@ -111,7 +111,7 @@ class MpvPlayer(Player):
                                    input_cursor=False,
                                    cursor_autohide="no")
         except OSError as e:
-            log("{}: Load library error: {}".format(__class__.__name__, e))
+            log(f"{__class__.__name__}: Load library error: {e}")
             raise ImportError("No libmpv is found. Check that it is installed!")
         else:
             self._is_playing = False
@@ -123,9 +123,10 @@ class MpvPlayer(Player):
 
             @self._player.event_callback(mpv.MpvEventID.END_FILE)
             def on_end(event):
-                event = event.get("event", {})
-                if event.get("reason", mpv.MpvEventEndFile.ERROR) == mpv.MpvEventEndFile.ERROR:
-                    error_msg = "Stream playback error: {}".format(event.get("error", mpv.ErrorCode.GENERIC))
+                event = event.as_dict(mpv.strict_decoder)
+                if event.get("reason", None) == "error":
+                    error = event.get("file_error", "Can't Playback!").capitalize()
+                    error_msg = f"Stream playback error: {error}"
                     log(error_msg)
                     self.error.emit(error_msg)
 
@@ -176,7 +177,7 @@ class GstPlayer(Player):
             # Initialization of GStreamer.
             Gst.init(sys.argv)
         except (OSError, ValueError) as e:
-            log("{}: Load library error: {}".format(__class__.__name__, e))
+            log(f"{__class__.__name__}: Load library error: {e}")
             raise ImportError("No GStreamer is found. Check that it is installed!")
         else:
             self.STATE = Gst.State
@@ -205,11 +206,11 @@ class GstPlayer(Player):
 
         self._player.set_property("uri", mrl)
 
-        log("Setting the URL for playback: {}".format(mrl))
+        log(f"Setting the URL for playback: {mrl}")
         ret = self._player.set_state(self.STATE.PLAYING)
 
         if ret == self.STAT_RETURN.FAILURE:
-            log("ERROR: Unable to set the 'PLAYING' state for '{}'.".format(mrl))
+            log(f"ERROR: Unable to set the 'PLAYING' state for '{mrl}'.")
         else:
             self._is_playing = True
 
