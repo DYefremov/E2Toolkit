@@ -46,12 +46,19 @@ else:
     # still better than segfaulting, we are setting LC_NUMERIC to "C".
     locale.setlocale(locale.LC_NUMERIC, 'C')
 
-    sofile = ctypes.util.find_library('mpv')
+    if getattr(sys, "frozen", False):
+        # Bundle!
+        lib_path = f"{sys._MEIPASS}{os.sep}libmpv.dylib"
+        sofile = lib_path if os.path.isfile(lib_path) else None
+    else:
+        sofile = ctypes.util.find_library('mpv')
+
     if sofile is None:
         raise OSError("Cannot find libmpv in the usual places. Depending on your distro, you may try installing an "
                       "mpv-devel or mpv-libs package. If you have libmpv around but this script can't find it, consult "
                       "the documentation for ctypes.util.find_library which this script uses to look up the library "
                       "filename.")
+
     backend = CDLL(sofile)
     fs_enc = sys.getfilesystemencoding()
 
